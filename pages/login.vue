@@ -28,7 +28,7 @@ const handleSubmit = async () => {
         },
       })
       if (signUpError) throw signUpError
-      error.value = 'Conta criada com sucesso! Faça login.'
+      error.value = 'Conta criada com sucesso! Verifique seu email ou faça login.'
       isLogin.value = true
     }
   } catch (err: any) {
@@ -45,21 +45,22 @@ const toggleMode = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900">
     <Card class="w-full max-w-md mx-4">
       <div class="p-6 space-y-6">
         <!-- Header -->
         <div class="text-center space-y-2">
-          <h1 class="text-3xl font-bold">💪 Workout Tracker</h1>
+          <div class="text-5xl mb-2">💪</div>
+          <h1 class="text-3xl font-bold tracking-tight">Workout Tracker</h1>
           <p class="text-muted-foreground">
-            {{ isLogin ? 'Entre na sua conta' : 'Crie sua conta' }}
+            {{ isLogin ? 'Entre na sua conta para continuar' : 'Crie sua conta para começar' }}
           </p>
         </div>
 
         <!-- Error/Success -->
         <div v-if="error" :class="cn(
-          'p-3 rounded-md text-sm',
-          error.includes('sucesso') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-destructive/10 text-destructive',
+          'p-3 rounded-md text-sm border',
+          error.includes('sucesso') ? 'bg-green-50 text-green-700 border-green-200' : 'bg-destructive/10 text-destructive border-destructive/20',
         )">
           {{ error }}
         </div>
@@ -79,7 +80,12 @@ const toggleMode = () => {
           </div>
 
           <div class="space-y-2">
-            <Label for="password" required>Senha</Label>
+            <div class="flex items-center justify-between">
+              <Label for="password" required>Senha</Label>
+              <a v-if="isLogin" href="#" class="text-sm text-primary hover:underline">
+                Esqueceu a senha?
+              </a>
+            </div>
             <Input
               id="password"
               v-model="password"
@@ -91,13 +97,27 @@ const toggleMode = () => {
           </div>
 
           <Button type="submit" class="w-full" :disabled="loading">
+            <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
             {{ loading ? 'Processando...' : (isLogin ? 'Entrar' : 'Criar conta') }}
           </Button>
         </form>
 
+        <!-- Divider -->
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <span class="w-full border-t" />
+          </div>
+          <div class="relative flex justify-center text-xs uppercase">
+            <span class="bg-card px-2 text-muted-foreground">Ou</span>
+          </div>
+        </div>
+
         <!-- Toggle -->
         <p class="text-center text-sm text-muted-foreground">
-          {{ isLogin ? 'Não tem conta?' : 'Já tem conta?' }}
+          {{ isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?' }}
           <button class="text-primary hover:underline font-medium" @click="toggleMode">
             {{ isLogin ? 'Criar conta' : 'Entrar' }}
           </button>

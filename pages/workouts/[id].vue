@@ -120,25 +120,66 @@ const deleteExercise = async (exerciseId: string) => {
   }
 }
 
+const totalVolume = computed(() => {
+  if (!workout.value?.exercises) return 0
+  return workout.value.exercises.reduce((sum, ex) => {
+    const exerciseVolume = (ex.sets || []).reduce((s, set) => s + (set.reps * set.weight_kg), 0)
+    return sum + exerciseVolume
+  }, 0)
+})
+
+const totalSets = computed(() => {
+  if (!workout.value?.exercises) return 0
+  return workout.value.exercises.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0)
+})
+
 onMounted(fetchWorkout)
 </script>
 
 <template>
   <div v-if="workout" class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <NuxtLink to="/" class="text-sm text-muted-foreground hover:text-primary mb-1 block">
-          ← Voltar aos treinos
-        </NuxtLink>
-        <h1 class="text-3xl font-bold">{{ workout.name }}</h1>
-        <p class="text-muted-foreground mt-1">
-          {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
-        </p>
+    <div class="space-y-4">
+      <NuxtLink to="/" class="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Voltar aos treinos
+      </NuxtLink>
+      
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight">{{ workout.name }}</h1>
+          <p class="text-muted-foreground mt-1 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+          </p>
+        </div>
+        <Button @click="showExerciseForm = true">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Exercício
+        </Button>
       </div>
-      <Button @click="showExerciseForm = true">
-        <span class="mr-2">+</span> Exercício
-      </Button>
+
+      <!-- Stats -->
+      <div class="flex gap-4">
+        <Card class="flex-1 p-4">
+          <div class="text-sm text-muted-foreground">Total de Séries</div>
+          <div class="text-2xl font-bold">{{ totalSets }}</div>
+        </Card>
+        <Card class="flex-1 p-4">
+          <div class="text-sm text-muted-foreground">Volume Total</div>
+          <div class="text-2xl font-bold">{{ totalVolume.toLocaleString('pt-BR') }} <span class="text-sm font-normal text-muted-foreground">kg</span></div>
+        </Card>
+        <Card class="flex-1 p-4">
+          <div class="text-sm text-muted-foreground">Exercícios</div>
+          <div class="text-2xl font-bold">{{ workout.exercises?.length || 0 }}</div>
+        </Card>
+      </div>
     </div>
 
     <!-- Exercise Form -->
@@ -166,75 +207,93 @@ onMounted(fetchWorkout)
     <!-- Exercises -->
     <div v-if="workout.exercises?.length" class="space-y-6">
       <Card
-        v-for="exercise in workout.exercises"
+        v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
-        class="p-6"
+        class="overflow-hidden"
       >
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold">{{ exercise.name }}</h3>
-          <Button variant="ghost" size="sm" @click="deleteExercise(exercise.id)">
-            🗑️
-          </Button>
+        <!-- Exercise Header -->
+        <div class="flex items-center justify-between p-4 border-b bg-muted/30">
+          <div class="flex items-center gap-3">
+            <Badge variant="outline" class="font-mono">{{ idx + 1 }}</Badge>
+            <h3 class="text-lg font-semibold">{{ exercise.name }}</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <Badge variant="secondary">{{ exercise.sets?.length || 0 }} séries</Badge>
+            <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive" @click="deleteExercise(exercise.id)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </Button>
+          </div>
         </div>
 
         <!-- Sets Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b">
-                <th class="text-left py-2 px-2 font-medium">Série</th>
-                <th class="text-left py-2 px-2 font-medium">Reps</th>
-                <th class="text-left py-2 px-2 font-medium">Carga (kg)</th>
-                <th class="text-left py-2 px-2 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="set in exercise.sets" :key="set.id" class="border-b">
-                <td class="py-2 px-2">
-                  <span class="font-medium">{{ set.set_number }}</span>
-                </td>
-                <td class="py-2 px-2">
-                  <Input
-                    :model-value="String(set.reps)"
-                    type="number"
-                    class="w-20 h-8"
-                    @update:model-value="updateSet(set.id, 'reps', Number($event))"
-                  />
-                </td>
-                <td class="py-2 px-2">
-                  <Input
-                    :model-value="String(set.weight_kg)"
-                    type="number"
-                    step="0.5"
-                    class="w-24 h-8"
-                    @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
-                  />
-                </td>
-                <td class="py-2 px-2">
-                  <Button variant="ghost" size="sm" @click="deleteSet(set.id)">
-                    ✕
-                  </Button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div class="p-4">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-muted-foreground border-b">
+                  <th class="text-left py-2 px-3 font-medium">Série</th>
+                  <th class="text-left py-2 px-3 font-medium">Reps</th>
+                  <th class="text-left py-2 px-3 font-medium">Carga (kg)</th>
+                  <th class="text-right py-2 px-3 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  <td class="py-3 px-3">
+                    <Badge variant="secondary" class="font-mono">{{ set.set_number }}</Badge>
+                  </td>
+                  <td class="py-3 px-3">
+                    <Input
+                      :model-value="String(set.reps)"
+                      type="number"
+                      min="1"
+                      class="w-20 h-9 font-mono"
+                      @update:model-value="updateSet(set.id, 'reps', Number($event))"
+                    />
+                  </td>
+                  <td class="py-3 px-3">
+                    <Input
+                      :model-value="String(set.weight_kg)"
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      class="w-24 h-9 font-mono"
+                      @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
+                    />
+                  </td>
+                  <td class="py-3 px-3 text-right">
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </Button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <!-- Add Set Button -->
-        <Button
-          variant="outline"
-          size="sm"
-          class="mt-4"
-          @click="addSet(exercise.id)"
-        >
-          + Série
-        </Button>
+          <!-- Add Set Button -->
+          <Button
+            variant="outline"
+            size="sm"
+            class="mt-4 w-full"
+            @click="addSet(exercise.id)"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Adicionar Série
+          </Button>
+        </div>
       </Card>
     </div>
 
     <!-- Empty State -->
     <Card v-else class="p-12 text-center">
-      <p class="text-4xl mb-4">🏋️</p>
+      <div class="text-5xl mb-4">🏋️</div>
       <h3 class="text-xl font-semibold mb-2">Nenhum exercício</h3>
       <p class="text-muted-foreground">Adicione exercícios ao seu treino!</p>
     </Card>
@@ -242,6 +301,9 @@ onMounted(fetchWorkout)
 
   <!-- Loading -->
   <div v-else class="flex justify-center py-12">
-    <p class="text-muted-foreground">Carregando...</p>
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+      <p class="text-muted-foreground">Carregando...</p>
+    </div>
   </div>
 </template>
