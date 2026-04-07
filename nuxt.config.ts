@@ -11,6 +11,26 @@ export default defineNuxtConfig({
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
     redirect: false,
+    cookieOptions: {
+      maxAge: 60 * 60 * 24 * 7, // 7 dias
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    },
+    clientOptions: {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+      },
+    },
+  },
+
+  runtimeConfig: {
+    public: {
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseKey: process.env.SUPABASE_KEY,
+    },
   },
 
   css: ['~/assets/css/main.css'],
@@ -35,7 +55,7 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
-    typeCheck: false, // Desabilitado para performance, use `npm run type-check`
+    typeCheck: false,
   },
 
   nitro: {

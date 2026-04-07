@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const supabase = useSupabaseClient()
-const { $supabase } = useNuxtApp()
 
 const { data: session } = useSupabaseSession()
 
@@ -23,7 +22,7 @@ const logout = async () => {
         </NuxtLink>
         
         <div v-if="user" class="flex items-center gap-4">
-          <span class="text-sm text-muted-foreground">{{ user.email }}</span>
+          <span class="text-sm text-muted-foreground hidden sm:inline">{{ user.email }}</span>
           <Button variant="outline" size="sm" @click="logout">
             Sair
           </Button>
@@ -40,7 +39,7 @@ const logout = async () => {
     <footer class="border-t py-6 md:py-0">
       <div class="container mx-auto flex h-9 items-center justify-between px-4">
         <p class="text-sm text-muted-foreground">
-          © {{ new Date().getFullYear() }} Workout Tracker
+          &copy; {{ new Date().getFullYear() }} Workout Tracker
         </p>
       </div>
     </footer>
