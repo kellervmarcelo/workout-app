@@ -93,36 +93,37 @@ const totalExercises = (template: WorkoutTemplateWithExercises) => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 md:space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="space-y-3 md:flex md:items-start md:justify-between md:space-y-0">
       <div>
         <div class="flex items-center gap-2">
-          <NuxtLink to="/" class="text-muted-foreground hover:text-primary transition-colors">
+          <NuxtLink to="/" class="text-muted-foreground hover:text-primary transition-colors min-h-[44px] flex items-center">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
           </NuxtLink>
           <div>
-            <h1 class="text-3xl font-bold tracking-tight">Meus Templates</h1>
-            <p class="text-muted-foreground mt-1">Templates de treino salvos para reutilizar</p>
+            <h1 class="text-xl font-bold tracking-tight md:text-3xl">Meus Templates</h1>
+            <p class="text-sm text-muted-foreground mt-0.5">Templates para reutilizar</p>
           </div>
         </div>
       </div>
-      <Button @click="showCreateDialog = true">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <Button size="sm" @click="showCreateDialog = true" class="w-full md:w-auto">
+        <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Novo Template
+        <span class="hidden sm:inline">Novo Template</span>
+        <span class="sm:hidden">Novo</span>
       </Button>
     </div>
 
     <!-- Create Dialog -->
-    <Card v-if="showCreateDialog" class="p-6">
+    <Card v-if="showCreateDialog" class="p-4 md:p-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">Novo Template</h2>
-        <Button variant="ghost" size="icon" class="h-8 w-8" @click="showCreateDialog = false">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h2 class="text-lg font-semibold md:text-xl">Novo Template</h2>
+        <Button variant="ghost" size="icon" class="h-9 w-9" @click="showCreateDialog = false">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </Button>
@@ -133,8 +134,9 @@ const totalExercises = (template: WorkoutTemplateWithExercises) => {
           <Input
             id="template-name"
             v-model="newTemplateName"
-            placeholder="Ex: Treino A - Peito e Tríceps"
+            placeholder="Ex: Treino A - Peito"
             required
+            class="h-11 text-base"
           />
         </div>
         <div class="space-y-2">
@@ -143,13 +145,14 @@ const totalExercises = (template: WorkoutTemplateWithExercises) => {
             id="template-description"
             v-model="newTemplateDescription"
             placeholder="Ex: Foco em hipertrofia"
+            class="h-11 text-base"
           />
         </div>
-        <div class="flex gap-2 justify-end">
-          <Button type="button" variant="outline" @click="showCreateDialog = false">
+        <div class="flex gap-2">
+          <Button type="button" variant="outline" @click="showCreateDialog = false" class="flex-1">
             Cancelar
           </Button>
-          <Button type="submit">Criar Template</Button>
+          <Button type="submit" class="flex-1">Criar Template</Button>
         </div>
       </form>
     </Card>
@@ -163,36 +166,36 @@ const totalExercises = (template: WorkoutTemplateWithExercises) => {
     </div>
 
     <!-- Empty State -->
-    <Card v-else-if="templates.length === 0" class="p-12 text-center">
+    <Card v-else-if="templates.length === 0" class="p-8 text-center md:p-12">
       <div class="text-5xl mb-4">📋</div>
-      <h3 class="text-xl font-semibold mb-2">Nenhum template ainda</h3>
-      <p class="text-muted-foreground">Crie templates para reutilizar seus treinos!</p>
+      <h3 class="text-lg font-semibold mb-2 md:text-xl">Nenhum template ainda</h3>
+      <p class="text-sm text-muted-foreground">Crie templates para reutilizar seus treinos!</p>
     </Card>
 
     <!-- Template List -->
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-3 md:space-y-4">
       <Card
         v-for="template in templates"
         :key="template.id"
-        class="p-6 hover:shadow-md transition-shadow cursor-pointer"
+        class="p-4 hover:shadow-md transition-shadow cursor-pointer md:p-6"
         @click="navigateTo(`/templates/${template.id}`)"
       >
-        <div class="flex items-start justify-between">
-          <div class="space-y-2 flex-1">
-            <div class="flex items-center gap-2">
-              <h3 class="text-lg font-semibold">{{ template.name }}</h3>
-              <Badge variant="outline" class="font-mono text-xs">
-                {{ totalExercises(template) }} exercícios
+        <div class="flex items-start justify-between gap-3">
+          <div class="space-y-1.5 flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <h3 class="text-base font-semibold truncate md:text-lg">{{ template.name }}</h3>
+              <Badge variant="outline" class="font-mono text-[10px] shrink-0">
+                {{ totalExercises(template) }}
               </Badge>
             </div>
-            <p v-if="template.description" class="text-sm text-muted-foreground">
+            <p v-if="template.description" class="text-xs text-muted-foreground truncate md:text-sm">
               {{ template.description }}
             </p>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            class="h-8 w-8 text-muted-foreground hover:text-destructive"
+            class="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
             @click.stop="deleteTemplate(template.id)"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
