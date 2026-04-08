@@ -149,8 +149,8 @@ import type { ExerciseLibraryItem, MuscleGroup } from '~/types'
 import { useExerciseLibrary } from '~/composables/useExerciseLibrary'
 
 interface Props {
-  open: boolean
-  addedExerciseNames: string[]
+  open?: boolean
+  addedExerciseNames?: string[]
   class?: string
 }
 
