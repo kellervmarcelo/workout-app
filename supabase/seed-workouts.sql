@@ -1,95 +1,22 @@
 -- =====================================================
--- Seed para desenvolvimento local
--- =====================================================
--- Este arquivo é carregado automaticamente após as migrações
--- ao rodar `supabase db reset`
--- =====================================================
-
--- Habilitar pgcrypto
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- =====================================================
--- Criar usuários com hash bcrypt conhecido
--- O hash abaixo é para "password123" gerado pelo bcrypt
--- =====================================================
-
--- Usuário 1: marcos@email.com
-DO $$
-DECLARE v_uid UUID := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-BEGIN
-  -- Limpar dados existentes para este email
-  DELETE FROM auth.identities WHERE email = 'marcos@email.com';
-  DELETE FROM auth.users WHERE email = 'marcos@email.com';
-
-  INSERT INTO auth.users (
-    id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at,
-    raw_app_meta_data, raw_user_meta_data,
-    is_super_admin, phone, confirmation_token, email_change_token_current, email_change_token_new
-  ) VALUES (
-    v_uid, 'authenticated', 'authenticated', 'marcos@email.com',
-    -- bcrypt hash de "password123" com cost 6
-    '$2a$06$ITtEaKCUlF4IcRlS3oFgYOqjGvMx0rHqVzF6VqK3z8nF0xHqFqH2u',
-    NOW(), NOW(), NOW(),
-    '{"provider":"email","providers":["email"]}',
-    '{"name":"Marcos"}',
-    FALSE, NULL, '', '', ''
-  );
-
-  INSERT INTO auth.identities (
-    provider_id, user_id, identity_data, provider,
-    last_sign_in_at, created_at, updated_at
-  ) VALUES (
-    v_uid::text, v_uid,
-    jsonb_build_object('sub', v_uid::text, 'email', 'marcos@email.com'),
-    'email', NOW(), NOW(), NOW()
-  );
-END $$;
-
--- Usuário 2: ana@email.com
-DO $$
-DECLARE v_uid UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-BEGIN
-  DELETE FROM auth.identities WHERE email = 'ana@email.com';
-  DELETE FROM auth.users WHERE email = 'ana@email.com';
-
-  INSERT INTO auth.users (
-    id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at,
-    raw_app_meta_data, raw_user_meta_data,
-    is_super_admin, phone, confirmation_token, email_change_token_current, email_change_token_new
-  ) VALUES (
-    v_uid, 'authenticated', 'authenticated', 'ana@email.com',
-    '$2a$06$ITtEaKCUlF4IcRlS3oFgYOqjGvMx0rHqVzF6VqK3z8nF0xHqFqH2u',
-    NOW(), NOW(), NOW(),
-    '{"provider":"email","providers":["email"]}',
-    '{"name":"Ana"}',
-    FALSE, NULL, '', '', ''
-  );
-
-  INSERT INTO auth.identities (
-    provider_id, user_id, identity_data, provider,
-    last_sign_in_at, created_at, updated_at
-  ) VALUES (
-    v_uid::text, v_uid,
-    jsonb_build_object('sub', v_uid::text, 'email', 'ana@email.com'),
-    'email', NOW(), NOW(), NOW()
-  );
-END $$;
-
--- =====================================================
--- 3. Criar treinos, exercícios e séries para marcos
+-- Popula dados de treino para usuários criados via signup
+-- Rodar APÓS criar usuários com `npm run seed:users`
 -- =====================================================
 
 DO $$
 DECLARE
-  v_user_id UUID := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+  v_marcos_id UUID := (SELECT id FROM auth.users WHERE email = 'marcos@email.com');
+  v_ana_id UUID := (SELECT id FROM auth.users WHERE email = 'ana@email.com');
   v_workout_id UUID;
   v_exercise_id UUID;
 BEGIN
-  -- ===== TREINO 1: Peito & Tríceps (ontem) =====
+  IF v_marcos_id IS NULL OR v_ana_id IS NULL THEN
+    RAISE EXCEPTION 'Usuarios nao encontrados. Rode npm run seed:users primeiro.';
+  END IF;
+
+  -- ===== MARCOS: Treino 1 - Peito & Tríceps (ontem) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Peito & Tríceps', v_user_id, CURRENT_DATE - INTERVAL '1 day', 'Foco em hipertrofia')
+  VALUES ('Peito & Tríceps', v_marcos_id, CURRENT_DATE - INTERVAL '1 day', 'Foco em hipertrofia')
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Supino Reto com Barra', 1) RETURNING id INTO v_exercise_id;
@@ -115,9 +42,9 @@ BEGIN
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 12, 20, true), (v_exercise_id, 2, 10, 25, true), (v_exercise_id, 3, 8, 30, true);
 
-  -- ===== TREINO 2: Costas & Bíceps (3 dias atrás) =====
+  -- ===== MARCOS: Treino 2 - Costas & Bíceps (3 dias atrás) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Costas & Bíceps', v_user_id, CURRENT_DATE - INTERVAL '3 days', 'Dia pesado')
+  VALUES ('Costas & Bíceps', v_marcos_id, CURRENT_DATE - INTERVAL '3 days', 'Dia pesado')
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Puxada Frontal', 1) RETURNING id INTO v_exercise_id;
@@ -146,9 +73,9 @@ BEGIN
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 12, 12, true), (v_exercise_id, 2, 10, 14, true), (v_exercise_id, 3, 10, 14, true);
 
-  -- ===== TREINO 3: Pernas (5 dias atrás) =====
+  -- ===== MARCOS: Treino 3 - Pernas (5 dias atrás) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Pernas', v_user_id, CURRENT_DATE - INTERVAL '5 days', 'Agachamento pesado!')
+  VALUES ('Pernas', v_marcos_id, CURRENT_DATE - INTERVAL '5 days', 'Agachamento pesado!')
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Agachamento Livre', 1) RETURNING id INTO v_exercise_id;
@@ -174,9 +101,9 @@ BEGIN
     (v_exercise_id, 1, 15, 60, true), (v_exercise_id, 2, 15, 60, true),
     (v_exercise_id, 3, 12, 70, true), (v_exercise_id, 4, 12, 70, true);
 
-  -- ===== TREINO 4: Ombros & Trapézio (7 dias atrás) =====
+  -- ===== MARCOS: Treino 4 - Ombros & Trapézio (7 dias atrás) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Ombros & Trapézio', v_user_id, CURRENT_DATE - INTERVAL '7 days', NULL)
+  VALUES ('Ombros & Trapézio', v_marcos_id, CURRENT_DATE - INTERVAL '7 days', NULL)
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Desenvolvimento Militar', 1) RETURNING id INTO v_exercise_id;
@@ -201,9 +128,9 @@ BEGIN
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 15, 30, true), (v_exercise_id, 2, 12, 36, true), (v_exercise_id, 3, 12, 36, true);
 
-  -- ===== TREINO 5: Hoje (em progresso) =====
+  -- ===== MARCOS: Treino 5 - Hoje (em progresso) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Peito & Tríceps', v_user_id, CURRENT_DATE, 'Treino de hoje')
+  VALUES ('Peito & Tríceps', v_marcos_id, CURRENT_DATE, 'Treino de hoje')
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Supino Reto com Barra', 1) RETURNING id INTO v_exercise_id;
@@ -212,20 +139,10 @@ BEGIN
     (v_exercise_id, 3, 8, 80, false);
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Supino Inclinado com Halteres', 2) RETURNING id INTO v_exercise_id;
-END $$;
 
--- =====================================================
--- 4. Criar treinos para ana
--- =====================================================
-DO $$
-DECLARE
-  v_user_id UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-  v_workout_id UUID;
-  v_exercise_id UUID;
-BEGIN
-  -- ===== TREINO 1: Superior A (2 dias atrás) =====
+  -- ===== ANA: Treino 1 - Superior A (2 dias atrás) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Superior A', v_user_id, CURRENT_DATE - INTERVAL '2 days', 'Foco em membros superiores')
+  VALUES ('Superior A', v_ana_id, CURRENT_DATE - INTERVAL '2 days', 'Foco em membros superiores')
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Puxada Frontal', 1) RETURNING id INTO v_exercise_id;
@@ -248,9 +165,9 @@ BEGIN
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 15, 4, true), (v_exercise_id, 2, 12, 6, true), (v_exercise_id, 3, 12, 6, true);
 
-  -- ===== TREINO 2: Inferior A (4 dias atrás) =====
+  -- ===== ANA: Treino 2 - Inferior A (4 dias atrás) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Inferior A', v_user_id, CURRENT_DATE - INTERVAL '4 days', NULL)
+  VALUES ('Inferior A', v_ana_id, CURRENT_DATE - INTERVAL '4 days', NULL)
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Agachamento Goblet', 1) RETURNING id INTO v_exercise_id;
@@ -274,9 +191,9 @@ BEGIN
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 15, 25, true), (v_exercise_id, 2, 15, 25, true), (v_exercise_id, 3, 12, 30, true);
 
-  -- ===== TREINO 3: Hoje (em progresso) =====
+  -- ===== ANA: Treino 3 - Hoje (em progresso) =====
   INSERT INTO workouts (name, user_id, date, notes)
-  VALUES ('Superior B', v_user_id, CURRENT_DATE, 'Treino de hoje')
+  VALUES ('Superior B', v_ana_id, CURRENT_DATE, 'Treino de hoje')
   RETURNING id INTO v_workout_id;
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Levantamento Terra', 1) RETURNING id INTO v_exercise_id;
