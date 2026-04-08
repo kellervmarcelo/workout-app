@@ -5,13 +5,13 @@ import { useExerciseLibrary } from '~/composables/useExerciseLibrary'
 
 interface Props {
   open: boolean
-  addedExerciseIds: string[]
+  addedExerciseNames: string[]
   class?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   open: false,
-  addedExerciseIds: () => [],
+  addedExerciseNames: () => [],
   class: '',
 })
 
@@ -25,12 +25,12 @@ const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters } 
 
 const overlayRef = ref<HTMLDivElement>()
 
-const isAdded = (exerciseId: string) => {
-  return props.addedExerciseIds.includes(exerciseId)
+const isAdded = (exerciseName: string) => {
+  return props.addedExerciseNames.includes(exerciseName.toLowerCase())
 }
 
 const handleSelect = (exercise: ExerciseLibraryItem) => {
-  if (isAdded(exercise.id)) return
+  if (isAdded(exercise.name)) return
   emit('select', exercise)
 }
 
@@ -156,8 +156,8 @@ onUnmounted(() => {
                 v-for="exercise in filteredExercises"
                 :key="exercise.id"
                 class="w-full px-4 py-3 flex items-start gap-3 hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                :class="{ 'opacity-50 cursor-not-allowed': isAdded(exercise.id) }"
-                :disabled="isAdded(exercise.id)"
+                :class="{ 'opacity-50 cursor-not-allowed': isAdded(exercise.name) }"
+                :disabled="isAdded(exercise.name)"
                 @click="handleSelect(exercise)"
               >
                 <!-- GIF Thumbnail -->

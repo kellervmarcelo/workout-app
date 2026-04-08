@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ExerciseLibraryItem } from '~/types'
+
 definePageMeta({ middleware: 'auth' })
 
 const route = useRoute()
@@ -9,9 +11,18 @@ const supabase = useSupabaseClient()
 const workout = ref<WorkoutWithExercises | null>(null)
 const loading = ref(false)
 const showExerciseForm = ref(false)
+const showExercisePicker = ref(false)
 const newExerciseName = ref('')
 const showTemplateSelector = ref(false)
 const templates = ref<WorkoutTemplateWithExercises[]>([])
+
+const existingExerciseNames = computed(() => {
+  return workout.value?.exercises?.map(e => e.name.toLowerCase()) || []
+})
+
+const isExerciseAdded = (exerciseName: string) => {
+  return existingExerciseNames.value.includes(exerciseName.toLowerCase())
+}
 
 const fetchWorkout = async () => {
   loading.value = true
@@ -96,6 +107,36 @@ const loadTemplate = async (templateId: string) => {
   } catch (error: any) {
     console.error('Erro ao carregar template:', error)
   }
+}
+
+const addExerciseFromLibrary = async (exercise: ExerciseLibraryItem) => {
+  if (!workout.value) return
+
+  const order = workout.value.exercises?.length || 0
+
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .insert({
+        workout_id: workoutId,
+        name: exercise.name,
+        order,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    showExercisePicker.value = false
+    await fetchWorkout()
+  } catch (error: any) {
+    console.error('Erro ao adicionar exercício:', error)
+  }
+}
+
+const openCustomExercise = () => {
+  showExercisePicker.value = false
+  showExerciseForm.value = true
 }
 
 const addExercise = async () => {
@@ -229,7 +270,7 @@ onMounted(fetchWorkout)
           <span class="hidden sm:inline">Carregar Template</span>
           <span class="sm:hidden">Template</span>
         </Button>
-        <Button size="sm" @click="showExerciseForm = true" class="flex-1 md:flex-none">
+        <Button size="sm" @click="showExercisePicker = true" class="flex-1 md:flex-none">
           <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
@@ -254,9 +295,18 @@ onMounted(fetchWorkout)
       </div>
     </div>
 
-    <!-- Exercise Form -->
+    <!-- Exercise Picker Drawer -->
+    <ExercisePickerDrawer
+      :open="showExercisePicker"
+      :added-exercise-names="existingExerciseNames"
+      @close="showExercisePicker = false"
+      @select="addExerciseFromLibrary"
+      @add-custom="openCustomExercise"
+    />
+
+    <!-- Exercise Form (Custom) -->
     <Card v-if="showExerciseForm" class="p-4 md:p-6">
-      <h2 class="text-lg font-semibold mb-4 md:text-xl">Adicionar Exercício</h2>
+      <h2 class="text-lg font-semibold mb-4 md:text-xl">Adicionar Exercício Customizado</h2>
       <form @submit.prevent="addExercise" class="space-y-4">
         <div class="space-y-2">
           <Label for="exercise-name" required>Nome do Exercício</Label>
