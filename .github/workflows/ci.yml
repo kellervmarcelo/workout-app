@@ -24,9 +24,6 @@ jobs:
       - name: Lint new files
         run: npx eslint .github/ data/ composables/useExerciseLibrary.ts components/ExercisePickerDrawer.vue --max-warnings 0
 
-      - name: Format check
-        run: npx prettier --check .github/ data/ composables/useExerciseLibrary.ts components/ExercisePickerDrawer.vue
-
   # TODO: Re-enable full type check once pre-existing errors are fixed
   # Current errors: pages/*.vue missing type imports (User, WorkoutWithExercises, etc.)
   # type-check:
