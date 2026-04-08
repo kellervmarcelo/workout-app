@@ -1,4 +1,4 @@
-import { Driver } from 'driver.js'
+import driver from 'driver.js'
 import 'driver.js/dist/driver.css'
 
 export function useOnboardingTour() {
@@ -6,7 +6,7 @@ export function useOnboardingTour() {
   const tourCompleted = ref(false)
   const loading = ref(true)
 
-  const driver = new Driver({
+  const driverInstance = driver({
     animate: true,
     showProgress: true,
     overlayOpacity: 0.7,
@@ -96,10 +96,10 @@ export function useOnboardingTour() {
     if (tourCompleted.value || loading.value)
       return
 
-    driver.setSteps(steps)
-    driver.drive()
+    driverInstance.setSteps(steps)
+    driverInstance.drive()
 
-    driver.onDestroyed(() => {
+    driverInstance.onDestroyed(() => {
       const { data } = supabase.auth.getSession()
       if (data.session?.user) {
         markTourCompleted(data.session.user.id)
