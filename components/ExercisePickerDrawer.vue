@@ -1,7 +1,10 @@
 <template>
   <Teleport to="body">
     <Transition name="drawer">
-      <div v-if="props.open" class="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+      <div
+        v-if="props.open"
+        class="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+      >
         <!-- Overlay -->
         <div
           ref="overlayRef"
@@ -10,18 +13,23 @@
         />
 
         <!-- Drawer Panel -->
-        <div class="relative z-10 w-full max-h-[90vh] md:max-w-2xl bg-background border rounded-t-xl md:rounded-xl shadow-xl flex flex-col">
+        <div
+          class="relative z-10 w-full max-h-[90vh] md:max-w-2xl bg-background border rounded-t-xl md:rounded-xl shadow-xl flex flex-col"
+        >
           <!-- Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b shrink-0">
-            <h2 class="text-lg font-semibold">
-              Adicionar Exercício
-            </h2>
+            <h2 class="text-lg font-semibold">Adicionar Exercício</h2>
             <button
               class="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
               @click="handleClose"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -29,15 +37,25 @@
           <!-- Search Bar -->
           <div class="px-4 py-3 border-b shrink-0">
             <div class="relative">
-              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Buscar exercício..."
                 class="w-full h-10 pl-9 pr-4 rounded-md border border-input bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-              >
+              />
             </div>
           </div>
 
@@ -46,9 +64,11 @@
             <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
               <button
                 class="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors"
-                :class="!selectedGroup
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'"
+                :class="
+                  !selectedGroup
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                "
                 @click="setGroup(null)"
               >
                 Todos
@@ -67,9 +87,11 @@
                 ]"
                 :key="group.value"
                 class="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors"
-                :class="selectedGroup === group.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'"
+                :class="
+                  selectedGroup === group.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                "
                 @click="setGroup(group.value)"
               >
                 {{ group.label }}
@@ -79,13 +101,24 @@
 
           <!-- Exercise List -->
           <div class="flex-1 overflow-y-auto">
-            <div v-if="filteredExercises.length === 0" class="py-12 text-center text-muted-foreground">
-              <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div
+              v-if="filteredExercises.length === 0"
+              class="py-12 text-center text-muted-foreground"
+            >
+              <svg
+                class="w-12 h-12 mx-auto mb-3 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
-              <p class="text-sm">
-                Nenhum exercício encontrado
-              </p>
+              <p class="text-sm">Nenhum exercício encontrado</p>
             </div>
 
             <div v-else class="divide-y">
@@ -105,7 +138,7 @@
                     class="w-full h-full object-cover"
                     loading="lazy"
                     @error="($event.target as HTMLImageElement).style.display = 'none'"
-                  >
+                  />
                 </div>
 
                 <!-- Info -->
@@ -122,7 +155,9 @@
                     {{ exercise.description }}
                   </p>
                   <Badge variant="secondary" class="mt-1.5 text-[10px]">
-                    {{ exercise.muscleGroup.charAt(0).toUpperCase() + exercise.muscleGroup.slice(1) }}
+                    {{
+                      exercise.muscleGroup.charAt(0).toUpperCase() + exercise.muscleGroup.slice(1)
+                    }}
                   </Badge>
                 </div>
               </button>
@@ -166,7 +201,8 @@ const emit = defineEmits<{
   addCustom: []
 }>()
 
-const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters } = useExerciseLibrary()
+const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters } =
+  useExerciseLibrary()
 
 const overlayRef = ref<HTMLDivElement>()
 
@@ -175,8 +211,7 @@ function isAdded(exerciseName: string) {
 }
 
 function handleSelect(exercise: ExerciseLibraryItem) {
-  if (isAdded(exercise.name))
-    return
+  if (isAdded(exercise.name)) return
   emit('select', exercise)
 }
 
@@ -198,14 +233,16 @@ onKeyStroke('Escape', (e) => {
   }
 })
 
-watch(() => props.open, (isOpen) => {
-  if (isOpen) {
-    document.body.style.overflow = 'hidden'
-  }
-  else {
-    document.body.style.overflow = ''
-  }
-})
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  },
+)
 
 onUnmounted(() => {
   document.body.style.overflow = ''
