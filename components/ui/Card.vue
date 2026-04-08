@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
-interface CardProps {
+interface Props {
   class?: string
 }
 
-defineProps<CardProps>()
+const props = withDefaults(defineProps<Props>(), {
+  class: '',
+})
 </script>
 
 <template>

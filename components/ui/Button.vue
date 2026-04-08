@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
-interface ButtonProps {
+interface Props {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg' | 'icon'
   disabled?: boolean
   class?: string
 }
 
-const props = withDefaults(defineProps<ButtonProps>(), {
+const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
   size: 'default',
   disabled: false,
+  class: '',
 })
 
 const variants: Record<string, string> = {
@@ -35,11 +36,11 @@ const sizes: Record<string, string> = {
   <button
     :class="cn(
       'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-      variants[variant],
-      sizes[size],
+      variants[props.variant],
+      sizes[props.size],
       props.class,
     )"
-    :disabled="disabled"
+    :disabled="props.disabled"
     v-bind="$attrs"
   >
     <slot />

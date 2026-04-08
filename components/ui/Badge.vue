@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
-interface BadgeProps {
+interface Props {
   variant?: 'default' | 'secondary' | 'destructive' | 'outline'
   size?: 'sm' | 'default'
   class?: string
 }
 
-const props = withDefaults(defineProps<BadgeProps>(), {
+const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
   size: 'default',
+  class: '',
 })
 
 const variants: Record<string, string> = {
@@ -28,8 +29,8 @@ const sizes: Record<string, string> = {
 <template>
   <span :class="cn(
     'inline-flex items-center rounded-full font-medium',
-    variants[variant],
-    sizes[size],
+    variants[props.variant],
+    sizes[props.size],
     props.class,
   )">
     <slot />
