@@ -18,7 +18,6 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
-!.env.prod
 
 # OS
 .DS_Store

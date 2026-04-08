@@ -1,10 +1,35 @@
 // seed-local.js - Popula o banco local com dados de teste
 // Uso: node seed-local.js
+// Certifique-se de que .env está configurado com SUPABASE_URL e SUPABASE_KEY
 
 import { createClient } from '@supabase/supabase-js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-const supabaseUrl = 'http://127.0.0.1:54321';
-const supabaseKey = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Parse .env file from project root
+const envPath = resolve(__dirname, '..', '.env');
+const envContent = readFileSync(envPath, 'utf-8');
+const envVars = {};
+envContent.split('\n').forEach(line => {
+  const trimmed = line.trim();
+  if (trimmed && !trimmed.startsWith('#')) {
+    const [key, ...valueParts] = trimmed.split('=');
+    envVars[key.trim()] = valueParts.join('=').trim();
+  }
+});
+
+const supabaseUrl = process.env.SUPABASE_URL || envVars.SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabaseKey = process.env.SUPABASE_KEY || envVars.SUPABASE_KEY;
+
+if (!supabaseKey) {
+  console.error('Erro: SUPABASE_KEY não encontrado no .env');
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function seed() {
