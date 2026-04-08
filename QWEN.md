@@ -110,6 +110,61 @@ O schema SQL (`supabase/schema.sql`) deve ser executado no SQL Editor do Supabas
 ### Modo SPA
 O app roda em modo **SPA** (`ssr: false`) para evitar problemas de hidratação com Supabase Auth no servidor.
 
+### Ambientes: Dev Local vs Produção
+
+O projeto usa **Supabase Local** para desenvolvimento e um projeto Supabase cloud para produção.
+
+| Ambiente | URL | Como ativar |
+|----------|-----|-------------|
+| **Local (dev)** | `http://127.0.0.1:54321` | Padrno no `.env` |
+| **Produção** | `https://qghehvbpgwspmpzivrlv.supabase.co` | `npm run db:use-prod` |
+
+### Comandos de Banco de Dados
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run db:start` | Sobe Supabase local (requer Docker) |
+| `npm run db:stop` | Para Supabase local |
+| `npm run db:reset` | Reseta banco local + aplica migrações + seed |
+| `npm run db:studio` | Abre Supabase Studio em `http://localhost:54323` |
+| `npm run db:push` | Aplica migrações locais no projeto de produção |
+| `npm run db:link` | Link com projeto de produção no Supabase CLI |
+| `npm run db:diff` | Gera diff entre schema local e remoto |
+| `npm run db:use-prod` | Troca `.env` para credenciais de produção |
+| `npm run db:use-local` | Troca `.env` para Supabase local |
+
+### Estrutura do Supabase
+
+```
+supabase/
+├── config.toml                     # Config do Supabase CLI
+├── migrations/
+│   └── 001_initial_schema.sql      # Migração inicial (profiles, workouts, exercises, workout_sets)
+├── seed.sql                        # Dados de teste (dev)
+├── schema.sql                      # Schema original (legado)
+└── .gitignore                      # Ignora .temp e .branches
+```
+
+### Workflow Típico
+
+```bash
+# 1. Sobe Supabase local (primeira vez ou após reset)
+npm run db:start
+
+# 2. Roda o app apontando para Supabase local
+npm run dev
+
+# 3. Abre dashboard local para inspecionar dados
+npm run db:studio
+
+# 4. Para finalizar
+npm run db:stop
+```
+
+### Pré-requisitos para Dev Local
+- **Docker Desktop** instalado e rodando
+- ~2-3GB RAM disponível para os containers
+
 ### Autenticação
 - Usa `useSupabaseClient()` diretamente em vez de `useSupabaseSession()` (que causa erros de timing)
 - Session é obtida via `client.auth.getSession()` dentro de `onMounted`
