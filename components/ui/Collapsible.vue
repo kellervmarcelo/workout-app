@@ -1,17 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-
-const props = defineProps<{
-  defaultOpen?: boolean
-}>()
-
-const isOpen = ref(props.defaultOpen ?? false)
-
-const toggle = () => {
-  isOpen.value = !isOpen.value
-}
-</script>
-
 <template>
   <div class="rounded-lg border bg-card">
     <button
@@ -44,3 +30,17 @@ const toggle = () => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const props = defineProps<{
+  defaultOpen?: boolean
+}>()
+
+const isOpen = ref(props.defaultOpen ?? false)
+
+function toggle() {
+  isOpen.value = !isOpen.value
+}
+</script>

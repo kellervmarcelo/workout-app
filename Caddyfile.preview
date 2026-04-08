@@ -1,0 +1,7 @@
+# Caddy configuration para preview estático (build)
+localhost:8080 {
+	root * .output/public
+	file_server
+	try_files {path} /index.html
+	encode gzip
+}

@@ -1,74 +1,32 @@
-<script setup lang="ts">
-import { cn } from '~/lib/utils'
-
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
-const error = ref('')
-const isLogin = ref(true)
-
-const supabase = useSupabaseClient()
-
-const handleSubmit = async () => {
-  loading.value = true
-  error.value = ''
-
-  try {
-    if (isLogin.value) {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.value,
-        password: password.value,
-      })
-      if (signInError) throw signInError
-      navigateTo('/')
-    } else {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: email.value,
-        password: password.value,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-      if (signUpError) throw signUpError
-      error.value = 'Conta criada com sucesso! Verifique seu email ou faça login.'
-      isLogin.value = true
-    }
-  } catch (err: any) {
-    error.value = err.message || 'Erro ao processar requisição'
-  } finally {
-    loading.value = false
-  }
-}
-
-const toggleMode = () => {
-  isLogin.value = !isLogin.value
-  error.value = ''
-}
-</script>
-
 <template>
   <div class="min-h-screen flex items-center justify-center bg-background p-4">
     <Card class="w-full max-w-md">
       <div class="p-4 space-y-5 md:p-6 md:space-y-6">
         <!-- Header -->
         <div class="text-center space-y-2">
-          <div class="text-4xl mb-1 md:text-5xl md:mb-2">💪</div>
-          <h1 class="text-2xl font-bold tracking-tight md:text-3xl">Workout Tracker</h1>
+          <div class="text-4xl mb-1 md:text-5xl md:mb-2">
+            💪
+          </div>
+          <h1 class="text-2xl font-bold tracking-tight md:text-3xl">
+            Workout Tracker
+          </h1>
           <p class="text-sm text-muted-foreground">
             {{ isLogin ? 'Entre na sua conta para continuar' : 'Crie sua conta para começar' }}
           </p>
         </div>
 
         <!-- Error/Success -->
-        <div v-if="error" :class="cn(
-          'p-3 rounded-md text-sm border',
-          error.includes('sucesso') ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20',
-        )">
+        <div
+          v-if="error" :class="cn(
+            'p-3 rounded-md text-sm border',
+            error.includes('sucesso') ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20',
+          )"
+        >
           {{ error }}
         </div>
 
         <!-- Form -->
-        <form @submit.prevent="handleSubmit" class="space-y-4">
+        <form class="space-y-4" @submit.prevent="handleSubmit">
           <div class="space-y-2">
             <Label for="email" required>Email</Label>
             <Input
@@ -130,3 +88,56 @@ const toggleMode = () => {
     </Card>
   </div>
 </template>
+
+<script setup lang="ts">
+import { cn } from '~/lib/utils'
+
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const error = ref('')
+const isLogin = ref(true)
+
+const supabase = useSupabaseClient()
+
+async function handleSubmit() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    if (isLogin.value) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.value,
+        password: password.value,
+      })
+      if (signInError)
+        throw signInError
+      navigateTo('/')
+    }
+    else {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: email.value,
+        password: password.value,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (signUpError)
+        throw signUpError
+      error.value = 'Conta criada com sucesso! Verifique seu email ou faça login.'
+      isLogin.value = true
+    }
+  }
+  catch (err: any) {
+    error.value = err.message || 'Erro ao processar requisição'
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+function toggleMode() {
+  isLogin.value = !isLogin.value
+  error.value = ''
+}
+</script>

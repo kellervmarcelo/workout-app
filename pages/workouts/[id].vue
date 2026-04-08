@@ -1,204 +1,3 @@
-<script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
-
-const route = useRoute()
-const workoutId = route.params.id as string
-
-const supabase = useSupabaseClient()
-
-const workout = ref<WorkoutWithExercises | null>(null)
-const loading = ref(false)
-const showExerciseForm = ref(false)
-const newExerciseName = ref('')
-const showTemplateSelector = ref(false)
-const templates = ref<WorkoutTemplateWithExercises[]>([])
-
-const fetchWorkout = async () => {
-  loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('workouts')
-      .select(`
-        *,
-        exercises (
-          *,
-          sets:workout_sets(*)
-        )
-      `)
-      .eq('id', workoutId)
-      .single()
-
-    if (error) throw error
-    workout.value = data
-  } catch (error: any) {
-    console.error('Erro ao buscar treino:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const fetchTemplates = async () => {
-  const { data: sessionData } = await supabase.auth.getSession()
-  if (!sessionData.session?.user) return
-
-  try {
-    const { data, error } = await supabase
-      .from('workout_templates')
-      .select(`
-        *,
-        exercises:template_exercises(*)
-      `)
-      .eq('user_id', sessionData.session.user.id)
-      .order('name', { ascending: true })
-
-    if (error) throw error
-    templates.value = data || []
-  } catch (error: any) {
-    console.error('Erro ao buscar templates:', error)
-  }
-}
-
-const loadTemplate = async (templateId: string) => {
-  if (!workout.value) return
-
-  const template = templates.value.find(t => t.id === templateId)
-  if (!template?.exercises?.length) return
-
-  try {
-    // Adicionar cada exercício do template ao treino
-    for (const exercise of template.exercises) {
-      const { data: exerciseData, error: exerciseError } = await supabase
-        .from('exercises')
-        .insert({
-          workout_id: workoutId,
-          name: exercise.name,
-          order: exercise.order,
-        })
-        .select()
-        .single()
-
-      if (exerciseError) throw exerciseError
-
-      // Criar série padrão com os valores do template
-      const { error: setError } = await supabase.from('workout_sets').insert({
-        exercise_id: exerciseData.id,
-        set_number: 1,
-        reps: exercise.default_reps,
-        weight_kg: exercise.default_weight_kg,
-        completed: true,
-      })
-
-      if (setError) throw setError
-    }
-
-    showTemplateSelector.value = false
-    await fetchWorkout()
-  } catch (error: any) {
-    console.error('Erro ao carregar template:', error)
-  }
-}
-
-const addExercise = async () => {
-  if (!workout.value || !newExerciseName.value) return
-
-  const order = workout.value.exercises?.length || 0
-
-  try {
-    const { data, error } = await supabase
-      .from('exercises')
-      .insert({
-        workout_id: workoutId,
-        name: newExerciseName.value,
-        order,
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    newExerciseName.value = ''
-    showExerciseForm.value = false
-    await fetchWorkout()
-  } catch (error: any) {
-    console.error('Erro ao adicionar exercício:', error)
-  }
-}
-
-const addSet = async (exerciseId: string) => {
-  if (!workout.value?.exercises) return
-
-  const exercise = workout.value.exercises.find(e => e.id === exerciseId)
-  if (!exercise) return
-
-  const sets = exercise.sets || []
-  const setNumber = sets.length + 1
-  const lastSet = sets[sets.length - 1]
-
-  try {
-    const { error } = await supabase.from('workout_sets').insert({
-      exercise_id: exerciseId,
-      set_number: setNumber,
-      reps: lastSet?.reps || 10,
-      weight_kg: lastSet?.weight_kg || 0,
-      completed: true,
-    })
-
-    if (error) throw error
-    await fetchWorkout()
-  } catch (error: any) {
-    console.error('Erro ao adicionar série:', error)
-  }
-}
-
-const updateSet = async (setId: string, field: keyof WorkoutSet, value: number) => {
-  try {
-    const { error } = await supabase
-      .from('workout_sets')
-      .update({ [field]: value })
-      .eq('id', setId)
-
-    if (error) throw error
-  } catch (error: any) {
-    console.error('Erro ao atualizar série:', error)
-  }
-}
-
-const deleteSet = async (setId: string) => {
-  try {
-    const { error } = await supabase.from('workout_sets').delete().eq('id', setId)
-    if (error) throw error
-    await fetchWorkout()
-  } catch (error: any) {
-    console.error('Erro ao deletar série:', error)
-  }
-}
-
-const deleteExercise = async (exerciseId: string) => {
-  try {
-    const { error } = await supabase.from('exercises').delete().eq('id', exerciseId)
-    if (error) throw error
-    await fetchWorkout()
-  } catch (error: any) {
-    console.error('Erro ao deletar exercício:', error)
-  }
-}
-
-const totalVolume = computed(() => {
-  if (!workout.value?.exercises) return 0
-  return workout.value.exercises.reduce((sum, ex) => {
-    const exerciseVolume = (ex.sets || []).reduce((s, set) => s + (set.reps * set.weight_kg), 0)
-    return sum + exerciseVolume
-  }, 0)
-})
-
-const totalSets = computed(() => {
-  if (!workout.value?.exercises) return 0
-  return workout.value.exercises.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0)
-})
-
-onMounted(fetchWorkout)
-</script>
-
 <template>
   <div v-if="workout" class="space-y-4 md:space-y-6">
     <!-- Header -->
@@ -211,7 +10,9 @@ onMounted(fetchWorkout)
       </NuxtLink>
 
       <div class="space-y-2">
-        <h1 class="text-xl font-bold tracking-tight md:text-3xl">{{ workout.name }}</h1>
+        <h1 class="text-xl font-bold tracking-tight md:text-3xl">
+          {{ workout.name }}
+        </h1>
         <p class="text-sm text-muted-foreground flex items-center gap-1">
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -222,14 +23,14 @@ onMounted(fetchWorkout)
 
       <!-- Action Buttons - coluna em mobile -->
       <div class="flex gap-2">
-        <Button variant="outline" size="sm" @click="showTemplateSelector = true; fetchTemplates()" class="flex-1 md:flex-none">
+        <Button variant="outline" size="sm" class="flex-1 md:flex-none" @click="showTemplateSelector = true; fetchTemplates()">
           <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
           <span class="hidden sm:inline">Carregar Template</span>
           <span class="sm:hidden">Template</span>
         </Button>
-        <Button size="sm" @click="showExerciseForm = true" class="flex-1 md:flex-none">
+        <Button size="sm" class="flex-1 md:flex-none" @click="showExercisePicker = true">
           <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
@@ -240,24 +41,47 @@ onMounted(fetchWorkout)
       <!-- Stats - coluna em mobile, row em desktop -->
       <div class="grid grid-cols-3 gap-2 md:gap-4">
         <Card class="p-3 md:p-4">
-          <div class="text-xs text-muted-foreground md:text-sm">Séries</div>
-          <div class="text-lg font-bold md:text-2xl">{{ totalSets }}</div>
+          <div class="text-xs text-muted-foreground md:text-sm">
+            Séries
+          </div>
+          <div class="text-lg font-bold md:text-2xl">
+            {{ totalSets }}
+          </div>
         </Card>
         <Card class="p-3 md:p-4">
-          <div class="text-xs text-muted-foreground md:text-sm">Volume</div>
-          <div class="text-lg font-bold md:text-2xl">{{ totalVolume.toLocaleString('pt-BR') }}<span class="text-xs font-normal text-muted-foreground"> kg</span></div>
+          <div class="text-xs text-muted-foreground md:text-sm">
+            Volume
+          </div>
+          <div class="text-lg font-bold md:text-2xl">
+            {{ totalVolume.toLocaleString('pt-BR') }}<span class="text-xs font-normal text-muted-foreground"> kg</span>
+          </div>
         </Card>
         <Card class="p-3 md:p-4">
-          <div class="text-xs text-muted-foreground md:text-sm">Exercícios</div>
-          <div class="text-lg font-bold md:text-2xl">{{ workout.exercises?.length || 0 }}</div>
+          <div class="text-xs text-muted-foreground md:text-sm">
+            Exercícios
+          </div>
+          <div class="text-lg font-bold md:text-2xl">
+            {{ workout.exercises?.length || 0 }}
+          </div>
         </Card>
       </div>
     </div>
 
-    <!-- Exercise Form -->
+    <!-- Exercise Picker Drawer -->
+    <ExercisePickerDrawer
+      :open="showExercisePicker"
+      :added-exercise-names="existingExerciseNames"
+      @close="showExercisePicker = false"
+      @select="addExerciseFromLibrary"
+      @add-custom="openCustomExercise"
+    />
+
+    <!-- Exercise Form (Custom) -->
     <Card v-if="showExerciseForm" class="p-4 md:p-6">
-      <h2 class="text-lg font-semibold mb-4 md:text-xl">Adicionar Exercício</h2>
-      <form @submit.prevent="addExercise" class="space-y-4">
+      <h2 class="text-lg font-semibold mb-4 md:text-xl">
+        Adicionar Exercício Customizado
+      </h2>
+      <form class="space-y-4" @submit.prevent="addExercise">
         <div class="space-y-2">
           <Label for="exercise-name" required>Nome do Exercício</Label>
           <Input
@@ -269,10 +93,12 @@ onMounted(fetchWorkout)
           />
         </div>
         <div class="flex gap-2">
-          <Button type="button" variant="outline" @click="showExerciseForm = false" class="flex-1">
+          <Button type="button" variant="outline" class="flex-1" @click="showExerciseForm = false">
             Cancelar
           </Button>
-          <Button type="submit" class="flex-1">Adicionar</Button>
+          <Button type="submit" class="flex-1">
+            Adicionar
+          </Button>
         </div>
       </form>
     </Card>
@@ -280,7 +106,9 @@ onMounted(fetchWorkout)
     <!-- Template Selector Modal -->
     <Card v-if="showTemplateSelector" class="p-4 md:p-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold md:text-xl">Carregar Template</h2>
+        <h2 class="text-lg font-semibold md:text-xl">
+          Carregar Template
+        </h2>
         <Button variant="ghost" size="icon" class="h-9 w-9" @click="showTemplateSelector = false">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -289,7 +117,9 @@ onMounted(fetchWorkout)
       </div>
 
       <div v-if="templates.length === 0" class="text-center py-8 text-muted-foreground">
-        <p class="text-sm">Nenhum template disponível. Crie um em</p>
+        <p class="text-sm">
+          Nenhum template disponível. Crie um em
+        </p>
         <NuxtLink to="/templates" class="text-primary hover:underline text-sm">
           Templates
         </NuxtLink>
@@ -304,7 +134,9 @@ onMounted(fetchWorkout)
         >
           <div class="flex items-start justify-between">
             <div>
-              <h3 class="font-semibold">{{ t.name }}</h3>
+              <h3 class="font-semibold">
+                {{ t.name }}
+              </h3>
               <p v-if="t.description" class="text-sm text-muted-foreground mt-1">
                 {{ t.description }}
               </p>
@@ -312,7 +144,9 @@ onMounted(fetchWorkout)
                 {{ t.exercises?.length || 0 }} exercícios
               </p>
             </div>
-            <Badge variant="outline">{{ t.exercises?.length || 0 }} exercícios</Badge>
+            <Badge variant="outline">
+              {{ t.exercises?.length || 0 }} exercícios
+            </Badge>
           </div>
         </Card>
       </div>
@@ -327,9 +161,15 @@ onMounted(fetchWorkout)
       >
         <template #title>
           <div class="flex items-center gap-2 md:gap-3">
-            <Badge variant="outline" class="font-mono text-xs">{{ idx + 1 }}</Badge>
-            <h3 class="text-sm font-semibold md:text-lg truncate">{{ exercise.name }}</h3>
-            <Badge variant="secondary" class="text-[10px] shrink-0">{{ exercise.sets?.length || 0 }}s</Badge>
+            <Badge variant="outline" class="font-mono text-xs">
+              {{ idx + 1 }}
+            </Badge>
+            <h3 class="text-sm font-semibold md:text-lg truncate">
+              {{ exercise.name }}
+            </h3>
+            <Badge variant="secondary" class="text-[10px] shrink-0">
+              {{ exercise.sets?.length || 0 }}s
+            </Badge>
           </div>
         </template>
 
@@ -338,16 +178,24 @@ onMounted(fetchWorkout)
           <table class="w-full text-sm min-w-[280px]">
             <thead>
               <tr class="text-muted-foreground border-b">
-                <th class="text-left py-2 px-2 font-medium text-xs">Set</th>
-                <th class="text-left py-2 px-2 font-medium text-xs">Reps</th>
-                <th class="text-left py-2 px-2 font-medium text-xs">Carga</th>
-                <th class="text-right py-2 px-2 font-medium text-xs"></th>
+                <th class="text-left py-2 px-2 font-medium text-xs">
+                  Set
+                </th>
+                <th class="text-left py-2 px-2 font-medium text-xs">
+                  Reps
+                </th>
+                <th class="text-left py-2 px-2 font-medium text-xs">
+                  Carga
+                </th>
+                <th class="text-right py-2 px-2 font-medium text-xs" />
               </tr>
             </thead>
             <tbody>
               <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0">
                 <td class="py-2.5 px-2">
-                  <Badge variant="secondary" class="font-mono text-xs">{{ set.set_number }}</Badge>
+                  <Badge variant="secondary" class="font-mono text-xs">
+                    {{ set.set_number }}
+                  </Badge>
                 </td>
                 <td class="py-2.5 px-2">
                   <Input
@@ -421,17 +269,292 @@ onMounted(fetchWorkout)
 
     <!-- Empty State -->
     <Card v-else class="p-12 text-center">
-      <div class="text-5xl mb-4">🏋️</div>
-      <h3 class="text-xl font-semibold mb-2">Nenhum exercício</h3>
-      <p class="text-muted-foreground">Adicione exercícios ao seu treino!</p>
+      <div class="text-5xl mb-4">
+        🏋️
+      </div>
+      <h3 class="text-xl font-semibold mb-2">
+        Nenhum exercício
+      </h3>
+      <p class="text-muted-foreground">
+        Adicione exercícios ao seu treino!
+      </p>
     </Card>
   </div>
 
   <!-- Loading -->
   <div v-else class="flex justify-center py-12">
     <div class="text-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-      <p class="text-muted-foreground">Carregando...</p>
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+      <p class="text-muted-foreground">
+        Carregando...
+      </p>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import type { ExerciseLibraryItem } from '~/types'
+
+definePageMeta({ middleware: 'auth' })
+
+const route = useRoute()
+const workoutId = route.params.id as string
+
+const supabase = useSupabaseClient()
+
+const workout = ref<WorkoutWithExercises | null>(null)
+const loading = ref(false)
+const showExerciseForm = ref(false)
+const showExercisePicker = ref(false)
+const newExerciseName = ref('')
+const showTemplateSelector = ref(false)
+const templates = ref<WorkoutTemplateWithExercises[]>([])
+
+const existingExerciseNames = computed(() => {
+  return workout.value?.exercises?.map(e => e.name.toLowerCase()) || []
+})
+
+async function fetchWorkout() {
+  loading.value = true
+  try {
+    const { data, error } = await supabase
+      .from('workouts')
+      .select(`
+        *,
+        exercises (
+          *,
+          sets:workout_sets(*)
+        )
+      `)
+      .eq('id', workoutId)
+      .single()
+
+    if (error)
+      throw error
+    workout.value = data
+  }
+  catch (error: any) {
+    console.error('Erro ao buscar treino:', error)
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+async function fetchTemplates() {
+  const { data: sessionData } = await supabase.auth.getSession()
+  if (!sessionData.session?.user)
+    return
+
+  try {
+    const { data, error } = await supabase
+      .from('workout_templates')
+      .select(`
+        *,
+        exercises:template_exercises(*)
+      `)
+      .eq('user_id', sessionData.session.user.id)
+      .order('name', { ascending: true })
+
+    if (error)
+      throw error
+    templates.value = data || []
+  }
+  catch (error: any) {
+    console.error('Erro ao buscar templates:', error)
+  }
+}
+
+async function loadTemplate(templateId: string) {
+  if (!workout.value)
+    return
+
+  const template = templates.value.find(t => t.id === templateId)
+  if (!template?.exercises?.length)
+    return
+
+  try {
+    // Adicionar cada exercício do template ao treino
+    for (const exercise of template.exercises) {
+      const { data: exerciseData, error: exerciseError } = await supabase
+        .from('exercises')
+        .insert({
+          workout_id: workoutId,
+          name: exercise.name,
+          order: exercise.order,
+        })
+        .select()
+        .single()
+
+      if (exerciseError)
+        throw exerciseError
+
+      // Criar série padrão com os valores do template
+      const { error: setError } = await supabase.from('workout_sets').insert({
+        exercise_id: exerciseData.id,
+        set_number: 1,
+        reps: exercise.default_reps,
+        weight_kg: exercise.default_weight_kg,
+        completed: true,
+      })
+
+      if (setError)
+        throw setError
+    }
+
+    showTemplateSelector.value = false
+    await fetchWorkout()
+  }
+  catch (error: any) {
+    console.error('Erro ao carregar template:', error)
+  }
+}
+
+async function addExerciseFromLibrary(exercise: ExerciseLibraryItem) {
+  if (!workout.value)
+    return
+
+  const order = workout.value.exercises?.length || 0
+
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .insert({
+        workout_id: workoutId,
+        name: exercise.name,
+        order,
+      })
+      .select()
+      .single()
+
+    if (error)
+      throw error
+
+    showExercisePicker.value = false
+    await fetchWorkout()
+  }
+  catch (error: any) {
+    console.error('Erro ao adicionar exercício:', error)
+  }
+}
+
+function openCustomExercise() {
+  showExercisePicker.value = false
+  showExerciseForm.value = true
+}
+
+async function addExercise() {
+  if (!workout.value || !newExerciseName.value)
+    return
+
+  const order = workout.value.exercises?.length || 0
+
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .insert({
+        workout_id: workoutId,
+        name: newExerciseName.value,
+        order,
+      })
+      .select()
+      .single()
+
+    if (error)
+      throw error
+
+    newExerciseName.value = ''
+    showExerciseForm.value = false
+    await fetchWorkout()
+  }
+  catch (error: any) {
+    console.error('Erro ao adicionar exercício:', error)
+  }
+}
+
+async function addSet(exerciseId: string) {
+  if (!workout.value?.exercises)
+    return
+
+  const exercise = workout.value.exercises.find(e => e.id === exerciseId)
+  if (!exercise)
+    return
+
+  const sets = exercise.sets || []
+  const setNumber = sets.length + 1
+  const lastSet = sets[sets.length - 1]
+
+  try {
+    const { error } = await supabase.from('workout_sets').insert({
+      exercise_id: exerciseId,
+      set_number: setNumber,
+      reps: lastSet?.reps || 10,
+      weight_kg: lastSet?.weight_kg || 0,
+      completed: true,
+    })
+
+    if (error)
+      throw error
+    await fetchWorkout()
+  }
+  catch (error: any) {
+    console.error('Erro ao adicionar série:', error)
+  }
+}
+
+async function updateSet(setId: string, field: keyof WorkoutSet, value: number) {
+  try {
+    const { error } = await supabase
+      .from('workout_sets')
+      .update({ [field]: value })
+      .eq('id', setId)
+
+    if (error)
+      throw error
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar série:', error)
+  }
+}
+
+async function deleteSet(setId: string) {
+  try {
+    const { error } = await supabase.from('workout_sets').delete().eq('id', setId)
+    if (error)
+      throw error
+    await fetchWorkout()
+  }
+  catch (error: any) {
+    console.error('Erro ao deletar série:', error)
+  }
+}
+
+async function deleteExercise(exerciseId: string) {
+  try {
+    const { error } = await supabase.from('exercises').delete().eq('id', exerciseId)
+    if (error)
+      throw error
+    await fetchWorkout()
+  }
+  catch (error: any) {
+    console.error('Erro ao deletar exercício:', error)
+  }
+}
+
+const totalVolume = computed(() => {
+  if (!workout.value?.exercises)
+    return 0
+  return workout.value.exercises.reduce((sum, ex) => {
+    const exerciseVolume = (ex.sets || []).reduce((s, set) => s + (set.reps * set.weight_kg), 0)
+    return sum + exerciseVolume
+  }, 0)
+})
+
+const totalSets = computed(() => {
+  if (!workout.value?.exercises)
+    return 0
+  return workout.value.exercises.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0)
+})
+
+onMounted(fetchWorkout)
+</script>
