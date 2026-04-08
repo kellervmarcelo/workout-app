@@ -1,94 +1,11 @@
 -- =====================================================
--- Seed para desenvolvimento local
--- =====================================================
--- Este arquivo é carregado automaticamente após as migrações
--- ao rodar `supabase db reset`
--- =====================================================
--- NOTA: Os usuários são criados via seed-data.sql usando
--- UUIDs dinâmicos. Este arquivo cria apenas a estrutura.
--- =====================================================
-
--- Habilitar pgcrypto
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- =====================================================
--- 1. Criar usuários com hash bcrypt conhecido
--- =====================================================
-
--- Usuário 1: marcos@email.com
-DO $$
-DECLARE v_uid UUID := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-BEGIN
-  -- Limpar dados existentes para este email
-  DELETE FROM auth.identities WHERE email = 'marcos@email.com';
-  DELETE FROM auth.users WHERE email = 'marcos@email.com';
-
-  INSERT INTO auth.users (
-    id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at,
-    raw_app_meta_data, raw_user_meta_data,
-    is_super_admin, phone, confirmation_token, email_change_token_current, email_change_token_new,
-    email_change, instance_id, recovery_token
-  ) VALUES (
-    v_uid, 'authenticated', 'authenticated', 'marcos@email.com',
-    crypt('password123', gen_salt('bf', 10)),
-    NOW(), NOW(), NOW(),
-    '{"provider":"email","providers":["email"]}',
-    '{"name":"Marcos"}',
-    FALSE, NULL, '', '', '',
-    '', '00000000-0000-0000-0000-000000000000', ''
-  );
-
-  INSERT INTO auth.identities (
-    provider_id, user_id, identity_data, provider,
-    last_sign_in_at, created_at, updated_at
-  ) VALUES (
-    v_uid::text, v_uid,
-    jsonb_build_object('sub', v_uid::text, 'email', 'marcos@email.com'),
-    'email', NOW(), NOW(), NOW()
-  );
-END $$;
-
--- Usuário 2: ana@email.com
-DO $$
-DECLARE v_uid UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-BEGIN
-  DELETE FROM auth.identities WHERE email = 'ana@email.com';
-  DELETE FROM auth.users WHERE email = 'ana@email.com';
-
-  INSERT INTO auth.users (
-    id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at,
-    raw_app_meta_data, raw_user_meta_data,
-    is_super_admin, phone, confirmation_token, email_change_token_current, email_change_token_new,
-    email_change, instance_id, recovery_token
-  ) VALUES (
-    v_uid, 'authenticated', 'authenticated', 'ana@email.com',
-    crypt('password123', gen_salt('bf', 10)),
-    NOW(), NOW(), NOW(),
-    '{"provider":"email","providers":["email"]}',
-    '{"name":"Ana"}',
-    FALSE, NULL, '', '', '',
-    '', '00000000-0000-0000-0000-000000000000', ''
-  );
-
-  INSERT INTO auth.identities (
-    provider_id, user_id, identity_data, provider,
-    last_sign_in_at, created_at, updated_at
-  ) VALUES (
-    v_uid::text, v_uid,
-    jsonb_build_object('sub', v_uid::text, 'email', 'ana@email.com'),
-    'email', NOW(), NOW(), NOW()
-  );
-END $$;
-
--- =====================================================
--- 2. Criar treinos, exercícios e séries para marcos
+-- Seed de dados - Usa UUIDs dos usuários criados via API
+-- Execute APÓS criar os usuários via signup API
 -- =====================================================
 
 DO $$
 DECLARE
-  v_user_id UUID := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+  v_user_id UUID := '2f550f17-1582-45cc-bf05-e9b99edcbf75';
   v_workout_id UUID;
   v_exercise_id UUID;
 BEGIN
@@ -217,15 +134,68 @@ BEGIN
     (v_exercise_id, 3, 8, 80, false);
 
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Supino Inclinado com Halteres', 2) RETURNING id INTO v_exercise_id;
+
+  -- ===== TEMPLATES =====
+  DECLARE v_template_id UUID;
+  BEGIN
+    -- TEMPLATE 1: Peito & Tríceps
+    INSERT INTO workout_templates (name, user_id, description)
+    VALUES ('Peito & Tríceps - Hipertrofia', v_user_id, 'Foco em hipertrofia com progressão de carga')
+    RETURNING id INTO v_template_id;
+
+    INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
+      (v_template_id, 'Supino Reto com Barra', 1, 10, 60),
+      (v_template_id, 'Supino Inclinado com Halteres', 2, 10, 24),
+      (v_template_id, 'Crucifixo na Máquina', 3, 12, 40),
+      (v_template_id, 'Tríceps Corda', 4, 12, 15),
+      (v_template_id, 'Tríceps Testa', 5, 10, 20);
+
+    -- TEMPLATE 2: Costas & Bíceps
+    INSERT INTO workout_templates (name, user_id, description)
+    VALUES ('Costas & Bíceps - Força', v_user_id, 'Treino pesado para costas e bíceps')
+    RETURNING id INTO v_template_id;
+
+    INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
+      (v_template_id, 'Puxada Frontal', 1, 10, 50),
+      (v_template_id, 'Remada Curvada com Barra', 2, 8, 50),
+      (v_template_id, 'Remada Unilateral com Haltere', 3, 10, 22),
+      (v_template_id, 'Puxada Triângulo', 4, 10, 55),
+      (v_template_id, 'Rosca Direta com Barra', 5, 10, 25),
+      (v_template_id, 'Rosca Alternada com Halteres', 6, 10, 12);
+
+    -- TEMPLATE 3: Pernas
+    INSERT INTO workout_templates (name, user_id, description)
+    VALUES ('Pernas - Completo', v_user_id, 'Treino completo de pernas')
+    RETURNING id INTO v_template_id;
+
+    INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
+      (v_template_id, 'Agachamento Livre', 1, 8, 60),
+      (v_template_id, 'Leg Press 45°', 2, 10, 180),
+      (v_template_id, 'Cadeira Extensora', 3, 12, 50),
+      (v_template_id, 'Mesa Flexora', 4, 12, 35),
+      (v_template_id, 'Panturrilha no Smith', 5, 15, 60);
+
+    -- TEMPLATE 4: Ombros & Trapézio
+    INSERT INTO workout_templates (name, user_id, description)
+    VALUES ('Ombros & Trapézio', v_user_id, NULL)
+    RETURNING id INTO v_template_id;
+
+    INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
+      (v_template_id, 'Desenvolvimento Militar', 1, 10, 40),
+      (v_template_id, 'Elevação Lateral', 2, 12, 8),
+      (v_template_id, 'Elevação Frontal com Haltere', 3, 12, 10),
+      (v_template_id, 'Face Pull na Polia', 4, 15, 15),
+      (v_template_id, 'Encolhimento com Halteres', 5, 15, 30);
+  END;
 END $$;
 
 -- =====================================================
--- 3. Criar treinos para ana
+-- Dados para ana
 -- =====================================================
 
 DO $$
 DECLARE
-  v_user_id UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+  v_user_id UUID := 'b2d510f6-7e8b-49c3-aa3d-91aec3c6297a';
   v_workout_id UUID;
   v_exercise_id UUID;
 BEGIN
@@ -292,97 +262,32 @@ BEGIN
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Barra Fixa Assistida', 2) RETURNING id INTO v_exercise_id;
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 8, 20, true);
-END $$;
 
--- =====================================================
--- 4. Criar templates de treino para marcos
--- =====================================================
+  -- ===== TEMPLATES =====
+  DECLARE v_template_id UUID;
+  BEGIN
+    -- TEMPLATE 1: Superior A
+    INSERT INTO workout_templates (name, user_id, description)
+    VALUES ('Superior A - Membros Superiores', v_user_id, 'Foco em membros superiores')
+    RETURNING id INTO v_template_id;
 
-DO $$
-DECLARE
-  v_user_id UUID := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-  v_template_id UUID;
-BEGIN
-  -- ===== TEMPLATE 1: Peito & Tríceps =====
-  INSERT INTO workout_templates (name, user_id, description)
-  VALUES ('Peito & Tríceps - Hipertrofia', v_user_id, 'Foco em hipertrofia com progressão de carga')
-  RETURNING id INTO v_template_id;
+    INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
+      (v_template_id, 'Puxada Frontal', 1, 12, 35),
+      (v_template_id, 'Remada Sentada', 2, 12, 35),
+      (v_template_id, 'Supino na Máquina', 3, 10, 30),
+      (v_template_id, 'Desenvolvimento com Halteres', 4, 10, 8),
+      (v_template_id, 'Elevação Lateral', 5, 12, 4);
 
-  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
-    (v_template_id, 'Supino Reto com Barra', 1, 10, 60),
-    (v_template_id, 'Supino Inclinado com Halteres', 2, 10, 24),
-    (v_template_id, 'Crucifixo na Máquina', 3, 12, 40),
-    (v_template_id, 'Tríceps Corda', 4, 12, 15),
-    (v_template_id, 'Tríceps Testa', 5, 10, 20);
+    -- TEMPLATE 2: Inferior A
+    INSERT INTO workout_templates (name, user_id, description)
+    VALUES ('Inferior A - Membros Inferiores', v_user_id, 'Treino de pernas completo')
+    RETURNING id INTO v_template_id;
 
-  -- ===== TEMPLATE 2: Costas & Bíceps =====
-  INSERT INTO workout_templates (name, user_id, description)
-  VALUES ('Costas & Bíceps - Força', v_user_id, 'Treino pesado para costas e bíceps')
-  RETURNING id INTO v_template_id;
-
-  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
-    (v_template_id, 'Puxada Frontal', 1, 10, 50),
-    (v_template_id, 'Remada Curvada com Barra', 2, 8, 50),
-    (v_template_id, 'Remada Unilateral com Haltere', 3, 10, 22),
-    (v_template_id, 'Puxada Triângulo', 4, 10, 55),
-    (v_template_id, 'Rosca Direta com Barra', 5, 10, 25),
-    (v_template_id, 'Rosca Alternada com Halteres', 6, 10, 12);
-
-  -- ===== TEMPLATE 3: Pernas =====
-  INSERT INTO workout_templates (name, user_id, description)
-  VALUES ('Pernas - Completo', v_user_id, 'Treino completo de pernas')
-  RETURNING id INTO v_template_id;
-
-  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
-    (v_template_id, 'Agachamento Livre', 1, 8, 60),
-    (v_template_id, 'Leg Press 45°', 2, 10, 180),
-    (v_template_id, 'Cadeira Extensora', 3, 12, 50),
-    (v_template_id, 'Mesa Flexora', 4, 12, 35),
-    (v_template_id, 'Panturrilha no Smith', 5, 15, 60);
-
-  -- ===== TEMPLATE 4: Ombros & Trapézio =====
-  INSERT INTO workout_templates (name, user_id, description)
-  VALUES ('Ombros & Trapézio', v_user_id, NULL)
-  RETURNING id INTO v_template_id;
-
-  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
-    (v_template_id, 'Desenvolvimento Militar', 1, 10, 40),
-    (v_template_id, 'Elevação Lateral', 2, 12, 8),
-    (v_template_id, 'Elevação Frontal com Haltere', 3, 12, 10),
-    (v_template_id, 'Face Pull na Polia', 4, 15, 15),
-    (v_template_id, 'Encolhimento com Halteres', 5, 15, 30);
-END $$;
-
--- =====================================================
--- 5. Criar templates de treino para ana
--- =====================================================
-
-DO $$
-DECLARE
-  v_user_id UUID := 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-  v_template_id UUID;
-BEGIN
-  -- ===== TEMPLATE 1: Superior A =====
-  INSERT INTO workout_templates (name, user_id, description)
-  VALUES ('Superior A - Membros Superiores', v_user_id, 'Foco em membros superiores')
-  RETURNING id INTO v_template_id;
-
-  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
-    (v_template_id, 'Puxada Frontal', 1, 12, 35),
-    (v_template_id, 'Remada Sentada', 2, 12, 35),
-    (v_template_id, 'Supino na Máquina', 3, 10, 30),
-    (v_template_id, 'Desenvolvimento com Halteres', 4, 10, 8),
-    (v_template_id, 'Elevação Lateral', 5, 12, 4);
-
-  -- ===== TEMPLATE 2: Inferior A =====
-  INSERT INTO workout_templates (name, user_id, description)
-  VALUES ('Inferior A - Membros Inferiores', v_user_id, 'Treino de pernas completo')
-  RETURNING id INTO v_template_id;
-
-  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
-    (v_template_id, 'Agachamento Goblet', 1, 12, 16),
-    (v_template_id, 'Stiff', 2, 10, 30),
-    (v_template_id, 'Leg Press 45°', 3, 12, 120),
-    (v_template_id, 'Cadeira Adutora', 4, 15, 45),
-    (v_template_id, 'Panturrilha Sentada', 5, 15, 25);
+    INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg) VALUES
+      (v_template_id, 'Agachamento Goblet', 1, 12, 16),
+      (v_template_id, 'Stiff', 2, 10, 30),
+      (v_template_id, 'Leg Press 45°', 3, 12, 120),
+      (v_template_id, 'Cadeira Adutora', 4, 15, 45),
+      (v_template_id, 'Panturrilha Sentada', 5, 15, 25);
+  END;
 END $$;

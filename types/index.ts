@@ -41,3 +41,26 @@ export type WorkoutWithExercises = Workout & {
 export type ExerciseWithSets = Exercise & {
   sets: WorkoutSet[]
 }
+
+export interface WorkoutTemplate {
+  id: string
+  user_id: string
+  name: string
+  description?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TemplateExercise {
+  id: string
+  template_id: string
+  name: string
+  order: number
+  default_reps: number
+  default_weight_kg: number
+  created_at: string
+}
+
+export type WorkoutTemplateWithExercises = WorkoutTemplate & {
+  exercises: TemplateExercise[]
+}

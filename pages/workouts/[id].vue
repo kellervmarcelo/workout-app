@@ -10,6 +10,8 @@ const workout = ref<WorkoutWithExercises | null>(null)
 const loading = ref(false)
 const showExerciseForm = ref(false)
 const newExerciseName = ref('')
+const showTemplateSelector = ref(false)
+const templates = ref<WorkoutTemplateWithExercises[]>([])
 
 const fetchWorkout = async () => {
   loading.value = true
@@ -35,6 +37,67 @@ const fetchWorkout = async () => {
   }
 }
 
+const fetchTemplates = async () => {
+  const { data: sessionData } = await supabase.auth.getSession()
+  if (!sessionData.session?.user) return
+
+  try {
+    const { data, error } = await supabase
+      .from('workout_templates')
+      .select(`
+        *,
+        exercises:template_exercises(*)
+      `)
+      .eq('user_id', sessionData.session.user.id)
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    templates.value = data || []
+  } catch (error: any) {
+    console.error('Erro ao buscar templates:', error)
+  }
+}
+
+const loadTemplate = async (templateId: string) => {
+  if (!workout.value) return
+
+  const template = templates.value.find(t => t.id === templateId)
+  if (!template?.exercises?.length) return
+
+  try {
+    // Adicionar cada exercício do template ao treino
+    for (const exercise of template.exercises) {
+      const { data: exerciseData, error: exerciseError } = await supabase
+        .from('exercises')
+        .insert({
+          workout_id: workoutId,
+          name: exercise.name,
+          order: exercise.order,
+        })
+        .select()
+        .single()
+
+      if (exerciseError) throw exerciseError
+
+      // Criar série padrão com os valores do template
+      const { error: setError } = await supabase.from('workout_sets').insert({
+        exercise_id: exerciseData.id,
+        set_number: 1,
+        reps: exercise.default_reps,
+        weight_kg: exercise.default_weight_kg,
+        completed: true,
+      })
+
+      if (setError) throw setError
+    }
+
+    showTemplateSelector.value = false
+    await fetchWorkout()
+  } catch (error: any) {
+    console.error('Erro ao carregar template:', error)
+  }
+}
+
 const addExercise = async () => {
   if (!workout.value || !newExerciseName.value) return
 
@@ -52,7 +115,7 @@ const addExercise = async () => {
       .single()
 
     if (error) throw error
-    
+
     newExerciseName.value = ''
     showExerciseForm.value = false
     await fetchWorkout()
@@ -157,12 +220,20 @@ onMounted(fetchWorkout)
             {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
           </p>
         </div>
-        <Button @click="showExerciseForm = true">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Exercício
-        </Button>
+        <div class="flex gap-2">
+          <Button variant="outline" @click="showTemplateSelector = true; fetchTemplates()">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Carregar Template
+          </Button>
+          <Button @click="showExerciseForm = true">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Exercício
+          </Button>
+        </div>
       </div>
 
       <!-- Stats -->
@@ -204,91 +275,146 @@ onMounted(fetchWorkout)
       </form>
     </Card>
 
+    <!-- Template Selector Modal -->
+    <Card v-if="showTemplateSelector" class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold">Carregar Template</h2>
+        <Button variant="ghost" size="icon" class="h-8 w-8" @click="showTemplateSelector = false">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Button>
+      </div>
+      
+      <div v-if="templates.length === 0" class="text-center py-8 text-muted-foreground">
+        <p>Nenhum template disponível. Crie um em</p>
+        <NuxtLink to="/templates" class="text-primary hover:underline">
+          Templates
+        </NuxtLink>
+      </div>
+      
+      <div v-else class="space-y-3">
+        <Card
+          v-for="t in templates"
+          :key="t.id"
+          class="p-4 cursor-pointer hover:bg-muted/30 transition-colors border-2 hover:border-primary"
+          @click="loadTemplate(t.id)"
+        >
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="font-semibold">{{ t.name }}</h3>
+              <p v-if="t.description" class="text-sm text-muted-foreground mt-1">
+                {{ t.description }}
+              </p>
+              <p class="text-sm text-muted-foreground mt-2">
+                {{ t.exercises?.length || 0 }} exercícios
+              </p>
+            </div>
+            <Badge variant="outline">{{ t.exercises?.length || 0 }} exercícios</Badge>
+          </div>
+        </Card>
+      </div>
+    </Card>
+
     <!-- Exercises -->
-    <div v-if="workout.exercises?.length" class="space-y-6">
-      <Card
+    <div v-if="workout.exercises?.length" class="space-y-4">
+      <Collapsible
         v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
-        class="overflow-hidden"
+        :default-open="true"
       >
-        <!-- Exercise Header -->
-        <div class="flex items-center justify-between p-4 border-b bg-muted/30">
+        <template #title>
           <div class="flex items-center gap-3">
             <Badge variant="outline" class="font-mono">{{ idx + 1 }}</Badge>
             <h3 class="text-lg font-semibold">{{ exercise.name }}</h3>
-          </div>
-          <div class="flex items-center gap-2">
             <Badge variant="secondary">{{ exercise.sets?.length || 0 }} séries</Badge>
-            <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive" @click="deleteExercise(exercise.id)">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </Button>
           </div>
-        </div>
-
+        </template>
+        
         <!-- Sets Table -->
-        <div class="p-4">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-muted-foreground border-b">
-                  <th class="text-left py-2 px-3 font-medium">Série</th>
-                  <th class="text-left py-2 px-3 font-medium">Reps</th>
-                  <th class="text-left py-2 px-3 font-medium">Carga (kg)</th>
-                  <th class="text-right py-2 px-3 font-medium"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td class="py-3 px-3">
-                    <Badge variant="secondary" class="font-mono">{{ set.set_number }}</Badge>
-                  </td>
-                  <td class="py-3 px-3">
-                    <Input
-                      :model-value="String(set.reps)"
-                      type="number"
-                      min="1"
-                      class="w-20 h-9 font-mono"
-                      @update:model-value="updateSet(set.id, 'reps', Number($event))"
-                    />
-                  </td>
-                  <td class="py-3 px-3">
-                    <Input
-                      :model-value="String(set.weight_kg)"
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      class="w-24 h-9 font-mono"
-                      @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
-                    />
-                  </td>
-                  <td class="py-3 px-3 text-right">
-                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </Button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Add Set Button -->
-          <Button
-            variant="outline"
-            size="sm"
-            class="mt-4 w-full"
-            @click="addSet(exercise.id)"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Adicionar Série
-          </Button>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-muted-foreground border-b">
+                <th class="text-left py-2 px-3 font-medium">Série</th>
+                <th class="text-left py-2 px-3 font-medium">Reps</th>
+                <th class="text-left py-2 px-3 font-medium">Carga (kg)</th>
+                <th class="text-right py-2 px-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                <td class="py-3 px-3">
+                  <Badge variant="secondary" class="font-mono">{{ set.set_number }}</Badge>
+                </td>
+                <td class="py-3 px-3">
+                  <Input
+                    :model-value="String(set.reps)"
+                    type="number"
+                    min="1"
+                    class="w-20 h-9 font-mono"
+                    @update:model-value="updateSet(set.id, 'reps', Number($event))"
+                  />
+                </td>
+                <td class="py-3 px-3">
+                  <Input
+                    :model-value="String(set.weight_kg)"
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    class="w-24 h-9 font-mono"
+                    @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
+                  />
+                </td>
+                <td class="py-3 px-3 text-right">
+                  <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </Card>
+
+        <!-- Add Set Button -->
+        <Button
+          variant="outline"
+          size="sm"
+          class="mt-4 w-full"
+          @click="addSet(exercise.id)"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Adicionar Série
+        </Button>
+
+        <!-- Rest Timer -->
+        <div class="mt-4 pt-4 border-t">
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-sm font-medium">Descanso</span>
+          </div>
+          <RestTimer />
+        </div>
+
+        <!-- Delete Exercise Button -->
+        <Button
+          variant="outline"
+          size="sm"
+          class="mt-2 w-full text-destructive hover:text-destructive"
+          @click="deleteExercise(exercise.id)"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Remover Exercício
+        </Button>
+      </Collapsible>
     </div>
 
     <!-- Empty State -->
