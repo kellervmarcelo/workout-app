@@ -117,35 +117,36 @@ const totalVolume = (workout: WorkoutWithExercises) => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
+  <div class="space-y-4 md:space-y-6">
+    <!-- Header - empilhado em mobile -->
+    <div class="space-y-3 md:flex md:items-center md:justify-between md:space-y-0">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight">Meus Treinos</h1>
-        <p class="text-muted-foreground mt-1">Gerencie seus treinos e exercícios</p>
+        <h1 class="text-2xl font-bold tracking-tight md:text-3xl">Meus Treinos</h1>
+        <p class="text-sm text-muted-foreground mt-0.5 md:mt-1">Gerencie seus treinos e exercícios</p>
       </div>
       <div class="flex gap-2">
-        <Button variant="outline" @click="navigateTo('/templates')">
+        <Button variant="outline" size="sm" @click="navigateTo('/templates')" class="flex-1 md:flex-none">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          Templates
+          <span class="hidden sm:inline">Templates</span>
         </Button>
-        <Button @click="showCreateDialog = true">
+        <Button size="sm" @click="showCreateDialog = true" class="flex-1 md:flex-none">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          Novo Treino
+          <span class="hidden sm:inline">Novo Treino</span>
+          <span class="sm:hidden">Novo</span>
         </Button>
       </div>
     </div>
 
     <!-- Create Dialog -->
-    <Card v-if="showCreateDialog" class="p-6">
+    <Card v-if="showCreateDialog" class="p-4 md:p-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">Novo Treino</h2>
-        <Button variant="ghost" size="icon" class="h-8 w-8" @click="showCreateDialog = false">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h2 class="text-lg font-semibold md:text-xl">Novo Treino</h2>
+        <Button variant="ghost" size="icon" class="h-9 w-9" @click="showCreateDialog = false">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </Button>
@@ -158,6 +159,7 @@ const totalVolume = (workout: WorkoutWithExercises) => {
             v-model="newWorkoutName"
             placeholder="Ex: Treino A - Peito"
             required
+            class="h-11 text-base"
           />
         </div>
         <div class="space-y-2">
@@ -166,13 +168,14 @@ const totalVolume = (workout: WorkoutWithExercises) => {
             id="workout-date"
             v-model="newWorkoutDate"
             type="date"
+            class="h-11 text-base"
           />
         </div>
-        <div class="flex gap-2 justify-end">
-          <Button type="button" variant="outline" @click="showCreateDialog = false">
+        <div class="flex gap-2">
+          <Button type="button" variant="outline" @click="showCreateDialog = false" class="flex-1">
             Cancelar
           </Button>
-          <Button type="submit">Criar Treino</Button>
+          <Button type="submit" class="flex-1">Criar Treino</Button>
         </div>
       </form>
     </Card>
@@ -186,50 +189,50 @@ const totalVolume = (workout: WorkoutWithExercises) => {
     </div>
 
     <!-- Empty State -->
-    <Card v-else-if="workouts.length === 0" class="p-12 text-center">
+    <Card v-else-if="workouts.length === 0" class="p-8 text-center md:p-12">
       <div class="text-5xl mb-4">🏋️</div>
-      <h3 class="text-xl font-semibold mb-2">Nenhum treino ainda</h3>
-      <p class="text-muted-foreground">Clique em "Novo Treino" para começar!</p>
+      <h3 class="text-lg font-semibold mb-2 md:text-xl">Nenhum treino ainda</h3>
+      <p class="text-sm text-muted-foreground">Clique em "Novo Treino" para começar!</p>
     </Card>
 
     <!-- Workout List -->
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-3 md:space-y-4">
       <Card
         v-for="workout in workouts"
         :key="workout.id"
-        class="p-6 hover:shadow-md transition-shadow cursor-pointer"
+        class="p-4 hover:shadow-md transition-shadow cursor-pointer md:p-6"
         @click="navigateTo(`/workouts/${workout.id}`)"
       >
-        <div class="flex items-start justify-between">
-          <div class="space-y-2 flex-1">
-            <div class="flex items-center gap-2">
-              <h3 class="text-lg font-semibold">{{ workout.name }}</h3>
-              <Badge variant="outline" class="font-mono text-xs">
-                {{ totalExercises(workout) }} exercícios
+        <div class="flex items-start justify-between gap-3">
+          <div class="space-y-1.5 flex-1 min-w-0 md:space-y-2">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <h3 class="text-base font-semibold truncate md:text-lg">{{ workout.name }}</h3>
+              <Badge variant="outline" class="font-mono text-[10px] shrink-0">
+                {{ totalExercises(workout) }}
               </Badge>
-              <Badge variant="secondary" class="text-xs">
-                {{ totalSets(workout) }} séries
+              <Badge variant="secondary" class="text-[10px] shrink-0">
+                {{ totalSets(workout) }}s
               </Badge>
             </div>
-            <div class="flex items-center gap-4 text-sm text-muted-foreground">
+            <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground md:gap-4 md:text-sm">
               <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 {{ formatDate(workout.date) }}
               </span>
               <span v-if="totalVolume(workout) > 0" class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                {{ totalVolume(workout).toLocaleString('pt-BR') }} kg
+                <span class="truncate">{{ totalVolume(workout).toLocaleString('pt-BR') }} kg</span>
               </span>
             </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            class="h-8 w-8 text-muted-foreground hover:text-destructive"
+            class="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
             @click.stop="deleteWorkout(workout.id)"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

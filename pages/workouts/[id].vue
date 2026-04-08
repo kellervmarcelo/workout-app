@@ -200,62 +200,63 @@ onMounted(fetchWorkout)
 </script>
 
 <template>
-  <div v-if="workout" class="space-y-6">
+  <div v-if="workout" class="space-y-4 md:space-y-6">
     <!-- Header -->
-    <div class="space-y-4">
-      <NuxtLink to="/" class="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+    <div class="space-y-3 md:space-y-4">
+      <NuxtLink to="/" class="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors min-h-[44px]">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        Voltar aos treinos
+        Voltar
       </NuxtLink>
-      
-      <div class="flex items-start justify-between">
-        <div>
-          <h1 class="text-3xl font-bold tracking-tight">{{ workout.name }}</h1>
-          <p class="text-muted-foreground mt-1 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <Button variant="outline" @click="showTemplateSelector = true; fetchTemplates()">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            Carregar Template
-          </Button>
-          <Button @click="showExerciseForm = true">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Exercício
-          </Button>
-        </div>
+
+      <div class="space-y-2">
+        <h1 class="text-xl font-bold tracking-tight md:text-3xl">{{ workout.name }}</h1>
+        <p class="text-sm text-muted-foreground flex items-center gap-1">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+        </p>
       </div>
 
-      <!-- Stats -->
-      <div class="flex gap-4">
-        <Card class="flex-1 p-4">
-          <div class="text-sm text-muted-foreground">Total de Séries</div>
-          <div class="text-2xl font-bold">{{ totalSets }}</div>
+      <!-- Action Buttons - coluna em mobile -->
+      <div class="flex gap-2">
+        <Button variant="outline" size="sm" @click="showTemplateSelector = true; fetchTemplates()" class="flex-1 md:flex-none">
+          <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span class="hidden sm:inline">Carregar Template</span>
+          <span class="sm:hidden">Template</span>
+        </Button>
+        <Button size="sm" @click="showExerciseForm = true" class="flex-1 md:flex-none">
+          <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Exercício
+        </Button>
+      </div>
+
+      <!-- Stats - coluna em mobile, row em desktop -->
+      <div class="grid grid-cols-3 gap-2 md:gap-4">
+        <Card class="p-3 md:p-4">
+          <div class="text-xs text-muted-foreground md:text-sm">Séries</div>
+          <div class="text-lg font-bold md:text-2xl">{{ totalSets }}</div>
         </Card>
-        <Card class="flex-1 p-4">
-          <div class="text-sm text-muted-foreground">Volume Total</div>
-          <div class="text-2xl font-bold">{{ totalVolume.toLocaleString('pt-BR') }} <span class="text-sm font-normal text-muted-foreground">kg</span></div>
+        <Card class="p-3 md:p-4">
+          <div class="text-xs text-muted-foreground md:text-sm">Volume</div>
+          <div class="text-lg font-bold md:text-2xl">{{ totalVolume.toLocaleString('pt-BR') }}<span class="text-xs font-normal text-muted-foreground"> kg</span></div>
         </Card>
-        <Card class="flex-1 p-4">
-          <div class="text-sm text-muted-foreground">Exercícios</div>
-          <div class="text-2xl font-bold">{{ workout.exercises?.length || 0 }}</div>
+        <Card class="p-3 md:p-4">
+          <div class="text-xs text-muted-foreground md:text-sm">Exercícios</div>
+          <div class="text-lg font-bold md:text-2xl">{{ workout.exercises?.length || 0 }}</div>
         </Card>
       </div>
     </div>
 
     <!-- Exercise Form -->
-    <Card v-if="showExerciseForm" class="p-6">
-      <h2 class="text-xl font-semibold mb-4">Adicionar Exercício</h2>
+    <Card v-if="showExerciseForm" class="p-4 md:p-6">
+      <h2 class="text-lg font-semibold mb-4 md:text-xl">Adicionar Exercício</h2>
       <form @submit.prevent="addExercise" class="space-y-4">
         <div class="space-y-2">
           <Label for="exercise-name" required>Nome do Exercício</Label>
@@ -264,36 +265,37 @@ onMounted(fetchWorkout)
             v-model="newExerciseName"
             placeholder="Ex: Supino Reto"
             required
+            class="h-11 text-base"
           />
         </div>
-        <div class="flex gap-2 justify-end">
-          <Button type="button" variant="outline" @click="showExerciseForm = false">
+        <div class="flex gap-2">
+          <Button type="button" variant="outline" @click="showExerciseForm = false" class="flex-1">
             Cancelar
           </Button>
-          <Button type="submit">Adicionar</Button>
+          <Button type="submit" class="flex-1">Adicionar</Button>
         </div>
       </form>
     </Card>
 
     <!-- Template Selector Modal -->
-    <Card v-if="showTemplateSelector" class="p-6">
+    <Card v-if="showTemplateSelector" class="p-4 md:p-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">Carregar Template</h2>
-        <Button variant="ghost" size="icon" class="h-8 w-8" @click="showTemplateSelector = false">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h2 class="text-lg font-semibold md:text-xl">Carregar Template</h2>
+        <Button variant="ghost" size="icon" class="h-9 w-9" @click="showTemplateSelector = false">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </Button>
       </div>
-      
+
       <div v-if="templates.length === 0" class="text-center py-8 text-muted-foreground">
-        <p>Nenhum template disponível. Crie um em</p>
-        <NuxtLink to="/templates" class="text-primary hover:underline">
+        <p class="text-sm">Nenhum template disponível. Crie um em</p>
+        <NuxtLink to="/templates" class="text-primary hover:underline text-sm">
           Templates
         </NuxtLink>
       </div>
-      
-      <div v-else class="space-y-3">
+
+      <div v-else class="space-y-2 md:space-y-3">
         <Card
           v-for="t in templates"
           :key="t.id"
@@ -317,57 +319,57 @@ onMounted(fetchWorkout)
     </Card>
 
     <!-- Exercises -->
-    <div v-if="workout.exercises?.length" class="space-y-4">
+    <div v-if="workout.exercises?.length" class="space-y-3 md:space-y-4">
       <Collapsible
         v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
         :default-open="true"
       >
         <template #title>
-          <div class="flex items-center gap-3">
-            <Badge variant="outline" class="font-mono">{{ idx + 1 }}</Badge>
-            <h3 class="text-lg font-semibold">{{ exercise.name }}</h3>
-            <Badge variant="secondary">{{ exercise.sets?.length || 0 }} séries</Badge>
+          <div class="flex items-center gap-2 md:gap-3">
+            <Badge variant="outline" class="font-mono text-xs">{{ idx + 1 }}</Badge>
+            <h3 class="text-sm font-semibold md:text-lg truncate">{{ exercise.name }}</h3>
+            <Badge variant="secondary" class="text-[10px] shrink-0">{{ exercise.sets?.length || 0 }}s</Badge>
           </div>
         </template>
-        
-        <!-- Sets Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
+
+        <!-- Sets Table - scroll horizontal em mobile -->
+        <div class="overflow-x-auto -mx-1 px-1">
+          <table class="w-full text-sm min-w-[280px]">
             <thead>
               <tr class="text-muted-foreground border-b">
-                <th class="text-left py-2 px-3 font-medium">Série</th>
-                <th class="text-left py-2 px-3 font-medium">Reps</th>
-                <th class="text-left py-2 px-3 font-medium">Carga (kg)</th>
-                <th class="text-right py-2 px-3 font-medium"></th>
+                <th class="text-left py-2 px-2 font-medium text-xs">Set</th>
+                <th class="text-left py-2 px-2 font-medium text-xs">Reps</th>
+                <th class="text-left py-2 px-2 font-medium text-xs">Carga</th>
+                <th class="text-right py-2 px-2 font-medium text-xs"></th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                <td class="py-3 px-3">
-                  <Badge variant="secondary" class="font-mono">{{ set.set_number }}</Badge>
+              <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0">
+                <td class="py-2.5 px-2">
+                  <Badge variant="secondary" class="font-mono text-xs">{{ set.set_number }}</Badge>
                 </td>
-                <td class="py-3 px-3">
+                <td class="py-2.5 px-2">
                   <Input
                     :model-value="String(set.reps)"
                     type="number"
                     min="1"
-                    class="w-20 h-9 font-mono"
+                    class="w-16 h-10 text-base font-mono md:h-9 md:w-20 md:text-sm"
                     @update:model-value="updateSet(set.id, 'reps', Number($event))"
                   />
                 </td>
-                <td class="py-3 px-3">
+                <td class="py-2.5 px-2">
                   <Input
                     :model-value="String(set.weight_kg)"
                     type="number"
                     step="0.5"
                     min="0"
-                    class="w-24 h-9 font-mono"
+                    class="w-20 h-10 text-base font-mono md:h-9 md:w-24 md:text-sm"
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
                 </td>
-                <td class="py-3 px-3 text-right">
-                  <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
+                <td class="py-2.5 px-2 text-right">
+                  <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -382,7 +384,7 @@ onMounted(fetchWorkout)
         <Button
           variant="outline"
           size="sm"
-          class="mt-4 w-full"
+          class="mt-3 w-full h-11 md:h-9"
           @click="addSet(exercise.id)"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -392,9 +394,9 @@ onMounted(fetchWorkout)
         </Button>
 
         <!-- Rest Timer -->
-        <div class="mt-4 pt-4 border-t">
+        <div class="mt-3 pt-3 border-t">
           <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span class="text-sm font-medium">Descanso</span>
@@ -406,7 +408,7 @@ onMounted(fetchWorkout)
         <Button
           variant="outline"
           size="sm"
-          class="mt-2 w-full text-destructive hover:text-destructive"
+          class="mt-2 w-full h-11 text-destructive hover:text-destructive md:h-9"
           @click="deleteExercise(exercise.id)"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

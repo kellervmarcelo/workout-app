@@ -47,14 +47,14 @@ const toggleMode = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900">
-    <Card class="w-full max-w-md mx-4">
-      <div class="p-6 space-y-6">
+  <div class="min-h-screen flex items-center justify-center bg-background p-4">
+    <Card class="w-full max-w-md">
+      <div class="p-4 space-y-5 md:p-6 md:space-y-6">
         <!-- Header -->
         <div class="text-center space-y-2">
-          <div class="text-5xl mb-2">💪</div>
-          <h1 class="text-3xl font-bold tracking-tight">Workout Tracker</h1>
-          <p class="text-muted-foreground">
+          <div class="text-4xl mb-1 md:text-5xl md:mb-2">💪</div>
+          <h1 class="text-2xl font-bold tracking-tight md:text-3xl">Workout Tracker</h1>
+          <p class="text-sm text-muted-foreground">
             {{ isLogin ? 'Entre na sua conta para continuar' : 'Crie sua conta para começar' }}
           </p>
         </div>
@@ -62,7 +62,7 @@ const toggleMode = () => {
         <!-- Error/Success -->
         <div v-if="error" :class="cn(
           'p-3 rounded-md text-sm border',
-          error.includes('sucesso') ? 'bg-green-50 text-green-700 border-green-200' : 'bg-destructive/10 text-destructive border-destructive/20',
+          error.includes('sucesso') ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-destructive/10 text-destructive border-destructive/20',
         )">
           {{ error }}
         </div>
@@ -78,13 +78,14 @@ const toggleMode = () => {
               placeholder="seu@email.com"
               :disabled="loading"
               required
+              class="h-11 text-base"
             />
           </div>
 
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <Label for="password" required>Senha</Label>
-              <a v-if="isLogin" href="#" class="text-sm text-primary hover:underline">
+              <a v-if="isLogin" href="#" class="text-xs text-primary hover:underline">
                 Esqueceu a senha?
               </a>
             </div>
@@ -95,10 +96,11 @@ const toggleMode = () => {
               placeholder="••••••••"
               :disabled="loading"
               required
+              class="h-11 text-base"
             />
           </div>
 
-          <Button type="submit" class="w-full" :disabled="loading">
+          <Button type="submit" class="w-full h-11 text-base" :disabled="loading">
             <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -120,7 +122,7 @@ const toggleMode = () => {
         <!-- Toggle -->
         <p class="text-center text-sm text-muted-foreground">
           {{ isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?' }}
-          <button class="text-primary hover:underline font-medium" @click="toggleMode">
+          <button class="text-primary hover:underline font-medium min-h-[44px] px-2" @click="toggleMode">
             {{ isLogin ? 'Criar conta' : 'Entrar' }}
           </button>
         </p>
