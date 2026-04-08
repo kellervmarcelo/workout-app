@@ -124,12 +124,20 @@ const totalVolume = (workout: WorkoutWithExercises) => {
         <h1 class="text-3xl font-bold tracking-tight">Meus Treinos</h1>
         <p class="text-muted-foreground mt-1">Gerencie seus treinos e exercícios</p>
       </div>
-      <Button @click="showCreateDialog = true">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Novo Treino
-      </Button>
+      <div class="flex gap-2">
+        <Button variant="outline" @click="navigateTo('/templates')">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Templates
+        </Button>
+        <Button @click="showCreateDialog = true">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Novo Treino
+        </Button>
+      </div>
     </div>
 
     <!-- Create Dialog -->
