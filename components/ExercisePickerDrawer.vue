@@ -18,7 +18,9 @@
         >
           <!-- Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b shrink-0">
-            <h2 class="text-lg font-semibold">Adicionar Exercício</h2>
+            <h2 class="text-lg font-semibold">
+              Adicionar Exercício
+            </h2>
             <button
               class="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
               @click="handleClose"
@@ -55,7 +57,7 @@
                 type="text"
                 placeholder="Buscar exercício..."
                 class="w-full h-10 pl-9 pr-4 rounded-md border border-input bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-              />
+              >
             </div>
           </div>
 
@@ -118,7 +120,9 @@
                   d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p class="text-sm">Nenhum exercício encontrado</p>
+              <p class="text-sm">
+                Nenhum exercício encontrado
+              </p>
             </div>
 
             <div v-else class="divide-y">
@@ -138,7 +142,7 @@
                     class="w-full h-full object-cover"
                     loading="lazy"
                     @error="($event.target as HTMLImageElement).style.display = 'none'"
-                  />
+                  >
                 </div>
 
                 <!-- Info -->
@@ -201,8 +205,8 @@ const emit = defineEmits<{
   addCustom: []
 }>()
 
-const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters } =
-  useExerciseLibrary()
+const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters }
+  = useExerciseLibrary()
 
 const overlayRef = ref<HTMLDivElement>()
 
@@ -211,7 +215,8 @@ function isAdded(exerciseName: string) {
 }
 
 function handleSelect(exercise: ExerciseLibraryItem) {
-  if (isAdded(exercise.name)) return
+  if (isAdded(exercise.name))
+    return
   emit('select', exercise)
 }
 
@@ -238,7 +243,8 @@ watch(
   (isOpen) => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-    } else {
+    }
+    else {
       document.body.style.overflow = ''
     }
   },
