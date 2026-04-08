@@ -223,3 +223,7 @@ No template, usar `props.variant`, `props.class`, etc.
 3. **Auth**: Usar `useSupabaseClient()` + `getSession()` dentro de `onMounted`
 4. **SSR**: Desabilitado (`ssr: false`) — app é SPA
 5. **Env**: Nunca commitar `.env` — usar `.env.example` como template
+
+## Qwen Added Memories
+- Sempre criar branches novas para novas features seguindo o padrão: feat/fix/chore:<título-descritivo>. Exemplo: feat: add-dark-mode, fix: auth-redirect-loop, chore: update-dependencies
+- Ao finalizar uma feature, fazer push para o repositório remoto e criar automaticamente uma Pull Request (PR) com uma descrição detalhada das mudanças feitas

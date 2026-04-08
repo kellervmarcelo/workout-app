@@ -1,124 +1,3 @@
-<script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-
-const props = defineProps<{
-  defaultSeconds?: number
-}>()
-
-const presetTimes = [30, 60, 90, 120]
-
-const totalSeconds = ref(props.defaultSeconds ?? 60)
-const remainingSeconds = ref(0)
-const isRunning = ref(false)
-const showPresets = ref(false)
-
-const displayTime = computed(() => {
-  const mins = Math.floor(remainingSeconds.value / 60)
-  const secs = remainingSeconds.value % 60
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-})
-
-const progressPercent = computed(() => {
-  if (totalSeconds.value === 0) return 0
-  return ((totalSeconds.value - remainingSeconds.value) / totalSeconds.value) * 100
-})
-
-let intervalId: ReturnType<typeof setInterval> | null = null
-
-const startTimer = (seconds: number) => {
-  if (isRunning.value) return
-
-  totalSeconds.value = seconds
-  remainingSeconds.value = seconds
-  isRunning.value = true
-  showPresets.value = false
-
-  intervalId = setInterval(() => {
-    if (remainingSeconds.value <= 0) {
-      stopTimer()
-      playBeep()
-      return
-    }
-    remainingSeconds.value--
-  }, 1000)
-}
-
-const toggleTimer = () => {
-  if (isRunning.value) {
-    pauseTimer()
-  } else if (remainingSeconds.value > 0) {
-    resumeTimer()
-  } else {
-    showPresets.value = !showPresets.value
-  }
-}
-
-const pauseTimer = () => {
-  if (intervalId) {
-    clearInterval(intervalId)
-    intervalId = null
-  }
-  isRunning.value = false
-}
-
-const resumeTimer = () => {
-  if (remainingSeconds.value <= 0) return
-
-  isRunning.value = true
-  intervalId = setInterval(() => {
-    if (remainingSeconds.value <= 0) {
-      stopTimer()
-      playBeep()
-      return
-    }
-    remainingSeconds.value--
-  }, 1000)
-}
-
-const resetTimer = () => {
-  pauseTimer()
-  remainingSeconds.value = 0
-  showPresets.value = false
-}
-
-const stopTimer = () => {
-  if (intervalId) {
-    clearInterval(intervalId)
-    intervalId = null
-  }
-  isRunning.value = false
-  remainingSeconds.value = 0
-}
-
-const playBeep = () => {
-  try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-
-    oscillator.frequency.value = 800
-    oscillator.type = 'sine'
-
-    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
-
-    oscillator.start(audioContext.currentTime)
-    oscillator.stop(audioContext.currentTime + 0.5)
-  } catch (e) {
-    console.warn('Não foi possível reproduzir o beep:', e)
-  }
-}
-
-// Cleanup on unmount
-import { onBeforeUnmount } from 'vue'
-onBeforeUnmount(() => {
-  if (intervalId) clearInterval(intervalId)
-})
-</script>
-
 <template>
   <div class="rest-timer">
     <!-- Timer Display -->
@@ -209,3 +88,131 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+
+// Cleanup on unmount
+import { onBeforeUnmount } from 'vue'
+
+const props = defineProps<{
+  defaultSeconds?: number
+}>()
+
+const presetTimes = [30, 60, 90, 120]
+
+const totalSeconds = ref(props.defaultSeconds ?? 60)
+const remainingSeconds = ref(0)
+const isRunning = ref(false)
+const showPresets = ref(false)
+
+const displayTime = computed(() => {
+  const mins = Math.floor(remainingSeconds.value / 60)
+  const secs = remainingSeconds.value % 60
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+})
+
+const progressPercent = computed(() => {
+  if (totalSeconds.value === 0)
+    return 0
+  return ((totalSeconds.value - remainingSeconds.value) / totalSeconds.value) * 100
+})
+
+let intervalId: ReturnType<typeof setInterval> | null = null
+
+function startTimer(seconds: number) {
+  if (isRunning.value)
+    return
+
+  totalSeconds.value = seconds
+  remainingSeconds.value = seconds
+  isRunning.value = true
+  showPresets.value = false
+
+  intervalId = setInterval(() => {
+    if (remainingSeconds.value <= 0) {
+      stopTimer()
+      playBeep()
+      return
+    }
+    remainingSeconds.value--
+  }, 1000)
+}
+
+function toggleTimer() {
+  if (isRunning.value) {
+    pauseTimer()
+  }
+  else if (remainingSeconds.value > 0) {
+    resumeTimer()
+  }
+  else {
+    showPresets.value = !showPresets.value
+  }
+}
+
+function pauseTimer() {
+  if (intervalId) {
+    clearInterval(intervalId)
+    intervalId = null
+  }
+  isRunning.value = false
+}
+
+function resumeTimer() {
+  if (remainingSeconds.value <= 0)
+    return
+
+  isRunning.value = true
+  intervalId = setInterval(() => {
+    if (remainingSeconds.value <= 0) {
+      stopTimer()
+      playBeep()
+      return
+    }
+    remainingSeconds.value--
+  }, 1000)
+}
+
+function resetTimer() {
+  pauseTimer()
+  remainingSeconds.value = 0
+  showPresets.value = false
+}
+
+function stopTimer() {
+  if (intervalId) {
+    clearInterval(intervalId)
+    intervalId = null
+  }
+  isRunning.value = false
+  remainingSeconds.value = 0
+}
+
+function playBeep() {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    oscillator.frequency.value = 800
+    oscillator.type = 'sine'
+
+    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+
+    oscillator.start(audioContext.currentTime)
+    oscillator.stop(audioContext.currentTime + 0.5)
+  }
+  catch (e) {
+    console.warn('Não foi possível reproduzir o beep:', e)
+  }
+}
+onBeforeUnmount(() => {
+  if (intervalId)
+    clearInterval(intervalId)
+})
+</script>

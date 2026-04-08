@@ -1,5 +1,5 @@
-import { ref, computed } from 'vue'
 import type { ExerciseLibraryItem, MuscleGroup } from '~/types'
+import { computed, ref } from 'vue'
 import { exerciseLibrary } from '~/data/exercises'
 
 export function useExerciseLibrary() {

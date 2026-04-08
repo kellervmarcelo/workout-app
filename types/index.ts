@@ -65,16 +65,16 @@ export type WorkoutTemplateWithExercises = WorkoutTemplate & {
   exercises: TemplateExercise[]
 }
 
-export type MuscleGroup =
-  | 'peito'
-  | 'costas'
-  | 'pernas'
-  | 'ombro'
-  | 'bíceps'
-  | 'tríceps'
-  | 'core'
-  | 'glúteos'
-  | 'panturrilha'
+export type MuscleGroup
+  = | 'peito'
+    | 'costas'
+    | 'pernas'
+    | 'ombro'
+    | 'bíceps'
+    | 'tríceps'
+    | 'core'
+    | 'glúteos'
+    | 'panturrilha'
 
 export interface ExerciseLibraryItem {
   id: string
@@ -84,7 +84,7 @@ export interface ExerciseLibraryItem {
   gifUrl: string
 }
 
-export const MUSCLE_GROUPS: { value: MuscleGroup; label: string }[] = [
+export const MUSCLE_GROUPS: { value: MuscleGroup, label: string }[] = [
   { value: 'peito', label: 'Peito' },
   { value: 'costas', label: 'Costas' },
   { value: 'pernas', label: 'Pernas' },

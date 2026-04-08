@@ -1,0 +1,18 @@
+# Caddy configuration para acessar via rede local (celular/tablet)
+#
+# ⚠️ IMPORTANTE: Rodar como Administrador para instalar certificado TLS
+#
+# Modo 1: HTTP simples (mais fácil, sem certificado)
+192.168.0.180:3000 {
+	reverse_proxy 192.168.0.180:3001
+	encode gzip
+}
+
+# Modo 2: Com HTTPS (comentado - requer aceitar certificado no celular)
+# Para usar, comente o bloco acima e descomente este:
+#
+# https://192.168.0.180:3000 {
+# 	tls internal
+# 	reverse_proxy 192.168.0.180:3001
+# 	encode gzip
+# }

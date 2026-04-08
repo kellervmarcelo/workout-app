@@ -36,3 +36,7 @@ coverage/
 # Supabase local dev
 supabase/.temp/
 supabase/.branches/
+
+# Caddy data
+caddy_data/
+caddy_config/

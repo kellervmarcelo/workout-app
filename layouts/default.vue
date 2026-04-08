@@ -1,22 +1,3 @@
-<script setup lang="ts">
-const supabase = useSupabaseClient()
-const user = ref<User | null>(null)
-
-onMounted(async () => {
-  const { data } = await supabase.auth.getSession()
-  user.value = data.session?.user ?? null
-
-  supabase.auth.onAuthStateChange((_event, session) => {
-    user.value = session?.user ?? null
-  })
-})
-
-const logout = async () => {
-  await supabase.auth.signOut()
-  navigateTo('/login')
-}
-</script>
-
 <template>
   <div class="min-h-screen bg-background flex flex-col">
     <!-- Header - compacto em mobile, expandido em desktop -->
@@ -30,7 +11,7 @@ const logout = async () => {
 
         <div v-if="user" class="flex items-center gap-2">
           <span class="text-xs text-muted-foreground hidden md:inline truncate max-w-[200px]">{{ user.email }}</span>
-          <Button variant="ghost" size="icon" class="h-9 w-9" @click="logout" title="Sair">
+          <Button variant="ghost" size="icon" class="h-9 w-9" title="Sair" @click="logout">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v0a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v0" />
             </svg>
@@ -108,3 +89,22 @@ const logout = async () => {
     </footer>
   </div>
 </template>
+
+<script setup lang="ts">
+const supabase = useSupabaseClient()
+const user = ref<User | null>(null)
+
+onMounted(async () => {
+  const { data } = await supabase.auth.getSession()
+  user.value = data.session?.user ?? null
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    user.value = session?.user ?? null
+  })
+})
+
+async function logout() {
+  await supabase.auth.signOut()
+  navigateTo('/login')
+}
+</script>

@@ -1,70 +1,3 @@
-<script setup lang="ts">
-import type { ExerciseLibraryItem, MuscleGroup } from '~/types'
-import { cn } from '~/lib/utils'
-import { useExerciseLibrary } from '~/composables/useExerciseLibrary'
-
-interface Props {
-  open: boolean
-  addedExerciseNames: string[]
-  class?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  open: false,
-  addedExerciseNames: () => [],
-  class: '',
-})
-
-const emit = defineEmits<{
-  close: []
-  select: [exercise: ExerciseLibraryItem]
-  addCustom: []
-}>()
-
-const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters } = useExerciseLibrary()
-
-const overlayRef = ref<HTMLDivElement>()
-
-const isAdded = (exerciseName: string) => {
-  return props.addedExerciseNames.includes(exerciseName.toLowerCase())
-}
-
-const handleSelect = (exercise: ExerciseLibraryItem) => {
-  if (isAdded(exercise.name)) return
-  emit('select', exercise)
-}
-
-const handleOverlayClick = (e: MouseEvent) => {
-  if (e.target === overlayRef.value) {
-    emit('close')
-  }
-}
-
-const handleClose = () => {
-  resetFilters()
-  emit('close')
-}
-
-onKeyStroke('Escape', (e) => {
-  if (props.open) {
-    e.preventDefault()
-    handleClose()
-  }
-})
-
-watch(() => props.open, (isOpen) => {
-  if (isOpen) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-})
-
-onUnmounted(() => {
-  document.body.style.overflow = ''
-})
-</script>
-
 <template>
   <Teleport to="body">
     <Transition name="drawer">
@@ -80,7 +13,9 @@ onUnmounted(() => {
         <div class="relative z-10 w-full max-h-[90vh] md:max-w-2xl bg-background border rounded-t-xl md:rounded-xl shadow-xl flex flex-col">
           <!-- Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b shrink-0">
-            <h2 class="text-lg font-semibold">Adicionar Exercício</h2>
+            <h2 class="text-lg font-semibold">
+              Adicionar Exercício
+            </h2>
             <button
               class="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
               @click="handleClose"
@@ -102,7 +37,7 @@ onUnmounted(() => {
                 type="text"
                 placeholder="Buscar exercício..."
                 class="w-full h-10 pl-9 pr-4 rounded-md border border-input bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-              />
+              >
             </div>
           </div>
 
@@ -148,7 +83,9 @@ onUnmounted(() => {
               <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p class="text-sm">Nenhum exercício encontrado</p>
+              <p class="text-sm">
+                Nenhum exercício encontrado
+              </p>
             </div>
 
             <div v-else class="divide-y">
@@ -168,18 +105,22 @@ onUnmounted(() => {
                     class="w-full h-full object-cover"
                     loading="lazy"
                     @error="($event.target as HTMLImageElement).style.display = 'none'"
-                  />
+                  >
                 </div>
 
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
-                    <h3 class="text-sm font-semibold truncate">{{ exercise.name }}</h3>
+                    <h3 class="text-sm font-semibold truncate">
+                      {{ exercise.name }}
+                    </h3>
                     <Badge v-if="isAdded(exercise.id)" variant="outline" class="text-[10px]">
                       Adicionado
                     </Badge>
                   </div>
-                  <p class="text-xs text-muted-foreground mt-1 line-clamp-2">{{ exercise.description }}</p>
+                  <p class="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    {{ exercise.description }}
+                  </p>
                   <Badge variant="secondary" class="mt-1.5 text-[10px]">
                     {{ exercise.muscleGroup.charAt(0).toUpperCase() + exercise.muscleGroup.slice(1) }}
                   </Badge>
@@ -202,6 +143,74 @@ onUnmounted(() => {
     </Transition>
   </Teleport>
 </template>
+
+<script setup lang="ts">
+import type { ExerciseLibraryItem, MuscleGroup } from '~/types'
+import { useExerciseLibrary } from '~/composables/useExerciseLibrary'
+
+interface Props {
+  open: boolean
+  addedExerciseNames: string[]
+  class?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  open: false,
+  addedExerciseNames: () => [],
+  class: '',
+})
+
+const emit = defineEmits<{
+  close: []
+  select: [exercise: ExerciseLibraryItem]
+  addCustom: []
+}>()
+
+const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters } = useExerciseLibrary()
+
+const overlayRef = ref<HTMLDivElement>()
+
+function isAdded(exerciseName: string) {
+  return props.addedExerciseNames.includes(exerciseName.toLowerCase())
+}
+
+function handleSelect(exercise: ExerciseLibraryItem) {
+  if (isAdded(exercise.name))
+    return
+  emit('select', exercise)
+}
+
+function handleOverlayClick(e: MouseEvent) {
+  if (e.target === overlayRef.value) {
+    emit('close')
+  }
+}
+
+function handleClose() {
+  resetFilters()
+  emit('close')
+}
+
+onKeyStroke('Escape', (e) => {
+  if (props.open) {
+    e.preventDefault()
+    handleClose()
+  }
+})
+
+watch(() => props.open, (isOpen) => {
+  if (isOpen) {
+    document.body.style.overflow = 'hidden'
+  }
+  else {
+    document.body.style.overflow = ''
+  }
+})
+
+onUnmounted(() => {
+  document.body.style.overflow = ''
+})
+</script>
 
 <style scoped>
 /* Drawer transitions */
