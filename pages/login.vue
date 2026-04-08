@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { cn } from '~/lib/utils'
+
 const email = ref('')
 const password = ref('')
 const loading = ref(false)

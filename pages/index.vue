@@ -1,8 +1,26 @@
 <script setup lang="ts">
+import type { Session } from '@supabase/supabase-js'
+
 definePageMeta({ middleware: 'auth' })
 
-const { data: session } = useSupabaseSession()
 const supabase = useSupabaseClient()
+const session = ref<Session | null>(null)
+
+onMounted(async () => {
+  const { data } = await supabase.auth.getSession()
+  session.value = data.session
+  
+  supabase.auth.onAuthStateChange((_event, newSession) => {
+    session.value = newSession
+  })
+  
+  if (!data.session) {
+    navigateTo('/login')
+    return
+  }
+  
+  await fetchWorkouts()
+})
 
 const workouts = ref<WorkoutWithExercises[]>([])
 const loading = ref(false)

@@ -9,6 +9,11 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  components: [
+    { path: '~/components/ui', prefix: '' },
+    { path: '~/components', pathPrefix: false },
+  ],
+
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
@@ -58,6 +63,10 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false,
+  },
+
+  imports: {
+    dirs: ['lib'],
   },
 
   nitro: {

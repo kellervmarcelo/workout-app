@@ -1,10 +1,5 @@
-export default defineNuxtRouteMiddleware((to) => {
+// Middleware simplificado - apenas skip no server
+// A verificação real é feita nas páginas
+export default defineNuxtRouteMiddleware((_to) => {
   if (import.meta.server) return
-
-  const client = useSupabaseClient()
-  const { data } = client.auth.getSession()
-
-  if (!data.session) {
-    return navigateTo('/login')
-  }
 })
