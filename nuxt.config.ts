@@ -7,12 +7,14 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
   ],
 
+  ssr: false,
+
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
     redirect: false,
     cookieOptions: {
-      maxAge: 60 * 60 * 24 * 7, // 7 dias
+      maxAge: 60 * 60 * 24 * 7,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
     },

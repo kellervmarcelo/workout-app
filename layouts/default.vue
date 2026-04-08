@@ -1,9 +1,16 @@
 <script setup lang="ts">
 const supabase = useSupabaseClient()
+const user = ref<User | null>(null)
 
-const { data: session } = useSupabaseSession()
+onMounted(async () => {
+  const { data } = await supabase.auth.getSession()
+  user.value = data.session?.user ?? null
 
-const user = computed(() => session.value?.user ?? null)
+  // Listen para mudanças de auth
+  supabase.auth.onAuthStateChange((_event, session) => {
+    user.value = session?.user ?? null
+  })
+})
 
 const logout = async () => {
   await supabase.auth.signOut()
