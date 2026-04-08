@@ -84,7 +84,7 @@ export function useOnboardingTour() {
       return
 
     // Dynamic import to avoid Vite SSR bundling issues
-    const { default: driver } = await import('driver.js')
+    const { driver } = await import('driver.js')
     await import('driver.js/dist/driver.css')
 
     driverInstance = driver({
