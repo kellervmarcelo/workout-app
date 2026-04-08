@@ -1,21 +1,8 @@
-import driver from 'driver.js'
-import 'driver.js/dist/driver.css'
-
 export function useOnboardingTour() {
   const supabase = useSupabaseClient()
   const tourCompleted = ref(false)
   const loading = ref(true)
-
-  const driverInstance = driver({
-    animate: true,
-    showProgress: true,
-    overlayOpacity: 0.7,
-    allowClose: true,
-    stagePadding: 8,
-    nextBtnText: 'Próximo',
-    prevBtnText: 'Anterior',
-    doneBtnText: 'Entendi!',
-  })
+  let driverInstance: any = null
 
   const steps = [
     {
@@ -92,9 +79,24 @@ export function useOnboardingTour() {
     }
   }
 
-  function startTour() {
+  async function startTour() {
     if (tourCompleted.value || loading.value)
       return
+
+    // Dynamic import to avoid Vite SSR bundling issues
+    const { default: driver } = await import('driver.js')
+    await import('driver.js/dist/driver.css')
+
+    driverInstance = driver({
+      animate: true,
+      showProgress: true,
+      overlayOpacity: 0.7,
+      allowClose: true,
+      stagePadding: 8,
+      nextBtnText: 'Próximo',
+      prevBtnText: 'Anterior',
+      doneBtnText: 'Entendi!',
+    })
 
     driverInstance.setSteps(steps)
     driverInstance.drive()
