@@ -13,7 +13,17 @@
     "format": "prettier --write \"**/*.{vue,ts,css,scss,json,md}\"",
     "format:check": "prettier --check \"**/*.{vue,ts,css,scss,json,md}\"",
     "type-check": "nuxt typecheck",
-    "lint:all": "npm run lint && npm run format:check && npm run type-check"
+    "lint:all": "npm run lint && npm run format:check && npm run type-check",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:status": "npx supabase status",
+    "db:studio": "npx supabase studio",
+    "db:push": "npx supabase db push",
+    "db:link": "npx supabase link --project-ref qghehvbpgwspmpzivrlv",
+    "db:diff": "npx supabase db diff --schema public",
+    "db:use-prod": "copy .env.prod .env && echo Usando credenciais de PRODUCAO",
+    "db:use-local": "echo Configurando para Supabase local... && echo SUPABASE_URL=http://127.0.0.1:54321 > .env && echo SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0 >> .env && echo Configurado para Supabase LOCAL"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.9.0",

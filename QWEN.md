@@ -1,0 +1,170 @@
+# 💪 Workout Tracker - QWEN.md
+
+Contexto de desenvolvimento para o **Workout Tracker**, um app SPA para gerenciar treinos, exercícios e séries.
+
+---
+
+## Visão Geral
+
+App SPA (Single Page Application) construído com **Nuxt 3**, **Vue 3**, **TypeScript**, **Supabase** (PostgreSQL + Auth) e componentes estilo **shadcn-vue** com **TailwindCSS**.
+
+### Funcionalidades
+- Autenticação via Supabase Auth (email/senha)
+- CRUD completo de treinos (nome, data, notas)
+- Adicionar exercícios com séries, repetições e carga (kg)
+- Edição inline de reps e carga
+- Estatísticas: volume total, total de séries, número de exercícios
+- Row Level Security (RLS) no PostgreSQL para isolamento de dados por usuário
+
+---
+
+## Stack Tecnológica
+
+| Categoria | Tecnologia |
+|-----------|-----------|
+| Framework | Nuxt 3 + Vue 3 |
+| Linguagem | TypeScript (strict mode) |
+| UI | TailwindCSS + componentes shadcn-vue (Button, Card, Input, Label, Badge) |
+| Backend | Supabase (PostgreSQL + Auth) |
+| State | Pinia + VueUse |
+| Linting | ESLint (@antfu/eslint-config) + Prettier |
+| Ícones | SVG inline (Heroicons-style) + lucide-vue-next |
+
+---
+
+## Estrutura do Projeto
+
+```
+workout-app/
+├── assets/css/main.css       # CSS global + variáveis CSS shadcn (tema light/dark)
+├── components/ui/            # Componentes base estilo shadcn
+│   ├── Badge.vue
+│   ├── Button.vue
+│   ├── Card.vue
+│   ├── Input.vue
+│   └── Label.vue
+├── composables/              # Composables Vue reutilizáveis
+├── layouts/
+│   └── default.vue           # Layout principal com header, main, footer
+├── lib/
+│   └── utils.ts              # Função `cn()` (clsx + tailwind-merge)
+├── middleware/
+│   └── auth.ts               # Middleware de rota (server-side skip)
+├── pages/
+│   ├── index.vue             # Dashboard: lista de treinos
+│   ├── login.vue             # Tela de login/registro
+│   ├── auth/callback.vue     # Callback de autenticação
+│   └── workouts/[id].vue     # Detalhes do treino (exercícios + séries)
+├── stores/                   # Stores Pinia (vazio por enquanto, auth é via Supabase)
+├── supabase/
+│   └── schema.sql            # Schema completo com RLS, triggers e índices
+├── types/
+│   └── index.ts              # Types TypeScript (User, Workout, Exercise, WorkoutSet)
+├── app.vue                   # Entry point da aplicação
+├── nuxt.config.ts            # Configuração do Nuxt
+├── tailwind.config.js        # Configuração do Tailwind com tema shadcn
+├── eslint.config.js          # ESLint flat config (@antfu)
+├── .prettierrc               # Configuração Prettier
+└── .env                      # Variáveis de ambiente (SUPABASE_URL, SUPABASE_KEY)
+```
+
+---
+
+## Comandos
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Servidor de desenvolvimento (http://localhost:3000) |
+| `npm run build` | Build de produção |
+| `npm run preview` | Preview do build de produção |
+| `npm run lint` | Verificar linting (ESLint) |
+| `npm run lint:fix` | Corrigir linting automaticamente |
+| `npm run format` | Formatar código (Prettier) |
+| `npm run type-check` | Verificar tipos TypeScript |
+| `npm run lint:all` | Rodar lint + format check + type check |
+
+---
+
+## Configuração de Ambiente
+
+### Variáveis de Ambiente (`.env`)
+
+```env
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Banco de Dados
+
+O schema SQL (`supabase/schema.sql`) deve ser executado no SQL Editor do Supabase. Ele cria:
+- 4 tabelas: `profiles`, `workouts`, `exercises`, `workout_sets`
+- Row Level Security (RLS) em todas as tabelas
+- Políticas RLS para CRUD completo por usuário
+- Trigger `on_auth_user_created` para criar perfil automaticamente
+- Índices de performance
+
+---
+
+## Arquitetura e Padrões
+
+### Modo SPA
+O app roda em modo **SPA** (`ssr: false`) para evitar problemas de hidratação com Supabase Auth no servidor.
+
+### Autenticação
+- Usa `useSupabaseClient()` diretamente em vez de `useSupabaseSession()` (que causa erros de timing)
+- Session é obtida via `client.auth.getSession()` dentro de `onMounted`
+- `onAuthStateChange` listener mantém a sessão sincronizada
+- Middleware de auth simplificado com `import.meta.server` guard
+
+### Componentes UI
+- Componentes em `components/ui/` seguem o padrão shadcn-vue
+- **Sempre** usar `withDefaults(defineProps<Props>(), { ... })` com defaults explícitos
+- **Sempre** acessar props via `props.xxx` no template (não usar destructuring)
+- Usar função `cn()` de `~/lib/utils` para merge de classes Tailwind
+- Importar `cn` explicitamente onde necessário
+
+### Padrão de Props nos Componentes
+
+```typescript
+interface Props {
+  variant?: 'default' | 'secondary'
+  class?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  class: '',
+})
+```
+
+No template, usar `props.variant`, `props.class`, etc.
+
+### TypeScript
+- `strict: true` habilitado
+- `typeCheck: false` no Nuxt (rodar `npm run type-check` manualmente)
+- Types definidos em `types/index.ts`
+
+### CSS
+- TailwindCSS com variáveis CSS customizadas para tema shadcn
+- Tema light/dark com variáveis HSL em `assets/css/main.css`
+
+---
+
+## Páginas e Rotas
+
+| Rota | Arquivo | Descrição |
+|------|---------|-----------|
+| `/login` | `pages/login.vue` | Login/Registro (sem auth required) |
+| `/` | `pages/index.vue` | Lista de treinos (requer auth) |
+| `/workouts/[id]` | `pages/workouts/[id].vue` | Detalhes do treino (requer auth) |
+| `/auth/callback` | `pages/auth/callback.vue` | Callback OAuth |
+
+---
+
+## Notas Importantes
+
+1. **Componentes UI**: Sempre usar `withDefaults` + acessar via `props.xxx` no template
+2. **Função `cn`**: Importar de `~/lib/utils` explicitamente em cada componente/página
+3. **Auth**: Usar `useSupabaseClient()` + `getSession()` dentro de `onMounted`
+4. **SSR**: Desabilitado (`ssr: false`) — app é SPA
+5. **Env**: Nunca commitar `.env` — usar `.env.example` como template
