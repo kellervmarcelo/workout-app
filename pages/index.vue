@@ -215,7 +215,7 @@ async function createWorkout() {
     return
 
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('workouts')
       .insert({
         user_id: session.value.user.id,

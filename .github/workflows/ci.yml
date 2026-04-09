@@ -28,7 +28,7 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Lint
-        run: npm run lint
+        run: npx eslint "**/*.{ts,vue,js,yml}" --ignore-pattern "node_modules/**" --ignore-pattern ".nuxt/**"
 
   # TODO: Re-enable full type check once pre-existing errors are fixed
   # type-check:
