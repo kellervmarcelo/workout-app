@@ -90,10 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-
-// Cleanup on unmount
-import { onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
 const props = defineProps<{
   defaultSeconds?: number
