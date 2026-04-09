@@ -95,9 +95,9 @@ export function useOnboardingTour() {
       nextBtnText: 'Próximo',
       prevBtnText: 'Anterior',
       doneBtnText: 'Entendi!',
-      onDestroyed: () => {
-        const { data } = supabase.auth.getSession()
-        if (data.session?.user) {
+      onDestroyed: async () => {
+        const { data } = await supabase.auth.getSession()
+        if (data?.session?.user) {
           markTourCompleted(data.session.user.id)
         }
       },
