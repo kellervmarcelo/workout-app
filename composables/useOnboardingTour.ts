@@ -96,17 +96,16 @@ export function useOnboardingTour() {
       nextBtnText: 'Próximo',
       prevBtnText: 'Anterior',
       doneBtnText: 'Entendi!',
+      onDestroyed: async () => {
+        const { data } = await supabase.auth.getSession()
+        if (data?.session?.user) {
+          markTourCompleted(data.session.user.id)
+        }
+      },
     })
 
     driverInstance.setSteps(steps)
     driverInstance.drive()
-
-    driverInstance.onDestroyed(() => {
-      const { data } = supabase.auth.getSession()
-      if (data.session?.user) {
-        markTourCompleted(data.session.user.id)
-      }
-    })
   }
 
   return { tourCompleted, loading, checkTourStatus, startTour }
