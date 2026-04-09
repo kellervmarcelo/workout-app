@@ -63,20 +63,19 @@ export function useOnboardingTour() {
     }
   }
 
-  async function markTourCompleted(userId: string) {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', userId)
-
-      if (error)
-        throw error
-      tourCompleted.value = true
-    }
-    catch (error) {
-      console.error('Erro ao salvar status do tour:', error)
-    }
+  function markTourCompleted(userId: string) {
+    supabase
+      .from('profiles')
+      .update({ onboarding_completed: true })
+      .eq('id', userId)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Erro ao salvar status do tour:', error)
+        }
+        else {
+          tourCompleted.value = true
+        }
+      })
   }
 
   async function startTour() {
@@ -96,17 +95,16 @@ export function useOnboardingTour() {
       nextBtnText: 'Próximo',
       prevBtnText: 'Anterior',
       doneBtnText: 'Entendi!',
+      onDestroyed: () => {
+        const { data } = supabase.auth.getSession()
+        if (data.session?.user) {
+          markTourCompleted(data.session.user.id)
+        }
+      },
     })
 
     driverInstance.setSteps(steps)
     driverInstance.drive()
-
-    driverInstance.onDestroyed(() => {
-      const { data } = supabase.auth.getSession()
-      if (data.session?.user) {
-        markTourCompleted(data.session.user.id)
-      }
-    })
   }
 
   return { tourCompleted, loading, checkTourStatus, startTour }
