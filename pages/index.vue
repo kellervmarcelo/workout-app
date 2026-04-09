@@ -1,142 +1,23 @@
-<script setup lang="ts">
-import type { Session } from '@supabase/supabase-js'
-
-definePageMeta({ middleware: 'auth' })
-
-const supabase = useSupabaseClient()
-const session = ref<Session | null>(null)
-const { checkTourStatus, startTour } = useOnboardingTour()
-
-onMounted(async () => {
-  const { data } = await supabase.auth.getSession()
-  session.value = data.session
-
-  supabase.auth.onAuthStateChange((_event, newSession) => {
-    session.value = newSession
-  })
-
-  if (!data.session) {
-    navigateTo('/login')
-    return
-  }
-
-  await fetchWorkouts()
-
-  // Start onboarding tour for first-time users
-  await checkTourStatus(data.session.user.id)
-  startTour()
-})
-
-const workouts = ref<WorkoutWithExercises[]>([])
-const loading = ref(false)
-const showCreateDialog = ref(false)
-const newWorkoutName = ref('')
-const newWorkoutDate = ref(new Date().toISOString().split('T')[0])
-
-const fetchWorkouts = async () => {
-  if (!session.value?.user) return
-  
-  loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('workouts')
-      .select(`
-        *,
-        exercises (
-          *,
-          sets:workout_sets(*)
-        )
-      `)
-      .eq('user_id', session.value.user.id)
-      .order('date', { ascending: false })
-
-    if (error) throw error
-    workouts.value = data || []
-  } catch (error: any) {
-    console.error('Erro ao buscar treinos:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const createWorkout = async () => {
-  if (!session.value?.user || !newWorkoutName.value) return
-
-  try {
-    const { data, error } = await supabase
-      .from('workouts')
-      .insert({
-        user_id: session.value.user.id,
-        name: newWorkoutName.value,
-        date: newWorkoutDate.value,
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-    
-    showCreateDialog.value = false
-    newWorkoutName.value = ''
-    newWorkoutDate.value = new Date().toISOString().split('T')[0]
-    
-    await fetchWorkouts()
-  } catch (error: any) {
-    console.error('Erro ao criar treino:', error)
-  }
-}
-
-const deleteWorkout = async (id: string) => {
-  try {
-    const { error } = await supabase.from('workouts').delete().eq('id', id)
-    if (error) throw error
-    await fetchWorkouts()
-  } catch (error: any) {
-    console.error('Erro ao deletar treino:', error)
-  }
-}
-
-onMounted(fetchWorkouts)
-
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
-const totalExercises = (workout: WorkoutWithExercises) => {
-  return workout.exercises?.length || 0
-}
-
-const totalSets = (workout: WorkoutWithExercises) => {
-  return workout.exercises?.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0) || 0
-}
-
-const totalVolume = (workout: WorkoutWithExercises) => {
-  return workout.exercises?.reduce((sum, ex) => {
-    const exerciseVolume = (ex.sets || []).reduce((s, set) => s + (set.reps * set.weight_kg), 0)
-    return sum + exerciseVolume
-  }, 0) || 0
-}
-</script>
-
 <template>
   <div class="space-y-4 md:space-y-6">
     <!-- Header - empilhado em mobile -->
     <div class="space-y-3 md:flex md:items-center md:justify-between md:space-y-0">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight md:text-3xl">Meus Treinos</h1>
-        <p class="text-sm text-muted-foreground mt-0.5 md:mt-1">Gerencie seus treinos e exercícios</p>
+        <h1 class="text-2xl font-bold tracking-tight md:text-3xl">
+          Meus Treinos
+        </h1>
+        <p class="text-sm text-muted-foreground mt-0.5 md:mt-1">
+          Gerencie seus treinos e exercícios
+        </p>
       </div>
       <div class="flex gap-2">
-        <Button data-tour="templates" variant="outline" size="sm" @click="navigateTo('/templates')" class="flex-1 md:flex-none">
+        <Button data-tour="templates" variant="outline" size="sm" class="flex-1 md:flex-none" @click="navigateTo('/templates')">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
           <span class="hidden sm:inline">Templates</span>
         </Button>
-        <Button data-tour="create-workout" size="sm" @click="showCreateDialog = true" class="flex-1 md:flex-none">
+        <Button data-tour="create-workout" size="sm" class="flex-1 md:flex-none" @click="showCreateDialog = true">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
@@ -149,14 +30,16 @@ const totalVolume = (workout: WorkoutWithExercises) => {
     <!-- Create Dialog -->
     <Card v-if="showCreateDialog" class="p-4 md:p-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold md:text-xl">Novo Treino</h2>
+        <h2 class="text-lg font-semibold md:text-xl">
+          Novo Treino
+        </h2>
         <Button variant="ghost" size="icon" class="h-9 w-9" @click="showCreateDialog = false">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </Button>
       </div>
-      <form @submit.prevent="createWorkout" class="space-y-4">
+      <form class="space-y-4" @submit.prevent="createWorkout">
         <div class="space-y-2">
           <Label for="workout-name" required>Nome</Label>
           <Input
@@ -177,10 +60,12 @@ const totalVolume = (workout: WorkoutWithExercises) => {
           />
         </div>
         <div class="flex gap-2">
-          <Button type="button" variant="outline" @click="showCreateDialog = false" class="flex-1">
+          <Button type="button" variant="outline" class="flex-1" @click="showCreateDialog = false">
             Cancelar
           </Button>
-          <Button type="submit" class="flex-1">Criar Treino</Button>
+          <Button type="submit" class="flex-1">
+            Criar Treino
+          </Button>
         </div>
       </form>
     </Card>
@@ -188,16 +73,24 @@ const totalVolume = (workout: WorkoutWithExercises) => {
     <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="text-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p class="text-muted-foreground">Carregando...</p>
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+        <p class="text-muted-foreground">
+          Carregando...
+        </p>
       </div>
     </div>
 
     <!-- Empty State -->
     <Card v-else-if="workouts.length === 0" class="p-8 text-center md:p-12">
-      <div class="text-5xl mb-4">🏋️</div>
-      <h3 class="text-lg font-semibold mb-2 md:text-xl">Nenhum treino ainda</h3>
-      <p class="text-sm text-muted-foreground">Clique em "Novo Treino" para começar!</p>
+      <div class="text-5xl mb-4">
+        🏋️
+      </div>
+      <h3 class="text-lg font-semibold mb-2 md:text-xl">
+        Nenhum treino ainda
+      </h3>
+      <p class="text-sm text-muted-foreground">
+        Clique em "Novo Treino" para começar!
+      </p>
     </Card>
 
     <!-- Workout List -->
@@ -211,7 +104,9 @@ const totalVolume = (workout: WorkoutWithExercises) => {
         <div class="flex items-start justify-between gap-3">
           <div class="space-y-1.5 flex-1 min-w-0 md:space-y-2">
             <div class="flex flex-wrap items-center gap-1.5">
-              <h3 class="text-base font-semibold truncate md:text-lg">{{ workout.name }}</h3>
+              <h3 class="text-base font-semibold truncate md:text-lg">
+                {{ workout.name }}
+              </h3>
               <Badge data-tour="stats" variant="outline" class="font-mono text-[10px] shrink-0">
                 {{ totalExercises(workout) }}
               </Badge>
@@ -249,3 +144,135 @@ const totalVolume = (workout: WorkoutWithExercises) => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import type { Session } from '@supabase/supabase-js'
+
+definePageMeta({ middleware: 'auth' })
+
+const supabase = useSupabaseClient()
+const session = ref<Session | null>(null)
+const { checkTourStatus, startTour } = useOnboardingTour()
+
+onMounted(async () => {
+  const { data } = await supabase.auth.getSession()
+  session.value = data.session
+
+  supabase.auth.onAuthStateChange((_event, newSession) => {
+    session.value = newSession
+  })
+
+  if (!data.session) {
+    navigateTo('/login')
+    return
+  }
+
+  await fetchWorkouts()
+
+  // Start onboarding tour for first-time users
+  await checkTourStatus(data.session.user.id)
+  startTour()
+})
+
+const workouts = ref<WorkoutWithExercises[]>([])
+const loading = ref(false)
+const showCreateDialog = ref(false)
+const newWorkoutName = ref('')
+const newWorkoutDate = ref(new Date().toISOString().split('T')[0])
+
+async function fetchWorkouts() {
+  if (!session.value?.user)
+    return
+
+  loading.value = true
+  try {
+    const { data, error } = await supabase
+      .from('workouts')
+      .select(`
+        *,
+        exercises (
+          *,
+          sets:workout_sets(*)
+        )
+      `)
+      .eq('user_id', session.value.user.id)
+      .order('date', { ascending: false })
+
+    if (error)
+      throw error
+    workouts.value = data || []
+  }
+  catch (error: any) {
+    console.error('Erro ao buscar treinos:', error)
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+async function createWorkout() {
+  if (!session.value?.user || !newWorkoutName.value)
+    return
+
+  try {
+    const { data, error } = await supabase
+      .from('workouts')
+      .insert({
+        user_id: session.value.user.id,
+        name: newWorkoutName.value,
+        date: newWorkoutDate.value,
+      })
+      .select()
+      .single()
+
+    if (error)
+      throw error
+
+    showCreateDialog.value = false
+    newWorkoutName.value = ''
+    newWorkoutDate.value = new Date().toISOString().split('T')[0]
+
+    await fetchWorkouts()
+  }
+  catch (error: any) {
+    console.error('Erro ao criar treino:', error)
+  }
+}
+
+async function deleteWorkout(id: string) {
+  try {
+    const { error } = await supabase.from('workouts').delete().eq('id', id)
+    if (error)
+      throw error
+    await fetchWorkouts()
+  }
+  catch (error: any) {
+    console.error('Erro ao deletar treino:', error)
+  }
+}
+
+onMounted(fetchWorkouts)
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+function totalExercises(workout: WorkoutWithExercises) {
+  return workout.exercises?.length || 0
+}
+
+function totalSets(workout: WorkoutWithExercises) {
+  return workout.exercises?.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0) || 0
+}
+
+function totalVolume(workout: WorkoutWithExercises) {
+  return workout.exercises?.reduce((sum, ex) => {
+    const exerciseVolume = (ex.sets || []).reduce((s, set) => s + (set.reps * set.weight_kg), 0)
+    return sum + exerciseVolume
+  }, 0) || 0
+}
+</script>

@@ -1,12 +1,13 @@
 {
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "strict": true,
-    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "~/*": ["./*"],
       "@/*": ["./*"]
-    }
+    },
+    "strict": true,
+    "skipLibCheck": true,
+    "ignoreDeprecations": "6.0"
   }
 }

@@ -1,3 +1,16 @@
+<template>
+  <span
+    :class="cn(
+      'inline-flex items-center rounded-full font-medium',
+      variants[props.variant],
+      sizes[props.size],
+      props.class,
+    )"
+  >
+    <slot />
+  </span>
+</template>
+
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
@@ -25,14 +38,3 @@ const sizes: Record<string, string> = {
   default: 'px-2.5 py-0.5 text-sm',
 }
 </script>
-
-<template>
-  <span :class="cn(
-    'inline-flex items-center rounded-full font-medium',
-    variants[props.variant],
-    sizes[props.size],
-    props.class,
-  )">
-    <slot />
-  </span>
-</template>

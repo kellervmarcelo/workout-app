@@ -2,101 +2,101 @@
 // Uso: node seed-local.js
 // Certifique-se de que .env está configurado com SUPABASE_URL e SUPABASE_KEY
 
-import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createClient } from '@supabase/supabase-js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // Parse .env file from project root
-const envPath = resolve(__dirname, '..', '.env');
-const envContent = readFileSync(envPath, 'utf-8');
-const envVars = {};
-envContent.split('\n').forEach(line => {
-  const trimmed = line.trim();
+const envPath = resolve(__dirname, '..', '.env')
+const envContent = readFileSync(envPath, 'utf-8')
+const envVars = {}
+envContent.split('\n').forEach((line) => {
+  const trimmed = line.trim()
   if (trimmed && !trimmed.startsWith('#')) {
-    const [key, ...valueParts] = trimmed.split('=');
-    envVars[key.trim()] = valueParts.join('=').trim();
+    const [key, ...valueParts] = trimmed.split('=')
+    envVars[key.trim()] = valueParts.join('=').trim()
   }
-});
+})
 
-const supabaseUrl = process.env.SUPABASE_URL || envVars.SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseKey = process.env.SUPABASE_KEY || envVars.SUPABASE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || envVars.SUPABASE_URL || 'http://127.0.0.1:54321'
+const supabaseKey = process.env.SUPABASE_KEY || envVars.SUPABASE_KEY
 
 if (!supabaseKey) {
-  console.error('Erro: SUPABASE_KEY não encontrado no .env');
-  process.exit(1);
+  console.error('Erro: SUPABASE_KEY não encontrado no .env')
+  process.exit(1)
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function seed() {
-  console.log('=== Criando usuários via signup API...');
+  console.log('=== Criando usuários via signup API...')
 
   // Criar Marcos
   const { data: marcosData, error: marcosError } = await supabase.auth.signUp({
     email: 'marcos@email.com',
     password: 'password123',
-  });
+  })
 
   if (marcosError && !marcosError.message.includes('already')) {
-    console.error('Erro ao criar Marcos:', marcosError);
-    return;
+    console.error('Erro ao criar Marcos:', marcosError)
+    return
   }
 
   // Criar Ana
   const { data: anaData, error: anaError } = await supabase.auth.signUp({
     email: 'ana@email.com',
     password: 'password123',
-  });
+  })
 
   if (anaError && !anaError.message.includes('already')) {
-    console.error('Erro ao criar Ana:', anaError);
-    return;
+    console.error('Erro ao criar Ana:', anaError)
+    return
   }
 
-  console.log('Usuários criados!');
+  console.log('Usuários criados!')
 
   // Obter UUIDs
-  const { data: users } = await supabase.from('profiles').select('id, email');
-  
-  const marcosUser = users?.find(u => u.email === 'marcos@email.com');
-  const anaUser = users?.find(u => u.email === 'ana@email.com');
+  const { data: users } = await supabase.from('profiles').select('id, email')
+
+  const marcosUser = users?.find(u => u.email === 'marcos@email.com')
+  const anaUser = users?.find(u => u.email === 'ana@email.com')
 
   if (!marcosUser || !anaUser) {
-    console.error('Não foi possível obter UUIDs dos usuários');
-    return;
+    console.error('Não foi possível obter UUIDs dos usuários')
+    return
   }
 
-  console.log(`Marcos ID: ${marcosUser.id}`);
-  console.log(`Ana ID: ${anaUser.id}`);
+  console.log(`Marcos ID: ${marcosUser.id}`)
+  console.log(`Ana ID: ${anaUser.id}`)
 
   // Conectar diretamente ao banco para inserir dados
-  const { createClient: createDbClient } = require('@supabase/supabase-js');
-  const dbUrl = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
-  
+  const { createClient: createDbClient } = require('@supabase/supabase-js')
+  const dbUrl = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+
   // Usar fetch direto para executar SQL via Supabase REST API
-  console.log('\n=== Inserindo dados de treinos e templates...');
-  
+  console.log('\n=== Inserindo dados de treinos e templates...')
+
   // Para simplificar, vamos usar a REST API diretamente
   // Primeiro limpar dados existentes
-  console.log('Limpando dados existentes...');
-  
+  console.log('Limpando dados existentes...')
+
   // Inserir templates para Marcos
-  console.log('Criando templates para Marcos...');
-  
+  console.log('Criando templates para Marcos...')
+
   // Template 1: Peito & Tríceps
   const { data: template1 } = await supabase
     .from('workout_templates')
     .insert({
       user_id: marcosUser.id,
       name: 'Peito & Tríceps - Hipertrofia',
-      description: 'Foco em hipertrofia com progressão de carga'
+      description: 'Foco em hipertrofia com progressão de carga',
     })
     .select()
-    .single();
+    .single()
 
   if (template1) {
     await supabase.from('template_exercises').insert([
@@ -105,8 +105,8 @@ async function seed() {
       { template_id: template1.id, name: 'Crucifixo na Máquina', order: 2, default_reps: 12, default_weight_kg: 40 },
       { template_id: template1.id, name: 'Tríceps Corda', order: 3, default_reps: 12, default_weight_kg: 15 },
       { template_id: template1.id, name: 'Tríceps Testa', order: 4, default_reps: 10, default_weight_kg: 20 },
-    ]);
-    console.log('  ✓ Peito & Tríceps - Hipertrofia');
+    ])
+    console.log('  ✓ Peito & Tríceps - Hipertrofia')
   }
 
   // Template 2: Costas & Bíceps
@@ -115,10 +115,10 @@ async function seed() {
     .insert({
       user_id: marcosUser.id,
       name: 'Costas & Bíceps - Força',
-      description: 'Treino pesado para costas e bíceps'
+      description: 'Treino pesado para costas e bíceps',
     })
     .select()
-    .single();
+    .single()
 
   if (template2) {
     await supabase.from('template_exercises').insert([
@@ -128,8 +128,8 @@ async function seed() {
       { template_id: template2.id, name: 'Puxada Triângulo', order: 3, default_reps: 10, default_weight_kg: 55 },
       { template_id: template2.id, name: 'Rosca Direta com Barra', order: 4, default_reps: 10, default_weight_kg: 25 },
       { template_id: template2.id, name: 'Rosca Alternada com Halteres', order: 5, default_reps: 10, default_weight_kg: 12 },
-    ]);
-    console.log('  ✓ Costas & Bíceps - Força');
+    ])
+    console.log('  ✓ Costas & Bíceps - Força')
   }
 
   // Template 3: Pernas
@@ -138,10 +138,10 @@ async function seed() {
     .insert({
       user_id: marcosUser.id,
       name: 'Pernas - Completo',
-      description: 'Treino completo de pernas'
+      description: 'Treino completo de pernas',
     })
     .select()
-    .single();
+    .single()
 
   if (template3) {
     await supabase.from('template_exercises').insert([
@@ -150,8 +150,8 @@ async function seed() {
       { template_id: template3.id, name: 'Cadeira Extensora', order: 2, default_reps: 12, default_weight_kg: 50 },
       { template_id: template3.id, name: 'Mesa Flexora', order: 3, default_reps: 12, default_weight_kg: 35 },
       { template_id: template3.id, name: 'Panturrilha no Smith', order: 4, default_reps: 15, default_weight_kg: 60 },
-    ]);
-    console.log('  ✓ Pernas - Completo');
+    ])
+    console.log('  ✓ Pernas - Completo')
   }
 
   // Template 4: Ombros & Trapézio
@@ -160,10 +160,10 @@ async function seed() {
     .insert({
       user_id: marcosUser.id,
       name: 'Ombros & Trapézio',
-      description: null
+      description: null,
     })
     .select()
-    .single();
+    .single()
 
   if (template4) {
     await supabase.from('template_exercises').insert([
@@ -172,22 +172,22 @@ async function seed() {
       { template_id: template4.id, name: 'Elevação Frontal com Haltere', order: 2, default_reps: 12, default_weight_kg: 10 },
       { template_id: template4.id, name: 'Face Pull na Polia', order: 3, default_reps: 15, default_weight_kg: 15 },
       { template_id: template4.id, name: 'Encolhimento com Halteres', order: 4, default_reps: 15, default_weight_kg: 30 },
-    ]);
-    console.log('  ✓ Ombros & Trapézio');
+    ])
+    console.log('  ✓ Ombros & Trapézio')
   }
 
   // Templates para Ana
-  console.log('\nCriando templates para Ana...');
+  console.log('\nCriando templates para Ana...')
 
   const { data: template5 } = await supabase
     .from('workout_templates')
     .insert({
       user_id: anaUser.id,
       name: 'Superior A - Membros Superiores',
-      description: 'Foco em membros superiores'
+      description: 'Foco em membros superiores',
     })
     .select()
-    .single();
+    .single()
 
   if (template5) {
     await supabase.from('template_exercises').insert([
@@ -196,8 +196,8 @@ async function seed() {
       { template_id: template5.id, name: 'Supino na Máquina', order: 2, default_reps: 10, default_weight_kg: 30 },
       { template_id: template5.id, name: 'Desenvolvimento com Halteres', order: 3, default_reps: 10, default_weight_kg: 8 },
       { template_id: template5.id, name: 'Elevação Lateral', order: 4, default_reps: 12, default_weight_kg: 4 },
-    ]);
-    console.log('  ✓ Superior A - Membros Superiores');
+    ])
+    console.log('  ✓ Superior A - Membros Superiores')
   }
 
   const { data: template6 } = await supabase
@@ -205,10 +205,10 @@ async function seed() {
     .insert({
       user_id: anaUser.id,
       name: 'Inferior A - Membros Inferiores',
-      description: 'Treino de pernas completo'
+      description: 'Treino de pernas completo',
     })
     .select()
-    .single();
+    .single()
 
   if (template6) {
     await supabase.from('template_exercises').insert([
@@ -217,16 +217,16 @@ async function seed() {
       { template_id: template6.id, name: 'Leg Press 45°', order: 2, default_reps: 12, default_weight_kg: 120 },
       { template_id: template6.id, name: 'Cadeira Adutora', order: 3, default_reps: 15, default_weight_kg: 45 },
       { template_id: template6.id, name: 'Panturrilha Sentada', order: 4, default_reps: 15, default_weight_kg: 25 },
-    ]);
-    console.log('  ✓ Inferior A - Membros Inferiores');
+    ])
+    console.log('  ✓ Inferior A - Membros Inferiores')
   }
 
-  console.log('\n=== Seed completo!');
-  console.log('\nDados inseridos:');
-  const { count: templatesCount } = await supabase.from('workout_templates').select('*', { count: 'exact', head: true });
-  const { count: exercisesCount } = await supabase.from('template_exercises').select('*', { count: 'exact', head: true });
-  console.log(`  Templates: ${templatesCount || 0}`);
-  console.log(`  Template Exercises: ${exercisesCount || 0}`);
+  console.log('\n=== Seed completo!')
+  console.log('\nDados inseridos:')
+  const { count: templatesCount } = await supabase.from('workout_templates').select('*', { count: 'exact', head: true })
+  const { count: exercisesCount } = await supabase.from('template_exercises').select('*', { count: 'exact', head: true })
+  console.log(`  Templates: ${templatesCount || 0}`)
+  console.log(`  Template Exercises: ${exercisesCount || 0}`)
 }
 
-seed().catch(console.error);
+seed().catch(console.error)

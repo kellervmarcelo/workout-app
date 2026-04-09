@@ -1,95 +1,3 @@
-<script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
-
-const route = useRoute()
-const templateId = route.params.id as string
-
-const supabase = useSupabaseClient()
-
-const template = ref<WorkoutTemplateWithExercises | null>(null)
-const loading = ref(false)
-const showExerciseForm = ref(false)
-const newExerciseName = ref('')
-const newExerciseReps = ref(10)
-const newExerciseWeight = ref(0)
-
-const fetchTemplate = async () => {
-  loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('workout_templates')
-      .select(`
-        *,
-        exercises:template_exercises(*)
-      `)
-      .eq('id', templateId)
-      .single()
-
-    if (error) throw error
-    template.value = data
-  } catch (error: any) {
-    console.error('Erro ao buscar template:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const addExercise = async () => {
-  if (!template.value || !newExerciseName.value) return
-
-  const order = template.value.exercises?.length || 0
-
-  try {
-    const { data, error } = await supabase
-      .from('template_exercises')
-      .insert({
-        template_id: templateId,
-        name: newExerciseName.value,
-        order,
-        default_reps: newExerciseReps.value,
-        default_weight_kg: newExerciseWeight.value,
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    newExerciseName.value = ''
-    newExerciseReps.value = 10
-    newExerciseWeight.value = 0
-    showExerciseForm.value = false
-    await fetchTemplate()
-  } catch (error: any) {
-    console.error('Erro ao adicionar exercício:', error)
-  }
-}
-
-const deleteExercise = async (exerciseId: string) => {
-  try {
-    const { error } = await supabase.from('template_exercises').delete().eq('id', exerciseId)
-    if (error) throw error
-    await fetchTemplate()
-  } catch (error: any) {
-    console.error('Erro ao deletar exercício:', error)
-  }
-}
-
-const updateExerciseDefaults = async (exerciseId: string, field: keyof TemplateExercise, value: number) => {
-  try {
-    const { error } = await supabase
-      .from('template_exercises')
-      .update({ [field]: value })
-      .eq('id', exerciseId)
-
-    if (error) throw error
-  } catch (error: any) {
-    console.error('Erro ao atualizar exercício:', error)
-  }
-}
-
-onMounted(fetchTemplate)
-</script>
-
 <template>
   <div v-if="template" class="space-y-6">
     <!-- Header -->
@@ -103,7 +11,9 @@ onMounted(fetchTemplate)
 
       <div class="flex items-start justify-between">
         <div>
-          <h1 class="text-3xl font-bold tracking-tight">{{ template.name }}</h1>
+          <h1 class="text-3xl font-bold tracking-tight">
+            {{ template.name }}
+          </h1>
           <p v-if="template.description" class="text-muted-foreground mt-1">
             {{ template.description }}
           </p>
@@ -119,8 +29,10 @@ onMounted(fetchTemplate)
 
     <!-- Exercise Form -->
     <Card v-if="showExerciseForm" class="p-6">
-      <h2 class="text-xl font-semibold mb-4">Adicionar Exercício ao Template</h2>
-      <form @submit.prevent="addExercise" class="space-y-4">
+      <h2 class="text-xl font-semibold mb-4">
+        Adicionar Exercício ao Template
+      </h2>
+      <form class="space-y-4" @submit.prevent="addExercise">
         <div class="space-y-2">
           <Label for="exercise-name" required>Nome do Exercício</Label>
           <Input
@@ -157,7 +69,9 @@ onMounted(fetchTemplate)
           <Button type="button" variant="outline" @click="showExerciseForm = false">
             Cancelar
           </Button>
-          <Button type="submit">Adicionar</Button>
+          <Button type="submit">
+            Adicionar
+          </Button>
         </div>
       </form>
     </Card>
@@ -170,11 +84,15 @@ onMounted(fetchTemplate)
       >
         <template #title>
           <div class="flex items-center gap-3">
-            <Badge variant="outline" class="font-mono">{{ idx + 1 }}</Badge>
-            <h3 class="text-lg font-semibold">{{ exercise.name }}</h3>
+            <Badge variant="outline" class="font-mono">
+              {{ idx + 1 }}
+            </Badge>
+            <h3 class="text-lg font-semibold">
+              {{ exercise.name }}
+            </h3>
           </div>
         </template>
-        
+
         <div class="space-y-3 pt-2">
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
@@ -216,17 +134,127 @@ onMounted(fetchTemplate)
 
     <!-- Empty State -->
     <Card v-else class="p-12 text-center">
-      <div class="text-5xl mb-4">📋</div>
-      <h3 class="text-xl font-semibold mb-2">Nenhum exercício</h3>
-      <p class="text-muted-foreground">Adicione exercícios ao seu template!</p>
+      <div class="text-5xl mb-4">
+        📋
+      </div>
+      <h3 class="text-xl font-semibold mb-2">
+        Nenhum exercício
+      </h3>
+      <p class="text-muted-foreground">
+        Adicione exercícios ao seu template!
+      </p>
     </Card>
   </div>
 
   <!-- Loading -->
   <div v-else class="flex justify-center py-12">
     <div class="text-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-      <p class="text-muted-foreground">Carregando...</p>
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+      <p class="text-muted-foreground">
+        Carregando...
+      </p>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+definePageMeta({ middleware: 'auth' })
+
+const route = useRoute()
+const templateId = route.params.id as string
+
+const supabase = useSupabaseClient()
+
+const template = ref<WorkoutTemplateWithExercises | null>(null)
+const loading = ref(false)
+const showExerciseForm = ref(false)
+const newExerciseName = ref('')
+const newExerciseReps = ref(10)
+const newExerciseWeight = ref(0)
+
+async function fetchTemplate() {
+  loading.value = true
+  try {
+    const { data, error } = await supabase
+      .from('workout_templates')
+      .select(`
+        *,
+        exercises:template_exercises(*)
+      `)
+      .eq('id', templateId)
+      .single()
+
+    if (error)
+      throw error
+    template.value = data
+  }
+  catch (error: any) {
+    console.error('Erro ao buscar template:', error)
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+async function addExercise() {
+  if (!template.value || !newExerciseName.value)
+    return
+
+  const order = template.value.exercises?.length || 0
+
+  try {
+    const { data, error } = await supabase
+      .from('template_exercises')
+      .insert({
+        template_id: templateId,
+        name: newExerciseName.value,
+        order,
+        default_reps: newExerciseReps.value,
+        default_weight_kg: newExerciseWeight.value,
+      })
+      .select()
+      .single()
+
+    if (error)
+      throw error
+
+    newExerciseName.value = ''
+    newExerciseReps.value = 10
+    newExerciseWeight.value = 0
+    showExerciseForm.value = false
+    await fetchTemplate()
+  }
+  catch (error: any) {
+    console.error('Erro ao adicionar exercício:', error)
+  }
+}
+
+async function deleteExercise(exerciseId: string) {
+  try {
+    const { error } = await supabase.from('template_exercises').delete().eq('id', exerciseId)
+    if (error)
+      throw error
+    await fetchTemplate()
+  }
+  catch (error: any) {
+    console.error('Erro ao deletar exercício:', error)
+  }
+}
+
+async function updateExerciseDefaults(exerciseId: string, field: keyof TemplateExercise, value: number) {
+  try {
+    const { error } = await supabase
+      .from('template_exercises')
+      .update({ [field]: value })
+      .eq('id', exerciseId)
+
+    if (error)
+      throw error
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar exercício:', error)
+  }
+}
+
+onMounted(fetchTemplate)
+</script>
