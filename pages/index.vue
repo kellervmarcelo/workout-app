@@ -161,11 +161,6 @@ onMounted(async () => {
     session.value = newSession
   })
 
-  if (!data.session) {
-    navigateTo('/login')
-    return
-  }
-
   await fetchWorkouts()
 })
 

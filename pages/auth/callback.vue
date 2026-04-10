@@ -11,6 +11,14 @@ const supabase = useSupabaseClient()
 const route = useRoute()
 
 onMounted(async () => {
+  const { data } = await supabase.auth.getSession()
+
+  // Se já tem sessão válida, vai direto para dashboard
+  if (data.session) {
+    navigateTo('/')
+    return
+  }
+
   const { hash } = route
 
   if (hash) {
