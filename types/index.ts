@@ -81,7 +81,7 @@ export interface ExerciseLibraryItem {
   name: string
   description: string
   muscleGroup: MuscleGroup
-  gifUrl: string
+  imageUrl: string
 }
 
 export const MUSCLE_GROUPS: { value: MuscleGroup, label: string }[] = [

@@ -227,3 +227,4 @@ No template, usar `props.variant`, `props.class`, etc.
 ## Qwen Added Memories
 - Sempre criar branches novas para novas features seguindo o padrão: feat/fix/chore:<título-descritivo>. Exemplo: feat: add-dark-mode, fix: auth-redirect-loop, chore: update-dependencies
 - Ao finalizar uma feature, fazer push para o repositório remoto e criar automaticamente uma Pull Request (PR) com uma descrição detalhada das mudanças feitas
+- Para setar o body de uma PR no GitHub via CLI, use `gh pr edit <number> --body-file <path>` em vez de `--body "..."`. O `--body` trunca textos longos, enquanto `--body-file` preserva o conteúdo completo do arquivo.

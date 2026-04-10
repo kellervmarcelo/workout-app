@@ -134,16 +134,12 @@
                 :disabled="isAdded(exercise.name)"
                 @click="handleSelect(exercise)"
               >
-                <!-- GIF Thumbnail -->
-                <div class="w-16 h-16 rounded-md overflow-hidden bg-muted shrink-0">
-                  <img
-                    :src="exercise.gifUrl"
-                    :alt="exercise.name"
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                    @error="($event.target as HTMLImageElement).style.display = 'none'"
-                  >
-                </div>
+                <!-- Exercise Thumbnail -->
+                <ExerciseThumbnail
+                  :image-url="exercise.imageUrl"
+                  :name="exercise.name"
+                  :muscle-group="exercise.muscleGroup"
+                />
 
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
