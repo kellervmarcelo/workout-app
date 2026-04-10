@@ -11,12 +11,14 @@
         </p>
       </div>
       <div class="flex gap-2">
-        <Button variant="outline" size="sm" class="flex-1 md:flex-none" @click="navigateTo('/templates')">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          <span class="hidden sm:inline">Templates</span>
-        </Button>
+        <NuxtLink to="/templates" class="flex-1 md:flex-none">
+          <Button variant="outline" size="sm" class="w-full">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span class="hidden sm:inline">Templates</span>
+          </Button>
+        </NuxtLink>
         <Button size="sm" class="flex-1 md:flex-none" @click="showCreateDialog = true">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -95,37 +97,38 @@
 
     <!-- Workout List -->
     <div v-else class="space-y-3 md:space-y-4">
-      <Card
+      <NuxtLink
         v-for="workout in workouts"
         :key="workout.id"
-        class="p-4 hover:shadow-md transition-shadow cursor-pointer md:p-6"
-        @click="navigateTo(`/workouts/${workout.id}`)"
+        :to="`/workouts/${workout.id}`"
+        class="block"
       >
-        <div class="flex items-start justify-between gap-3">
-          <div class="space-y-1.5 flex-1 min-w-0 md:space-y-2">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <h3 class="text-base font-semibold truncate md:text-lg">
-                {{ workout.name }}
-              </h3>
-              <Badge variant="outline" class="font-mono text-[10px] shrink-0">
-                {{ totalExercises(workout) }}
-              </Badge>
-              <Badge variant="secondary" class="text-[10px] shrink-0">
-                {{ totalSets(workout) }}s
-              </Badge>
-            </div>
-            <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground md:gap-4 md:text-sm">
-              <span class="flex items-center gap-1">
-                <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                {{ formatDate(workout.date) }}
-              </span>
-              <span v-if="totalVolume(workout) > 0" class="flex items-center gap-1">
-                <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                <span class="truncate">{{ totalVolume(workout).toLocaleString('pt-BR') }} kg</span>
+        <Card class="p-4 hover:shadow-md transition-shadow md:p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div class="space-y-1.5 flex-1 min-w-0 md:space-y-2">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <h3 class="text-base font-semibold truncate md:text-lg">
+                  {{ workout.name }}
+                </h3>
+                <Badge variant="outline" class="font-mono text-[10px] shrink-0">
+                  {{ totalExercises(workout) }}
+                </Badge>
+                <Badge variant="secondary" class="text-[10px] shrink-0">
+                  {{ totalSets(workout) }}s
+                </Badge>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground md:gap-4 md:text-sm">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {{ formatDate(workout.date) }}
+                </span>
+                <span v-if="totalVolume(workout) > 0" class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  <span class="truncate">{{ totalVolume(workout).toLocaleString('pt-BR') }} kg</span>
               </span>
             </div>
           </div>
@@ -141,6 +144,7 @@
           </Button>
         </div>
       </Card>
+      </NuxtLink>
     </div>
   </div>
 </template>

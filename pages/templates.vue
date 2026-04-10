@@ -96,38 +96,40 @@
 
     <!-- Template List -->
     <div v-else class="space-y-3 md:space-y-4">
-      <Card
+      <NuxtLink
         v-for="template in templates"
         :key="template.id"
-        class="p-4 hover:shadow-md transition-shadow cursor-pointer md:p-6"
-        @click="navigateTo(`/templates/${template.id}`)"
+        :to="`/templates/${template.id}`"
+        class="block"
       >
-        <div class="flex items-start justify-between gap-3">
-          <div class="space-y-1.5 flex-1 min-w-0">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <h3 class="text-base font-semibold truncate md:text-lg">
-                {{ template.name }}
-              </h3>
-              <Badge variant="outline" class="font-mono text-[10px] shrink-0">
-                {{ totalExercises(template) }}
-              </Badge>
+        <Card class="p-4 hover:shadow-md transition-shadow md:p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div class="space-y-1.5 flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <h3 class="text-base font-semibold truncate md:text-lg">
+                  {{ template.name }}
+                </h3>
+                <Badge variant="outline" class="font-mono text-[10px] shrink-0">
+                  {{ totalExercises(template) }}
+                </Badge>
+              </div>
+              <p v-if="template.description" class="text-xs text-muted-foreground truncate md:text-sm">
+                {{ template.description }}
+              </p>
             </div>
-            <p v-if="template.description" class="text-xs text-muted-foreground truncate md:text-sm">
-              {{ template.description }}
-            </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
+              @click.stop="deleteTemplate(template.id)"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            class="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
-            @click.stop="deleteTemplate(template.id)"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </Button>
-        </div>
-      </Card>
+        </Card>
+      </NuxtLink>
     </div>
   </div>
 </template>
