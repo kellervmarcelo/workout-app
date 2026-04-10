@@ -64,15 +64,15 @@ const props = withDefaults(defineProps<Props>(), {
 const imageFailed = ref(false)
 
 const muscleColors: Record<MuscleGroup, string> = {
-  'peito': '#ef4444',
-  'costas': '#3b82f6',
-  'pernas': '#10b981',
-  'ombro': '#f59e0b',
-  'bíceps': '#8b5cf6',
-  'tríceps': '#ec4899',
-  'core': '#06b6d4',
-  'glúteos': '#f97316',
-  'panturrilha': '#14b8a6',
+  peito: '#ef4444',
+  costas: '#3b82f6',
+  pernas: '#10b981',
+  ombro: '#f59e0b',
+  bíceps: '#8b5cf6',
+  tríceps: '#ec4899',
+  core: '#06b6d4',
+  glúteos: '#f97316',
+  panturrilha: '#14b8a6',
 }
 
 const color = muscleColors[props.muscleGroup] || '#6b7280'
