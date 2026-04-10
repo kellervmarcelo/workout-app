@@ -100,6 +100,14 @@ const isLogin = ref(true)
 
 const supabase = useSupabaseClient()
 
+// Se já estiver logado, redireciona para dashboard
+onMounted(async () => {
+  const { data } = await supabase.auth.getSession()
+  if (data.session) {
+    navigateTo('/')
+  }
+})
+
 async function handleSubmit() {
   loading.value = true
   error.value = ''

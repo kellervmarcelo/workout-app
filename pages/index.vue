@@ -162,11 +162,6 @@ onMounted(async () => {
     session.value = newSession
   })
 
-  if (!data.session) {
-    navigateTo('/login')
-    return
-  }
-
   await fetchWorkouts()
 
   // Start onboarding tour for first-time users
