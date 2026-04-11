@@ -389,14 +389,23 @@ async function loadTemplate(templateId: string) {
       if (exerciseError)
         throw exerciseError
 
-      // Criar série padrão com os valores do template
-      const { error: setError } = await supabase.from('workout_sets').insert({
-        exercise_id: exerciseData.id,
-        set_number: 1,
-        reps: exercise.default_reps,
-        weight_kg: exercise.default_weight_kg,
-        completed: true,
-      })
+      // Gerar séries baseado no default_sets do template
+      const totalSets = exercise.default_sets || 3
+
+      const setsToInsert = []
+      for (let i = 1; i <= totalSets; i++) {
+        setsToInsert.push({
+          exercise_id: exerciseData.id,
+          set_number: i,
+          reps: exercise.default_reps,
+          weight_kg: exercise.default_weight_kg,
+          completed: true,
+        })
+      }
+
+      const { error: setError } = await supabase
+        .from('workout_sets')
+        .insert(setsToInsert)
 
       if (setError)
         throw setError
