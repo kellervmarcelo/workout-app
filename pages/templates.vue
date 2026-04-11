@@ -34,13 +34,43 @@
         <h2 class="text-lg font-semibold md:text-xl">
           Novo Template
         </h2>
-        <Button variant="ghost" size="icon" class="h-9 w-9" @click="showCreateDialog = false">
+        <Button variant="ghost" size="icon" class="h-9 w-9" @click="closeCreateDialog">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </Button>
       </div>
-      <form class="space-y-4" @submit.prevent="createTemplate">
+
+      <!-- Tabs -->
+      <div class="flex gap-1 mb-4 bg-muted rounded-lg p-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          class="flex-1 text-sm"
+          :class="createMode === 'manual' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+          @click="createMode = 'manual'"
+        >
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Manual
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="flex-1 text-sm"
+          :class="createMode === 'markdown' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+          @click="createMode = 'markdown'"
+        >
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Markdown
+        </Button>
+      </div>
+
+      <!-- Manual Mode -->
+      <form v-if="createMode === 'manual'" class="space-y-4" @submit.prevent="createTemplate">
         <div class="space-y-2">
           <Label for="template-name" required>Nome</Label>
           <Input
@@ -71,7 +101,7 @@
           />
         </div>
         <div class="flex gap-2">
-          <Button type="button" variant="outline" class="flex-1" @click="showCreateDialog = false">
+          <Button type="button" variant="outline" class="flex-1" @click="closeCreateDialog">
             Cancelar
           </Button>
           <Button type="submit" class="flex-1">
@@ -79,6 +109,70 @@
           </Button>
         </div>
       </form>
+
+      <!-- Markdown Mode -->
+      <div v-else class="space-y-4">
+        <div class="space-y-2">
+          <Label for="markdown-input">Colar Markdown</Label>
+          <textarea
+            id="markdown-input"
+            v-model="markdownInput"
+            placeholder="### ** FULL BODY A **&#10;**Força + densidade | Descanso: 45-60s**&#10;&#10;- [ ] Agachamento com Barra .......... 4x6-8&#10;- [ ] Supino Reto com Halteres ....... 3x8-10"
+            rows="8"
+            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+        </div>
+
+        <Button v-if="markdownInput.trim() && !parsedPreview" size="sm" class="w-full" @click="parseMarkdown">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Parsear Markdown
+        </Button>
+
+        <!-- Preview -->
+        <div v-if="parsedPreview" class="space-y-3">
+          <div class="text-xs text-muted-foreground space-y-1">
+            <p v-if="parsedPreview.name">
+              <strong>Nome:</strong> {{ parsedPreview.name }}
+            </p>
+            <p v-if="parsedPreview.description">
+              <strong>Descrição:</strong> {{ parsedPreview.description }}
+            </p>
+          </div>
+
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground">
+              Exercícios ({{ parsedPreview.exercises.length }}):
+            </p>
+            <div
+              v-for="(ex, idx) in parsedPreview.exercises"
+              :key="idx"
+              class="flex items-center gap-2 text-sm px-3 py-1.5 rounded-md bg-muted/50"
+            >
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary">
+                {{ idx + 1 }}
+              </span>
+              <span class="truncate flex-1">{{ ex.name }}</span>
+              <span class="text-xs font-mono text-muted-foreground shrink-0">
+                {{ ex.default_sets }}s × {{ ex.default_reps || 'tempo' }}{{ ex.default_reps ? ' reps' : '' }}
+              </span>
+            </div>
+          </div>
+          <p v-if="parsedPreview.comments" class="text-xs text-muted-foreground italic">
+            Comentários: {{ parsedPreview.comments }}
+          </p>
+
+          <div class="flex gap-2">
+            <Button variant="outline" size="sm" class="flex-1" @click="parsedPreview = null">
+              Voltar
+            </Button>
+            <Button size="sm" class="flex-1" :disabled="parsedPreview.exercises.length === 0" @click="createFromMarkdown">
+              Criar Template ({{ parsedPreview.exercises.length }} exercícios)
+            </Button>
+          </div>
+        </div>
+      </div>
     </Card>
 
     <!-- Loading -->
@@ -208,8 +302,84 @@
               />
             </div>
 
-            <!-- Add Exercise Form -->
-            <form class="space-y-4 mb-6" @submit.prevent="addExercise">
+            <!-- Mode Toggle (inline panel) -->
+            <div class="mb-5 flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                :class="!showInlineMarkdown ? 'bg-primary text-primary-foreground' : ''"
+                @click="showInlineMarkdown = false"
+              >
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Individual
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                :class="showInlineMarkdown ? 'bg-primary text-primary-foreground' : ''"
+                @click="showInlineMarkdown = true"
+              >
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Markdown
+              </Button>
+            </div>
+
+            <!-- Markdown Import (inline panel) -->
+            <div v-if="showInlineMarkdown" class="mb-6">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <Label class="text-sm font-medium">Colar Markdown</Label>
+              </div>
+              <textarea
+                v-model="inlineMarkdownInput"
+                placeholder="### ** FULL BODY A **&#10;**Força + densidade | Descanso: 45-60s**&#10;&#10;- [ ] Agachamento com Barra .......... 4x6-8&#10;- [ ] Supino Reto com Halteres ....... 3x8-10"
+                rows="6"
+                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+              <div class="flex gap-2 mt-3">
+                <Button size="sm" :disabled="!inlineMarkdownInput.trim()" @click="parseInlineMarkdown">
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Importar
+                </Button>
+                <Button v-if="inlineParsedPreview" variant="outline" size="sm" @click="confirmInlineImport">
+                  Confirmar ({{ inlineParsedPreview.exercises.length }} exercícios)
+                </Button>
+              </div>
+
+              <!-- Preview -->
+              <div v-if="inlineParsedPreview" class="mt-4 space-y-2">
+                <p class="text-xs font-medium text-muted-foreground">
+                  Preview:
+                </p>
+                <div
+                  v-for="(ex, idx) in inlineParsedPreview.exercises"
+                  :key="idx"
+                  class="flex items-center gap-2 text-sm px-3 py-1.5 rounded-md bg-background/80 border border-border/50"
+                >
+                  <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary">
+                    {{ idx + 1 }}
+                  </span>
+                  <span class="truncate flex-1">{{ ex.name }}</span>
+                  <span class="text-xs font-mono text-muted-foreground shrink-0">
+                    {{ ex.default_sets }}s × {{ ex.default_reps || 'tempo' }}{{ ex.default_reps ? ' reps' : '' }}
+                  </span>
+                </div>
+                <p v-if="inlineParsedPreview.comments" class="text-xs text-muted-foreground italic">
+                  Comentários: {{ inlineParsedPreview.comments }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Add Exercise Form (hidden when markdown mode) -->
+            <form v-if="!showInlineMarkdown" class="space-y-4 mb-6" @submit.prevent="addExercise">
               <div class="space-y-2">
                 <Label for="exercise-name" required>Nome do Exercício</Label>
                 <Input
@@ -316,6 +486,7 @@
 
 <script setup lang="ts">
 import type { Session } from '@supabase/supabase-js'
+import type { ParsedTemplate } from '~/composables/useMarkdownTemplate'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -334,6 +505,18 @@ const newExerciseName = ref('')
 const newExerciseReps = ref(10)
 const newExerciseSets = ref(3)
 const newExerciseWeight = ref(0)
+
+// Create dialog state
+const createMode = ref<'manual' | 'markdown'>('manual')
+
+// Markdown import state (for create dialog)
+const markdownInput = ref('')
+const parsedPreview = ref<ParsedTemplate | null>(null)
+
+// Inline markdown state (for existing template panel)
+const showInlineMarkdown = ref(false)
+const inlineMarkdownInput = ref('')
+const inlineParsedPreview = ref<ParsedTemplate | null>(null)
 
 const activeTemplate = computed(() => {
   if (!activeTemplateId.value)
@@ -507,6 +690,129 @@ async function updateTemplateComments(templateId: string, comments: string) {
   }
   catch (error: any) {
     console.error('Erro ao atualizar comentários:', error)
+  }
+}
+
+function closeCreateDialog() {
+  showCreateDialog.value = false
+  createMode.value = 'manual'
+  newTemplateName.value = ''
+  newTemplateDescription.value = ''
+  newTemplateComments.value = ''
+  markdownInput.value = ''
+  parsedPreview.value = null
+}
+
+function parseMarkdown() {
+  if (!markdownInput.value.trim())
+    return
+
+  const { parse } = useMarkdownTemplate()
+  parsedPreview.value = parse(markdownInput.value)
+}
+
+async function createFromMarkdown() {
+  if (!parsedPreview.value || !session.value?.user)
+    return
+
+  try {
+    const { data, error } = await supabase
+      .from('workout_templates')
+      .insert({
+        user_id: session.value.user.id,
+        name: parsedPreview.value.name || 'Template sem nome',
+        description: parsedPreview.value.description || null,
+        comments: parsedPreview.value.comments || null,
+      })
+      .select()
+      .single()
+
+    if (error)
+      throw error
+
+    for (let i = 0; i < parsedPreview.value.exercises.length; i++) {
+      const ex = parsedPreview.value.exercises[i]
+      const { error: exError } = await supabase
+        .from('template_exercises')
+        .insert({
+          template_id: data.id,
+          name: ex.name,
+          order: i,
+          default_reps: ex.default_reps,
+          default_sets: ex.default_sets,
+          default_weight_kg: ex.default_weight_kg,
+        })
+
+      if (exError)
+        throw exError
+    }
+
+    closeCreateDialog()
+    await fetchTemplates()
+    if (data?.id) {
+      activeTemplateId.value = data.id
+    }
+  }
+  catch (error: any) {
+    console.error('Erro ao criar template via markdown:', error)
+  }
+}
+
+// Inline markdown functions
+function parseInlineMarkdown() {
+  if (!inlineMarkdownInput.value.trim())
+    return
+
+  const { parse } = useMarkdownTemplate()
+  inlineParsedPreview.value = parse(inlineMarkdownInput.value)
+}
+
+async function confirmInlineImport() {
+  if (!inlineParsedPreview.value || !activeTemplateId.value)
+    return
+
+  try {
+    if (inlineParsedPreview.value.description || inlineParsedPreview.value.comments) {
+      const updates: Record<string, string | null> = {}
+      if (inlineParsedPreview.value.description)
+        updates.description = inlineParsedPreview.value.description
+      if (inlineParsedPreview.value.comments)
+        updates.comments = inlineParsedPreview.value.comments
+
+      const { error: updateError } = await supabase
+        .from('workout_templates')
+        .update(updates)
+        .eq('id', activeTemplateId.value)
+
+      if (updateError)
+        throw updateError
+    }
+
+    const existingExercises = activeTemplate.value?.exercises || []
+    for (let i = 0; i < inlineParsedPreview.value.exercises.length; i++) {
+      const ex = inlineParsedPreview.value.exercises[i]
+      const { error } = await supabase
+        .from('template_exercises')
+        .insert({
+          template_id: activeTemplateId.value,
+          name: ex.name,
+          order: existingExercises.length + i,
+          default_reps: ex.default_reps,
+          default_sets: ex.default_sets,
+          default_weight_kg: ex.default_weight_kg,
+        })
+
+      if (error)
+        throw error
+    }
+
+    inlineMarkdownInput.value = ''
+    inlineParsedPreview.value = null
+    showInlineMarkdown.value = false
+    await fetchTemplates()
+  }
+  catch (error: any) {
+    console.error('Erro ao importar markdown:', error)
   }
 }
 </script>
