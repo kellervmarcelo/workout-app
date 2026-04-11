@@ -60,6 +60,16 @@
             class="h-11 text-base"
           />
         </div>
+        <div class="space-y-2">
+          <Label for="template-comments">Comentários (opcional)</Label>
+          <textarea
+            id="template-comments"
+            v-model="newTemplateComments"
+            placeholder="Ex: Descansar 2min entre séries, focar na forma"
+            rows="3"
+            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
         <div class="flex gap-2">
           <Button type="button" variant="outline" class="flex-1" @click="showCreateDialog = false">
             Cancelar
@@ -110,10 +120,10 @@
             <div
               class="space-y-1.5 flex-1 min-w-0 cursor-pointer"
               :class="activeTemplateId === template.id ? '' : 'hover:opacity-80'"
-              @click="openTemplate(template.id)"
               role="button"
               :aria-expanded="activeTemplateId === template.id"
               :aria-label="`Exercícios de ${template.name}`"
+              @click="openTemplate(template.id)"
             >
               <div class="flex items-center gap-2">
                 <!-- Chevron indicator -->
@@ -173,11 +183,29 @@
                   Exercícios
                 </h2>
               </div>
-              <Button variant="ghost" size="icon" class="h-8 w-8" @click="activeTemplateId = null" aria-label="Fechar painel">
+              <Button variant="ghost" size="icon" class="h-8 w-8" aria-label="Fechar painel" @click="activeTemplateId = null">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </Button>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="mb-5">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                <Label for="template-comments-edit" class="text-sm font-medium">Comentários</Label>
+              </div>
+              <textarea
+                id="template-comments-edit"
+                :value="activeTemplate?.comments || ''"
+                placeholder="Ex: Descansar 2min entre séries"
+                rows="2"
+                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                @blur="updateTemplateComments(activeTemplateId!, ($event.target as HTMLTextAreaElement).value)"
+              />
             </div>
 
             <!-- Add Exercise Form -->
@@ -192,12 +220,22 @@
                   class="h-10"
                 />
               </div>
-              <div class="grid grid-cols-2 gap-3">
+              <div class="grid grid-cols-3 gap-3">
                 <div class="space-y-2">
-                  <Label for="exercise-reps">Reps Padrão</Label>
+                  <Label for="exercise-reps">Reps</Label>
                   <Input
                     id="exercise-reps"
                     v-model.number="newExerciseReps"
+                    type="number"
+                    min="1"
+                    class="h-10 font-mono"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <Label for="exercise-sets">Séries</Label>
+                  <Input
+                    id="exercise-sets"
+                    v-model.number="newExerciseSets"
                     type="number"
                     min="1"
                     class="h-10 font-mono"
@@ -235,9 +273,11 @@
                     {{ idx + 1 }}
                   </span>
                   <div class="min-w-0">
-                    <p class="font-medium text-sm truncate">{{ exercise.name }}</p>
+                    <p class="font-medium text-sm truncate">
+                      {{ exercise.name }}
+                    </p>
                     <p class="text-xs text-muted-foreground font-mono">
-                      {{ exercise.default_reps }} reps × {{ exercise.default_weight_kg }} kg
+                      {{ exercise.default_sets }}s × {{ exercise.default_reps }} reps × {{ exercise.default_weight_kg }} kg
                     </p>
                   </div>
                 </div>
@@ -245,8 +285,8 @@
                   variant="ghost"
                   size="icon"
                   class="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                  @click="deleteExercise(exercise.id)"
                   aria-label="Remover exercício"
+                  @click="deleteExercise(exercise.id)"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -260,8 +300,12 @@
               <svg class="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <p class="text-sm font-medium text-muted-foreground">Nenhum exercício</p>
-              <p class="text-xs text-muted-foreground/70 mt-1">Adicione exercícios ao template!</p>
+              <p class="text-sm font-medium text-muted-foreground">
+                Nenhum exercício
+              </p>
+              <p class="text-xs text-muted-foreground/70 mt-1">
+                Adicione exercícios ao template!
+              </p>
             </div>
           </div>
         </div>
@@ -269,19 +313,6 @@
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
 
 <script setup lang="ts">
 import type { Session } from '@supabase/supabase-js'
@@ -295,11 +326,13 @@ const loading = ref(false)
 const showCreateDialog = ref(false)
 const newTemplateName = ref('')
 const newTemplateDescription = ref('')
+const newTemplateComments = ref('')
 
 // Template detail state
 const activeTemplateId = ref<string | null>(null)
 const newExerciseName = ref('')
 const newExerciseReps = ref(10)
+const newExerciseSets = ref(3)
 const newExerciseWeight = ref(0)
 
 const activeTemplate = computed(() => {
@@ -362,6 +395,7 @@ async function createTemplate() {
         user_id: session.value.user.id,
         name: newTemplateName.value,
         description: newTemplateDescription.value || null,
+        comments: newTemplateComments.value || null,
       })
       .select()
       .single()
@@ -372,6 +406,7 @@ async function createTemplate() {
     showCreateDialog.value = false
     newTemplateName.value = ''
     newTemplateDescription.value = ''
+    newTemplateComments.value = ''
 
     await fetchTemplates()
 
@@ -428,6 +463,7 @@ async function addExercise() {
         name: newExerciseName.value,
         order,
         default_reps: newExerciseReps.value,
+        default_sets: newExerciseSets.value,
         default_weight_kg: newExerciseWeight.value,
       })
 
@@ -436,6 +472,7 @@ async function addExercise() {
 
     newExerciseName.value = ''
     newExerciseReps.value = 10
+    newExerciseSets.value = 3
     newExerciseWeight.value = 0
 
     // Recarrega apenas o template ativo
@@ -457,4 +494,32 @@ async function deleteExercise(exerciseId: string) {
     console.error('Erro ao deletar exercício:', error)
   }
 }
+
+async function updateTemplateComments(templateId: string, comments: string) {
+  try {
+    const { error } = await supabase
+      .from('workout_templates')
+      .update({ comments: comments || null })
+      .eq('id', templateId)
+
+    if (error)
+      throw error
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar comentários:', error)
+  }
+}
 </script>
+
+<style scoped>
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
