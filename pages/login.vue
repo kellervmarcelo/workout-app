@@ -185,10 +185,9 @@ async function signInWithProvider(provider: 'github' | 'google') {
   loading.value = true
   error.value = ''
 
-  // Usar localhost:3000 para dev local (Supabase local redirect)
-  const callbackUrl = import.meta.env.DEV
-    ? 'http://localhost:3000/auth/callback'
-    : `${window.location.origin}/auth/callback`
+  // O redirect deve ser na mesma origem onde o OAuth foi iniciado
+  // para que o PKCE code verifier esteja disponível no localStorage
+  const callbackUrl = `${window.location.origin}/auth/callback`
 
   try {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
