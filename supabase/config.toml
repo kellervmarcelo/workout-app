@@ -163,7 +163,13 @@ additional_redirect_urls = [
   "https://192.168.0.180:3001",
   "http://192.168.0.180:3001",
   "http://192.168.0.180:3000",
-  "https://192.168.0.180:3000"
+  "https://192.168.0.180:3000",
+  "http://localhost:3000",
+  "http://localhost:3000/auth/callback",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3000/auth/callback",
+  "http://192.168.0.180:3001/auth/callback",
+  "https://192.168.0.180:3001/auth/callback"
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
@@ -320,6 +326,21 @@ max_frequency = "5s"
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
+
+[auth.external.github]
+enabled = true
+client_id = "env(GITHUB_CLIENT_ID)"
+secret = "env(GITHUB_CLIENT_SECRET)"
+redirect_uri = "http://127.0.0.1:54321/auth/v1/callback"
+skip_nonce_check = false
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+redirect_uri = "http://127.0.0.1:54321/auth/v1/callback"
+skip_nonce_check = true
+
 [auth.external.apple]
 enabled = false
 client_id = ""
