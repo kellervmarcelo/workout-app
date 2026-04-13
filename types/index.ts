@@ -1,6 +1,8 @@
 export interface User {
   id: string
   email: string
+  display_name?: string
+  avatar_url?: string
   created_at: string
 }
 
@@ -47,6 +49,7 @@ export interface WorkoutTemplate {
   user_id: string
   name: string
   description?: string
+  comments?: string
   created_at: string
   updated_at: string
 }
@@ -58,6 +61,7 @@ export interface TemplateExercise {
   order: number
   default_reps: number
   default_weight_kg: number
+  default_sets: number
   created_at: string
 }
 
@@ -81,7 +85,7 @@ export interface ExerciseLibraryItem {
   name: string
   description: string
   muscleGroup: MuscleGroup
-  gifUrl: string
+  imageUrl: string
 }
 
 export const MUSCLE_GROUPS: { value: MuscleGroup, label: string }[] = [

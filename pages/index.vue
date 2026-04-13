@@ -12,14 +12,14 @@
       </div>
       <div class="flex gap-2">
         <NuxtLink to="/templates" class="flex-1 md:flex-none">
-          <Button variant="outline" size="sm" class="w-full">
+          <Button data-tour="templates" variant="outline" size="sm" class="w-full">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span class="hidden sm:inline">Templates</span>
           </Button>
         </NuxtLink>
-        <Button size="sm" class="flex-1 md:flex-none" @click="showCreateDialog = true">
+        <Button data-tour="create-workout" size="sm" class="flex-1 md:flex-none" @click="showCreateDialog = true">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
@@ -96,7 +96,7 @@
     </Card>
 
     <!-- Workout List -->
-    <div v-else class="space-y-3 md:space-y-4">
+    <div v-else data-tour="workout-list" class="space-y-3 md:space-y-4">
       <NuxtLink
         v-for="workout in workouts"
         :key="workout.id"
@@ -110,7 +110,7 @@
                 <h3 class="text-base font-semibold truncate md:text-lg">
                   {{ workout.name }}
                 </h3>
-                <Badge variant="outline" class="font-mono text-[10px] shrink-0">
+                <Badge data-tour="stats" variant="outline" class="font-mono text-[10px] shrink-0">
                   {{ totalExercises(workout) }}
                 </Badge>
                 <Badge variant="secondary" class="text-[10px] shrink-0">
@@ -156,6 +156,7 @@ definePageMeta({ middleware: 'auth' })
 
 const supabase = useSupabaseClient()
 const session = ref<Session | null>(null)
+const { checkTourStatus, startTour } = useOnboardingTour()
 
 onMounted(async () => {
   const { data } = await supabase.auth.getSession()
@@ -165,12 +166,11 @@ onMounted(async () => {
     session.value = newSession
   })
 
-  if (!data.session) {
-    navigateTo('/login')
-    return
-  }
-
   await fetchWorkouts()
+
+  // Start onboarding tour for first-time users
+  await checkTourStatus(data.session.user.id)
+  startTour()
 })
 
 const workouts = ref<WorkoutWithExercises[]>([])
@@ -214,7 +214,7 @@ async function createWorkout() {
     return
 
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('workouts')
       .insert({
         user_id: session.value.user.id,

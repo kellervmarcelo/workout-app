@@ -8,7 +8,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Deite no banco reto, segure a barra com pegada média. Desça até tocar o peito e empurre de volta.',
     muscleGroup: 'peito',
-    gifUrl: 'https://media.giphy.com/media/2rPbCFqTlVov0J7d0X/giphy.gif',
+    imageUrl: '/exercises/supino-reto-barra.svg',
   },
   {
     id: 'supino-inclinado-halteres',
@@ -16,7 +16,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Banco inclinado a 30-45°. Desça os halteres até a altura do peito e empurre para cima.',
     muscleGroup: 'peito',
-    gifUrl: 'https://media.giphy.com/media/3oKIPa40rCRV26mjaQ/giphy.gif',
+    imageUrl: '/exercises/supino-inclinado-halteres.svg',
   },
   {
     id: 'supino-declinado',
@@ -24,7 +24,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Banco declinado. Desça a barra até a parte inferior do peito e empurre para cima.',
     muscleGroup: 'peito',
-    gifUrl: 'https://media.giphy.com/media/9BZ9xj8qYR0s/giphy.gif',
+    imageUrl: '/exercises/supino-declinado.svg',
   },
   {
     id: 'crossover-cabo',
@@ -32,7 +32,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé entre as polias altas, puxe as alças para frente e para baixo, unindo as mãos à frente do corpo.',
     muscleGroup: 'peito',
-    gifUrl: 'https://media.giphy.com/media/l4FGIaELl5UF9R3Hi/giphy.gif',
+    imageUrl: '/exercises/crossover-cabo.svg',
   },
   {
     id: 'crucifixo-halteres',
@@ -40,7 +40,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Deito no banco, braços abertos com leve flexão nos cotovelos. Traga os halteres até se encontrarem acima do peito.',
     muscleGroup: 'peito',
-    gifUrl: 'https://media.giphy.com/media/xT0GqFqp9rF53wFjfC/giphy.gif',
+    imageUrl: '/exercises/crucifixo-halteres.svg',
   },
   {
     id: 'flexao-bracos',
@@ -48,7 +48,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Mãos na largura dos ombros. Desça o corpo mantendo o core ativo e empurre de volta.',
     muscleGroup: 'peito',
-    gifUrl: 'https://media.giphy.com/media/KHsfGz6RQhOSg/giphy.gif',
+    imageUrl: '/exercises/flexao-bracos.svg',
   },
 
   // COSTAS (6)
@@ -58,7 +58,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Pendure-se na barra com pegada pronada. Puxe o corpo até o queixo ultrapassar a barra.',
     muscleGroup: 'costas',
-    gifUrl: 'https://media.giphy.com/media/2U5rEzjJMOQHbGZMOF/giphy.gif',
+    imageUrl: '/exercises/barra-fixa.svg',
   },
   {
     id: 'remada-curvada',
@@ -66,28 +66,28 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Incline o tronco para frente, joelhos levemente flexionados. Puxe a barra até o abdômen.',
     muscleGroup: 'costas',
-    gifUrl: 'https://media.giphy.com/media/l2Je66zG19GcVF27S/giphy.gif',
+    imageUrl: '/exercises/remada-curvada.svg',
   },
   {
     id: 'remada-unilateral-haltere',
     name: 'Remada Unilateral com Haltere',
     description: 'Apoie um joelho e mão no banco. Puxe o haltere com o braço livre até o quadril.',
     muscleGroup: 'costas',
-    gifUrl: 'https://media.giphy.com/media/26gJzFLDj0ZBor3zO/giphy.gif',
+    imageUrl: '/exercises/remada-unilateral-haltere.svg',
   },
   {
     id: 'puxada-frente',
     name: 'Puxada Frontal na Polia',
     description: 'Sentado, puxe a barra até a parte superior do peito. Controle o retorno.',
     muscleGroup: 'costas',
-    gifUrl: 'https://media.giphy.com/media/l0HlNaQ6gWfllcjDO/giphy.gif',
+    imageUrl: '/exercises/puxada-frente.svg',
   },
   {
     id: 'remada-cavalinho',
     name: 'Remada Sentada (Cavalinho)',
     description: 'Sentado na máquina, puxe as alças até o abdômen mantendo as costas retas.',
     muscleGroup: 'costas',
-    gifUrl: 'https://media.giphy.com/media/3oKIPnAia7AmPmR9Uk/giphy.gif',
+    imageUrl: '/exercises/remada-cavalinho.svg',
   },
   {
     id: 'pullover-haltere',
@@ -95,7 +95,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Deite transversalmente no banco. Desça o haltere atrás da cabeça com braços semi-estendidos e retorne.',
     muscleGroup: 'costas',
-    gifUrl: 'https://media.giphy.com/media/l0Ex6kDPwiMwp3JbO/giphy.gif',
+    imageUrl: '/exercises/pullover-haltere.svg',
   },
 
   // PERNAS (8)
@@ -105,7 +105,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Barra nas costas, pés na largura dos ombros. Desça até as coxas ficarem paralelas ao chão e suba.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/3oKIPuaM5WOKULwn2U/giphy.gif',
+    imageUrl: '/exercises/agachamento-livre.svg',
   },
   {
     id: 'leg-press',
@@ -113,14 +113,14 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Pés na plataforma na largura dos ombros. Desça até 90° e empurre de volta sem travar os joelhos.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/l4FGJQm7lY0lSNaBq/giphy.gif',
+    imageUrl: '/exercises/leg-press.svg',
   },
   {
     id: 'cadeira-extensora',
     name: 'Cadeira Extensora',
     description: 'Sentado na máquina, estenda as pernas até ficarem retas. Controle o retorno.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/xT0xeMA6lE0xw8RdAc/giphy.gif',
+    imageUrl: '/exercises/cadeira-extensora.svg',
   },
   {
     id: 'mesa-flexora',
@@ -128,7 +128,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Deitado de bruços, flexione os joelhos trazendo os calcanhares em direção aos glúteos.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/l0HlQ7LRalQWOtPBy/giphy.gif',
+    imageUrl: '/exercises/mesa-flexora.svg',
   },
   {
     id: 'stiff',
@@ -136,7 +136,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé com barra, desça mantendo as pernas semi-estendidas e costas retas. Suba contraindo os glúteos.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/2rPbCFqTlVov0J7d0X/giphy.gif',
+    imageUrl: '/exercises/stiff.svg',
   },
   {
     id: 'levantamento-terra',
@@ -144,14 +144,14 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Pés na largura do quadril, segure a barra. Levante estendendo quadril e joelhos simultaneamente.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/2U7mAGsFO50SU/giphy.gif',
+    imageUrl: '/exercises/levantamento-terra.svg',
   },
   {
     id: 'avanco-halteres',
     name: 'Avanço com Halteres',
     description: 'Dê um passo à frente e desça o joelho traseiro perto do chão. Alterne as pernas.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/l4FGIYWG65p7nc7Xi/giphy.gif',
+    imageUrl: '/exercises/avanco-halteres.svg',
   },
   {
     id: 'hack-squat',
@@ -159,7 +159,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Costas apoiadas na máquina, desça até 90° e empurre de volta. Pés posição média na plataforma.',
     muscleGroup: 'pernas',
-    gifUrl: 'https://media.giphy.com/media/3oKIPqH4OYdFDhHjhC/giphy.gif',
+    imageUrl: '/exercises/hack-squat.svg',
   },
 
   // OMBRO (5)
@@ -169,7 +169,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado ou em pé, empurre a barra acima da cabeça. Desça até a altura das orelhas.',
     muscleGroup: 'ombro',
-    gifUrl: 'https://media.giphy.com/media/l0HlHFRnu3GaW03de/giphy.gif',
+    imageUrl: '/exercises/desenvolvimento-barra.svg',
   },
   {
     id: 'desenvolvimento-halteres',
@@ -177,7 +177,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado, empurre os halteres acima da cabeça. Desça controladamente até a linha dos ombros.',
     muscleGroup: 'ombro',
-    gifUrl: 'https://media.giphy.com/media/2rPbCFqTlVov0J7d0X/giphy.gif',
+    imageUrl: '/exercises/desenvolvimento-halteres.svg',
   },
   {
     id: 'elevacao-lateral',
@@ -185,7 +185,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé, eleve os braços lateralmente até a altura dos ombros. Cotovelos levemente flexionados.',
     muscleGroup: 'ombro',
-    gifUrl: 'https://media.giphy.com/media/xT0xeuOy2Ffa0ZuQDu/giphy.gif',
+    imageUrl: '/exercises/elevacao-lateral.svg',
   },
   {
     id: 'elevacao-frontal',
@@ -193,7 +193,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé, eleve os braços à frente do corpo até a altura dos ombros. Alterne ou faça simultâneo.',
     muscleGroup: 'ombro',
-    gifUrl: 'https://media.giphy.com/media/l4FGlBLdJ6w4amSjm/giphy.gif',
+    imageUrl: '/exercises/elevacao-frontal.svg',
   },
   {
     id: 'face-pull',
@@ -201,7 +201,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Puxe a corda em direção ao rosto, abrindo os cotovelos. Foque na contração do deltoide posterior.',
     muscleGroup: 'ombro',
-    gifUrl: 'https://media.giphy.com/media/l0Ex6kDPwiMwp3JbO/giphy.gif',
+    imageUrl: '/exercises/face-pull.svg',
   },
 
   // BÍCEPS (5)
@@ -211,7 +211,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé, segure a barra com pegada supinada. Flexione os cotovelos trazendo a barra até os ombros.',
     muscleGroup: 'bíceps',
-    gifUrl: 'https://media.giphy.com/media/l4FGl0YF7cJCMyF1m/giphy.gif',
+    imageUrl: '/exercises/rosca-direta-barra.svg',
   },
   {
     id: 'rosca-alternada-halteres',
@@ -219,7 +219,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado ou em pé, alterne a flexão dos braços com halteres. Gire o punho durante o movimento.',
     muscleGroup: 'bíceps',
-    gifUrl: 'https://media.giphy.com/media/3oKIPa40rCRV26mjaQ/giphy.gif',
+    imageUrl: '/exercises/rosca-alternada-halteres.svg',
   },
   {
     id: 'rosca-martelo',
@@ -227,7 +227,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Halteres com pegada neutra (palmas para dentro). Flexione os braços sem girar o punho.',
     muscleGroup: 'bíceps',
-    gifUrl: 'https://media.giphy.com/media/l0HlNaQ6gWfllcjDO/giphy.gif',
+    imageUrl: '/exercises/rosca-martelo.svg',
   },
   {
     id: 'rosca-banco-inclinado',
@@ -235,7 +235,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado no banco inclinado, braços pendentes. Flexione os cotovelos trazendo os halteres aos ombros.',
     muscleGroup: 'bíceps',
-    gifUrl: 'https://media.giphy.com/media/xT0GqFqp9rF53wFjfC/giphy.gif',
+    imageUrl: '/exercises/rosca-banco-inclinado.svg',
   },
   {
     id: 'rosca-concentrada',
@@ -243,7 +243,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado, cotovelo apoiado na parte interna da coxa. Flexione o braço isoladamente.',
     muscleGroup: 'bíceps',
-    gifUrl: 'https://media.giphy.com/media/l4FGJQm7lY0lSNaBq/giphy.gif',
+    imageUrl: '/exercises/rosca-concentrada.svg',
   },
 
   // TRÍCEPS (5)
@@ -253,7 +253,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé, empurre a corda para baixo estendendo os cotovelos. Abra a corda no final do movimento.',
     muscleGroup: 'tríceps',
-    gifUrl: 'https://media.giphy.com/media/2rPbCFqTlVov0J7d0X/giphy.gif',
+    imageUrl: '/exercises/triceps-polia-corda.svg',
   },
   {
     id: 'triceps-testa-barra',
@@ -261,7 +261,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Deitado, desça a barra em direção à testa estendendo os cotovelos. Mantenha os braços fixos.',
     muscleGroup: 'tríceps',
-    gifUrl: 'https://media.giphy.com/media/l0HlHFRnu3GaW03de/giphy.gif',
+    imageUrl: '/exercises/triceps-testa-barra.svg',
   },
   {
     id: 'triceps-frances-haltere',
@@ -269,7 +269,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado ou em pé, desça o haltere atrás da cabeça flexionando os cotovelos. Estenda de volta.',
     muscleGroup: 'tríceps',
-    gifUrl: 'https://media.giphy.com/media/xT0xeuOy2Ffa0ZuQDu/giphy.gif',
+    imageUrl: '/exercises/triceps-frances-haltere.svg',
   },
   {
     id: 'mergulho-paralelas',
@@ -277,7 +277,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Apoie-se nas barras paralelas. Desça flexionando os cotovelos e empurre de volta. Tronco reto foca tríceps.',
     muscleGroup: 'tríceps',
-    gifUrl: 'https://media.giphy.com/media/2U5rEzjJMOQHbGZMOF/giphy.gif',
+    imageUrl: '/exercises/mergulho-paralelas.svg',
   },
   {
     id: 'triceps-polia-barra-v',
@@ -285,7 +285,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé, empurre a barra V para baixo estendendo os cotovelos. Mantenha os cotovelos colados ao corpo.',
     muscleGroup: 'tríceps',
-    gifUrl: 'https://media.giphy.com/media/l4FGlBLdJ6w4amSjm/giphy.gif',
+    imageUrl: '/exercises/triceps-polia-barra-v.svg',
   },
 
   // CORE (5)
@@ -295,7 +295,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Apoie antebraços e pés no chão. Mantenha o corpo reto e o core contraído pelo tempo determinado.',
     muscleGroup: 'core',
-    gifUrl: 'https://media.giphy.com/media/xT5LMTT4e8mMfqb3Ve/giphy.gif',
+    imageUrl: '/exercises/prancha-frontal.svg',
   },
   {
     id: 'abdominal-crise',
@@ -303,7 +303,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Deitado, joelhos flexionados. Eleve os ombros do chão contraindo o abdômen. Não puxe o pescoço.',
     muscleGroup: 'core',
-    gifUrl: 'https://media.giphy.com/media/KHsfGz6RQhOSg/giphy.gif',
+    imageUrl: '/exercises/abdominal-crise.svg',
   },
   {
     id: 'abdominal-infra',
@@ -311,7 +311,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Deitado, eleve as pernas retas até 90° e traga os joelhos ao peito. Desça controladamente.',
     muscleGroup: 'core',
-    gifUrl: 'https://media.giphy.com/media/l4FGIaELl5UF9R3Hi/giphy.gif',
+    imageUrl: '/exercises/abdominal-infra.svg',
   },
   {
     id: 'russian-twist',
@@ -319,7 +319,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado com tronco inclinado e pés elevados, rotate o tronco tocando o chão de cada lado.',
     muscleGroup: 'core',
-    gifUrl: 'https://media.giphy.com/media/l0Ex6kDPwiMwp3JbO/giphy.gif',
+    imageUrl: '/exercises/russian-twist.svg',
   },
   {
     id: 'prancha-lateral',
@@ -327,7 +327,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Apoie um antebraço no chão, corpo reto lateralmente. Mantenha a posição pelo tempo determinado.',
     muscleGroup: 'core',
-    gifUrl: 'https://media.giphy.com/media/xT0GqFqp9rF53wFjfC/giphy.gif',
+    imageUrl: '/exercises/prancha-lateral.svg',
   },
 
   // GLÚTEOS (5)
@@ -337,7 +337,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Costas apoiadas no banco, barra no quadril. Eleve o quadril contraindo os glúteos no topo.',
     muscleGroup: 'glúteos',
-    gifUrl: 'https://media.giphy.com/media/l4FGJQm7lY0lSNaBq/giphy.gif',
+    imageUrl: '/exercises/elevacao-pelvica.svg',
   },
   {
     id: 'agachamento-sumo',
@@ -345,7 +345,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Pés mais largos que os ombros, pontas para fora. Desça até as coxas ficarem paralelas ao chão.',
     muscleGroup: 'glúteos',
-    gifUrl: 'https://media.giphy.com/media/3oKIPuaM5WOKULwn2U/giphy.gif',
+    imageUrl: '/exercises/agachamento-sumo.svg',
   },
   {
     id: 'passada-lateral',
@@ -353,7 +353,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Dê um passo largo lateralmente. Desça o peso na perna que avançou, mantendo a outra perna estendida.',
     muscleGroup: 'glúteos',
-    gifUrl: 'https://media.giphy.com/media/l4FGIYWG65p7nc7Xi/giphy.gif',
+    imageUrl: '/exercises/passada-lateral.svg',
   },
   {
     id: 'coice-gluteo',
@@ -361,7 +361,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em quatro apoios ou na polia, estenda a perna para trás contraindo o glúteo no topo.',
     muscleGroup: 'glúteos',
-    gifUrl: 'https://media.giphy.com/media/l0HlQ7LRalQWOtPBy/giphy.gif',
+    imageUrl: '/exercises/coice-gluteo.svg',
   },
   {
     id: 'abducao-quadril',
@@ -369,7 +369,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado na máquina, abra as pernas contra a resistência. Foque na contração dos glúteos laterais.',
     muscleGroup: 'glúteos',
-    gifUrl: 'https://media.giphy.com/media/3oKIPqH4OYdFDhHjhC/giphy.gif',
+    imageUrl: '/exercises/abducao-quadril.svg',
   },
 
   // PANTURRILHA (4)
@@ -379,7 +379,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé na máquina, eleve os calcanhares o máximo possível. Desça controladamente até alongar.',
     muscleGroup: 'panturrilha',
-    gifUrl: 'https://media.giphy.com/media/xT0xeMA6lE0xw8RdAc/giphy.gif',
+    imageUrl: '/exercises/panturrilha-em-pe.svg',
   },
   {
     id: 'panturrilha-sentado',
@@ -387,7 +387,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Sentado na máquina com joelhos flexionados. Eleve os calcanhares contraindo o sóleo.',
     muscleGroup: 'panturrilha',
-    gifUrl: 'https://media.giphy.com/media/l4FGl0YF7cJCMyF1m/giphy.gif',
+    imageUrl: '/exercises/panturrilha-sentado.svg',
   },
   {
     id: 'panturrilha-unilateral',
@@ -395,7 +395,7 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Em pé num degrau com um haltere. Eleve o calcanhar e desça até sentir o alongamento completo.',
     muscleGroup: 'panturrilha',
-    gifUrl: 'https://media.giphy.com/media/l4FGlBLdJ6w4amSjm/giphy.gif',
+    imageUrl: '/exercises/panturrilha-unilateral.svg',
   },
   {
     id: 'panturrilha-leg-press',
@@ -403,6 +403,6 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     description:
       'Pés na parte inferior da plataforma. Empurre com as pontas dos pés estendendo os tornozelos.',
     muscleGroup: 'panturrilha',
-    gifUrl: 'https://media.giphy.com/media/l4FGJQm7lY0lSNaBq/giphy.gif',
+    imageUrl: '/exercises/panturrilha-leg-press.svg',
   },
 ]

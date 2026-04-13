@@ -10,8 +10,36 @@
         </NuxtLink>
 
         <div v-if="user" class="flex items-center gap-2">
-          <span class="text-xs text-muted-foreground hidden md:inline truncate max-w-[200px]">{{ user.email }}</span>
-          <Button variant="ghost" size="icon" class="h-9 w-9" title="Sair" @click="logout">
+          <!-- Desktop: Link de perfil com avatar/nome + botão de logout -->
+          <NuxtLink
+            to="/profile"
+            class="hidden md:flex items-center gap-2 px-2 py-1 rounded-md hover:bg-muted transition-colors"
+          >
+            <!-- Avatar ou iniciais -->
+            <div
+              v-if="user.avatar_url"
+              class="h-7 w-7 rounded-full overflow-hidden"
+            >
+              <img :src="user.avatar_url" :alt="user.display_name || user.email" class="h-full w-full object-cover">
+            </div>
+            <div
+              v-else
+              class="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary"
+            >
+              {{ getInitials(user.display_name || user.email) }}
+            </div>
+            <span class="text-sm font-medium truncate max-w-[150px]">{{ user.display_name || user.email }}</span>
+          </NuxtLink>
+
+          <!-- Mobile: apenas ícone de logout no header -->
+          <Button variant="ghost" size="icon" class="h-9 w-9 md:hidden" title="Sair" @click="logout">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v0a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v0" />
+            </svg>
+          </Button>
+
+          <!-- Desktop: botão de logout separado -->
+          <Button variant="ghost" size="icon" class="hidden h-9 w-9 md:flex" title="Sair" @click="logout">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v0a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v0" />
             </svg>
@@ -55,7 +83,6 @@
           <NuxtLink
             to="/"
             class="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
-            @click.native.prevent="$emit('new-workout')"
           >
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -70,12 +97,16 @@
           <span>Stats</span>
         </div>
 
-        <div class="flex flex-col items-center justify-center gap-1 min-w-[64px] flex-1 py-1 text-xs font-medium text-muted-foreground">
+        <NuxtLink
+          to="/profile"
+          class="flex flex-col items-center justify-center gap-1 min-w-[64px] flex-1 py-1 text-xs font-medium transition-colors"
+          :class="$route.path === '/profile' ? 'text-primary' : 'text-muted-foreground'"
+        >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
           <span>Perfil</span>
-        </div>
+        </NuxtLink>
       </div>
     </nav>
 
@@ -91,17 +122,58 @@
 </template>
 
 <script setup lang="ts">
+import type { User as AuthUser, Session } from '@supabase/supabase-js'
+import type { User } from '~/types'
+
 const supabase = useSupabaseClient()
+const sessionUser = ref<Session | null>(null)
 const user = ref<User | null>(null)
 
 onMounted(async () => {
   const { data } = await supabase.auth.getSession()
-  user.value = data.session?.user ?? null
+  sessionUser.value = data.session
 
   supabase.auth.onAuthStateChange((_event, session) => {
-    user.value = session?.user ?? null
+    sessionUser.value = session
+    user.value = session?.user ? buildUser(session.user, null) : null
   })
+
+  if (data.session) {
+    await loadProfile()
+  }
 })
+
+async function loadProfile() {
+  if (!sessionUser.value?.user)
+    return
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('display_name, avatar_url')
+    .eq('id', sessionUser.value.user.id)
+    .single()
+
+  user.value = buildUser(sessionUser.value.user, data)
+}
+
+function buildUser(authUser: AuthUser, profile: { display_name?: string, avatar_url?: string } | null): User {
+  return {
+    id: authUser.id,
+    email: authUser.email || '',
+    display_name: profile?.display_name,
+    avatar_url: profile?.avatar_url,
+    created_at: authUser.created_at || '',
+  }
+}
+
+function getInitials(name: string) {
+  return name
+    .split(/[\s.@]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(n => n[0].toUpperCase())
+    .join('')
+}
 
 async function logout() {
   await supabase.auth.signOut()

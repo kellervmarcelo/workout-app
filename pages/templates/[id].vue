@@ -161,7 +161,7 @@
 definePageMeta({ middleware: 'auth' })
 
 const route = useRoute()
-const templateId = route.params.id as string
+const templateId = computed(() => route.params.id as string)
 
 const supabase = useSupabaseClient()
 
@@ -173,6 +173,9 @@ const newExerciseReps = ref(10)
 const newExerciseWeight = ref(0)
 
 async function fetchTemplate() {
+  if (!templateId.value)
+    return
+
   loading.value = true
   try {
     const { data, error } = await supabase
@@ -181,7 +184,7 @@ async function fetchTemplate() {
         *,
         exercises:template_exercises(*)
       `)
-      .eq('id', templateId)
+      .eq('id', templateId.value)
       .single()
 
     if (error)
@@ -196,6 +199,13 @@ async function fetchTemplate() {
   }
 }
 
+// Watch para reagir a mudanças de rota em SPA
+watch(() => route.params.id, () => {
+  fetchTemplate()
+})
+
+onMounted(fetchTemplate)
+
 async function addExercise() {
   if (!template.value || !newExerciseName.value)
     return
@@ -206,7 +216,7 @@ async function addExercise() {
     const { data, error } = await supabase
       .from('template_exercises')
       .insert({
-        template_id: templateId,
+        template_id: templateId.value,
         name: newExerciseName.value,
         order,
         default_reps: newExerciseReps.value,
@@ -255,6 +265,4 @@ async function updateExerciseDefaults(exerciseId: string, field: keyof TemplateE
     console.error('Erro ao atualizar exercício:', error)
   }
 }
-
-onMounted(fetchTemplate)
 </script>
