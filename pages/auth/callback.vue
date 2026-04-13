@@ -20,6 +20,10 @@ const loading = ref(true)
 const errorMessage = ref('')
 
 onMounted(async () => {
+  console.log('[callback] URL atual:', window.location.href)
+  console.log('[callback] route.query:', route.query)
+  console.log('[callback] route.hash:', route.hash)
+
   // 1. Verificar se há erro na URL (query params ou hash)
   const queryError = route.query.error as string
   const queryErrorDescription = route.query.error_description as string
@@ -45,21 +49,28 @@ onMounted(async () => {
 
   // 2. Verificar se há código OAuth na URL (PKCE flow)
   const code = route.query.code as string
+  const providerToken = route.query.provider_token as string
+  const providerRefreshToken = route.query.provider_refresh_token as string
 
   if (code) {
+    console.log('[callback] Código OAuth encontrado:', code.substring(0, 10) + '...')
+
     try {
-      // Trocar o código pela sessão (necessário para PKCE flow)
+      // Verificar se o @nuxtjs/supabase já processou a sessão
+      // O módulo tem detectSessionInUrl: true que faz isso automaticamente
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
       if (exchangeError) {
-        console.error('Erro ao trocar código por sessão:', exchangeError.message)
-        errorMessage.value = 'Erro ao completar autenticação'
+        console.error('[callback] Erro ao trocar código por sessão:', exchangeError.message)
+        console.error('[callback] Detalhes:', exchangeError)
+        errorMessage.value = 'Erro ao completar autenticação: ' + exchangeError.message
         loading.value = false
         setTimeout(() => navigateTo('/login'), 3000)
         return
       }
 
       if (data?.session) {
+        console.log('[callback] Sessão criada com sucesso:', data.session.user.email)
         navigateTo('/')
       }
       else {
@@ -70,7 +81,7 @@ onMounted(async () => {
       return
     }
     catch (err) {
-      console.error('Erro inesperado ao trocar código:', err)
+      console.error('[callback] Erro inesperado ao trocar código:', err)
       errorMessage.value = 'Erro inesperado ao processar login'
       loading.value = false
       setTimeout(() => navigateTo('/login'), 3000)
@@ -83,7 +94,7 @@ onMounted(async () => {
     const { data, error } = await supabase.auth.getSession()
 
     if (error) {
-      console.error('Erro ao obter sessão:', error.message)
+      console.error('[callback] Erro ao obter sessão:', error.message)
       errorMessage.value = 'Erro ao completar autenticação'
       loading.value = false
       setTimeout(() => navigateTo('/login'), 3000)
@@ -91,6 +102,7 @@ onMounted(async () => {
     }
 
     if (data.session) {
+      console.log('[callback] Sessão já existente:', data.session.user.email)
       navigateTo('/')
     }
     else {
@@ -100,7 +112,7 @@ onMounted(async () => {
     }
   }
   catch (err) {
-    console.error('Erro inesperado no callback:', err)
+    console.error('[callback] Erro inesperado:', err)
     errorMessage.value = 'Erro inesperado ao processar login'
     loading.value = false
     setTimeout(() => navigateTo('/login'), 3000)
