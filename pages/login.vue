@@ -185,11 +185,16 @@ async function signInWithProvider(provider: 'github' | 'google') {
   loading.value = true
   error.value = ''
 
+  // Usar localhost:3000 para dev local (Supabase local redirect)
+  const callbackUrl = import.meta.env.DEV
+    ? 'http://localhost:3000/auth/callback'
+    : `${window.location.origin}/auth/callback`
+
   try {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     })
     if (oauthError)

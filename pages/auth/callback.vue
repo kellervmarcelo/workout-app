@@ -20,58 +20,90 @@ const loading = ref(true)
 const errorMessage = ref('')
 
 onMounted(async () => {
-  // Verificar se há erro na URL (hash fragment do OAuth)
+  // 1. Verificar se há erro na URL (query params ou hash)
+  const queryError = route.query.error as string
+  const queryErrorDescription = route.query.error_description as string
   const hash = route.hash
-  if (hash) {
-    const params = new URLSearchParams(hash.replace('#', '&'))
-    const error = params.get('error')
-    const errorDescription = params.get('error_description')
+
+  if (queryError || hash?.includes('error=')) {
+    let error = queryError
+    let errorDescription = queryErrorDescription
+
+    if (hash && !error) {
+      const params = new URLSearchParams(hash.replace('#', '&'))
+      error = params.get('error') || undefined
+      errorDescription = params.get('error_description') || undefined
+    }
 
     if (error) {
       errorMessage.value = errorDescription || 'Erro na autenticação social'
       loading.value = false
-      // Redirecionar para login após 3 segundos
-      setTimeout(() => {
-        navigateTo('/login')
-      }, 3000)
+      setTimeout(() => navigateTo('/login'), 3000)
       return
     }
   }
 
+  // 2. Verificar se há código OAuth na URL (PKCE flow)
+  const code = route.query.code as string
+
+  if (code) {
+    try {
+      // Trocar o código pela sessão (necessário para PKCE flow)
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+      if (exchangeError) {
+        console.error('Erro ao trocar código por sessão:', exchangeError.message)
+        errorMessage.value = 'Erro ao completar autenticação'
+        loading.value = false
+        setTimeout(() => navigateTo('/login'), 3000)
+        return
+      }
+
+      if (data?.session) {
+        navigateTo('/')
+      }
+      else {
+        errorMessage.value = 'Sessão não criada'
+        loading.value = false
+        setTimeout(() => navigateTo('/login'), 3000)
+      }
+      return
+    }
+    catch (err) {
+      console.error('Erro inesperado ao trocar código:', err)
+      errorMessage.value = 'Erro inesperado ao processar login'
+      loading.value = false
+      setTimeout(() => navigateTo('/login'), 3000)
+      return
+    }
+  }
+
+  // 3. Fallback: verificar se já tem sessão
   try {
-    // Aguardar o Supabase processar a sessão do OAuth
     const { data, error } = await supabase.auth.getSession()
 
     if (error) {
       console.error('Erro ao obter sessão:', error.message)
       errorMessage.value = 'Erro ao completar autenticação'
       loading.value = false
-      setTimeout(() => {
-        navigateTo('/login')
-      }, 3000)
+      setTimeout(() => navigateTo('/login'), 3000)
       return
     }
 
     if (data.session) {
-      // Sessão válida, redirecionar para dashboard
       navigateTo('/')
     }
     else {
-      // Sem sessão, redirecionar para login
       errorMessage.value = 'Sessão não encontrada'
       loading.value = false
-      setTimeout(() => {
-        navigateTo('/login')
-      }, 3000)
+      setTimeout(() => navigateTo('/login'), 3000)
     }
   }
   catch (err) {
     console.error('Erro inesperado no callback:', err)
     errorMessage.value = 'Erro inesperado ao processar login'
     loading.value = false
-    setTimeout(() => {
-      navigateTo('/login')
-    }, 3000)
+    setTimeout(() => navigateTo('/login'), 3000)
   }
 })
 </script>
