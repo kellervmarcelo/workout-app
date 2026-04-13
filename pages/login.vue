@@ -185,8 +185,6 @@ async function signInWithProvider(provider: 'github' | 'google') {
   loading.value = true
   error.value = ''
 
-  // O redirect deve ser na mesma origem onde o OAuth foi iniciado
-  // para que o PKCE code verifier esteja disponível no localStorage
   const callbackUrl = `${window.location.origin}/auth/callback`
 
   try {

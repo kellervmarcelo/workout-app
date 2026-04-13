@@ -13,8 +13,8 @@
 </template>
 
 <script setup lang="ts">
-const supabase = useSupabaseClient()
 const route = useRoute()
+const supabase = useSupabaseClient()
 
 const loading = ref(true)
 const errorMessage = ref('')
@@ -48,12 +48,11 @@ onMounted(async () => {
 
   if (code) {
     try {
-      // Trocar o código pela sessão (necessário para PKCE flow)
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
       if (exchangeError) {
-        console.error('Erro ao trocar código por sessão:', exchangeError.message)
-        errorMessage.value = 'Erro ao completar autenticação'
+        console.error('[callback] Erro ao trocar código:', exchangeError.message)
+        errorMessage.value = 'Erro ao completar autenticação: ' + exchangeError.message
         loading.value = false
         setTimeout(() => navigateTo('/login'), 3000)
         return
@@ -70,7 +69,7 @@ onMounted(async () => {
       return
     }
     catch (err) {
-      console.error('Erro inesperado ao trocar código:', err)
+      console.error('[callback] Erro inesperado:', err)
       errorMessage.value = 'Erro inesperado ao processar login'
       loading.value = false
       setTimeout(() => navigateTo('/login'), 3000)
@@ -82,25 +81,17 @@ onMounted(async () => {
   try {
     const { data, error } = await supabase.auth.getSession()
 
-    if (error) {
-      console.error('Erro ao obter sessão:', error.message)
-      errorMessage.value = 'Erro ao completar autenticação'
+    if (error || !data.session) {
+      errorMessage.value = error?.message || 'Sessão não encontrada'
       loading.value = false
       setTimeout(() => navigateTo('/login'), 3000)
       return
     }
 
-    if (data.session) {
-      navigateTo('/')
-    }
-    else {
-      errorMessage.value = 'Sessão não encontrada'
-      loading.value = false
-      setTimeout(() => navigateTo('/login'), 3000)
-    }
+    navigateTo('/')
   }
   catch (err) {
-    console.error('Erro inesperado no callback:', err)
+    console.error('[callback] Erro inesperado:', err)
     errorMessage.value = 'Erro inesperado ao processar login'
     loading.value = false
     setTimeout(() => navigateTo('/login'), 3000)
