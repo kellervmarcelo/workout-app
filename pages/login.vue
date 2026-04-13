@@ -185,12 +185,11 @@ async function signInWithProvider(provider: 'github' | 'google') {
   loading.value = true
   error.value = ''
 
-  // O redirect deve ser na mesma origem onde o OAuth foi iniciado
-  // para que o PKCE code verifier esteja disponível no localStorage
+  const authClient = useSupabaseAuthClient()
   const callbackUrl = `${window.location.origin}/auth/callback`
 
   try {
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+    const { error: oauthError } = await authClient.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: callbackUrl,
