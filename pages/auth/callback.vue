@@ -15,6 +15,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const supabase = useSupabaseClient()
+const oauthClient = useOAuthClient()
 
 const loading = ref(true)
 const errorMessage = ref('')
@@ -48,7 +49,7 @@ onMounted(async () => {
 
   if (code) {
     try {
-      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+      const { data, error: exchangeError } = await oauthClient.auth.exchangeCodeForSession(code)
 
       if (exchangeError) {
         console.error('[callback] Erro ao trocar código:', exchangeError.message)
@@ -59,6 +60,11 @@ onMounted(async () => {
       }
 
       if (data?.session) {
+        // Sync session with main Nuxt Supabase client
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        })
         navigateTo('/')
       }
       else {
@@ -77,7 +83,7 @@ onMounted(async () => {
     }
   }
 
-  // 3. Fallback: verificar se já tem sessão
+  // 3. Fallback: verificar se já tem sessão no cliente principal
   try {
     const { data, error } = await supabase.auth.getSession()
 
