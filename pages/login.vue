@@ -185,11 +185,10 @@ async function signInWithProvider(provider: 'github' | 'google') {
   loading.value = true
   error.value = ''
 
-  const authClient = useSupabaseAuthClient()
   const callbackUrl = `${window.location.origin}/auth/callback`
 
   try {
-    const { error: oauthError } = await authClient.auth.signInWithOAuth({
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: callbackUrl,
