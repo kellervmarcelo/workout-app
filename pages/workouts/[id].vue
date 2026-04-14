@@ -181,9 +181,14 @@
 
     <!-- Exercises -->
     <div v-if="workout.exercises?.length" class="space-y-4 md:space-y-6">
-      <Collapsible
+      <SwipeToDelete
         v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
+        :ref="(el: any) => swipeRefs[exercise.id] = el"
+        @delete="deleteExercise(exercise.id)"
+        @swipe-open="closeOtherSwipes(exercise.id)"
+      >
+      <Collapsible
         :ref="(el: any) => collapsibleRefs[exercise.id] = el"
         :default-open="!exercise.sets?.every(s => s.completed)"
       >
@@ -301,6 +306,7 @@
           Remover Exercício
         </Button>
       </Collapsible>
+      </SwipeToDelete>
 
       <!-- Add Exercise Button - at end of list -->
       <Button
@@ -378,6 +384,7 @@ const showMoreMenu = ref(false)
 const showInfos = ref(false)
 const templates = ref<WorkoutTemplateWithExercises[]>([])
 const collapsibleRefs = ref<Record<string, any>>({})
+const swipeRefs = ref<Record<string, any>>({})
 const showTimerModal = ref(false)
 const timerRestSeconds = ref(60)
 
@@ -728,6 +735,14 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
   }
   catch (error: any) {
     console.error('Erro ao atualizar séries:', error)
+  }
+}
+
+function closeOtherSwipes(openedId: string) {
+  for (const [id, ref] of Object.entries(swipeRefs.value)) {
+    if (id !== openedId && ref && typeof ref.close === 'function') {
+      ref.close()
+    }
   }
 }
 
