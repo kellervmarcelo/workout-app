@@ -327,10 +327,14 @@ async function fetchWorkout() {
         )
       `)
       .eq('id', workoutId)
-      .single()
+      .maybeSingle()
 
     if (error)
       throw error
+    if (!data) {
+      navigateTo('/')
+      return
+    }
     workout.value = data
   }
   catch (error: any) {
