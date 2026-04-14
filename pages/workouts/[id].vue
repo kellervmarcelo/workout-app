@@ -206,9 +206,9 @@
           <table class="w-full text-sm table-fixed">
             <colgroup>
               <col class="w-8 md:w-12">
-              <col>
-              <col>
-              <col class="w-16 md:w-24">
+              <col class="w-20 md:w-28">
+              <col class="w-20 md:w-28">
+              <col class="w-20 md:w-28">
             </colgroup>
             <thead>
               <tr class="text-muted-foreground border-b">
@@ -238,7 +238,7 @@
                   <input
                     type="checkbox"
                     :checked="!!set.completed"
-                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer mx-auto"
                     @change="toggleSetComplete(set.id, set.completed)"
                   >
                 </td>
@@ -247,7 +247,7 @@
                     :model-value="String(set.reps)"
                     type="number"
                     min="1"
-                    class="h-8 text-center text-sm font-mono md:h-10 md:text-base"
+                    class="h-8 text-center text-sm font-mono md:h-9"
                     @update:model-value="updateSet(set.id, 'reps', Number($event))"
                   />
                 </td>
@@ -257,7 +257,7 @@
                     type="number"
                     step="0.5"
                     min="0"
-                    class="h-8 text-center text-sm font-mono md:h-10 md:text-base"
+                    class="h-8 text-center text-sm font-mono md:h-9"
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
                 </td>
