@@ -203,10 +203,10 @@
 
         <!-- Sets Table - scroll horizontal em mobile -->
         <div class="overflow-x-auto -mx-1 px-1">
-          <table class="w-full text-sm min-w-[280px]">
+          <table class="w-full text-sm min-w-[400px]">
             <thead>
               <tr class="text-muted-foreground border-b">
-                <th class="text-left py-2 px-2 font-medium text-xs w-10">
+                <th class="text-center py-3 px-2 font-medium text-xs w-12">
                   <input
                     type="checkbox"
                     :checked="exercise.sets?.length ? exercise.sets.every(s => s.completed) : false"
@@ -215,18 +215,20 @@
                     @change="toggleAllSets(exercise.id, exercise.sets || [])"
                   >
                 </th>
-                <th class="text-left py-2 px-2 font-medium text-xs">
+                <th class="text-center py-3 px-2 font-medium text-xs">
                   Reps
                 </th>
-                <th class="text-left py-2 px-2 font-medium text-xs">
-                  Carga
+                <th class="text-center py-3 px-2 font-medium text-xs">
+                  Carga (kg)
                 </th>
-                <th class="text-right py-2 px-2 font-medium text-xs" />
+                <th class="text-center py-3 px-2 font-medium text-xs w-24">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0">
-                <td class="py-2.5 px-2">
+              <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/20">
+                <td class="py-3 px-2 text-center">
                   <input
                     type="checkbox"
                     :checked="!!set.completed"
@@ -234,36 +236,38 @@
                     @change="toggleSetComplete(set.id, set.completed)"
                   >
                 </td>
-                <td class="py-2.5 px-2">
+                <td class="py-3 px-2">
                   <Input
                     :model-value="String(set.reps)"
                     type="number"
                     min="1"
-                    class="w-16 h-10 text-base font-mono md:h-9 md:w-20 md:text-sm"
+                    class="h-10 text-center font-mono"
                     @update:model-value="updateSet(set.id, 'reps', Number($event))"
                   />
                 </td>
-                <td class="py-2.5 px-2">
+                <td class="py-3 px-2">
                   <Input
                     :model-value="String(set.weight_kg)"
                     type="number"
                     step="0.5"
                     min="0"
-                    class="w-20 h-10 text-base font-mono md:h-9 md:w-24 md:text-sm"
+                    class="h-10 text-center font-mono"
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
                 </td>
-                <td class="py-2.5 px-2 text-right">
-                  <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-primary" @click="openSetTimer(set)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </Button>
-                  <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </Button>
+                <td class="py-3 px-2">
+                  <div class="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-primary" @click="openSetTimer(set)">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </Button>
+                    <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </Button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -337,7 +341,7 @@
 
   <!-- Rest Timer Modal -->
   <div v-if="showTimerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="showTimerModal = false">
-    <Card class="w-full max-w-sm mx-4 p-6">
+    <Card class="w-full max-w-md mx-4 p-8">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">
           Timer de Descanso
