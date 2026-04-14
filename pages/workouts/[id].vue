@@ -203,32 +203,38 @@
 
         <!-- Sets Table - scroll horizontal em mobile -->
         <div class="overflow-x-auto -mx-1 px-1">
-          <table class="w-full text-sm">
+          <table class="w-full text-sm table-fixed">
+            <colgroup>
+              <col class="w-8 md:w-12">
+              <col>
+              <col>
+              <col class="w-16 md:w-24">
+            </colgroup>
             <thead>
               <tr class="text-muted-foreground border-b">
-                <th class="text-center py-2 px-1 font-medium text-[11px] w-8 md:w-12 md:py-3">
+                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
                   <input
                     type="checkbox"
                     :checked="exercise.sets?.length ? exercise.sets.every(s => s.completed) : false"
                     :indeterminate.prop="exercise.sets?.length ? exercise.sets.some(s => s.completed) && !exercise.sets.every(s => s.completed) : false"
-                    class="h-3.5 w-3.5 rounded border-input text-primary focus:ring-primary cursor-pointer md:h-4 md:w-4"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
                     @change="toggleAllSets(exercise.id, exercise.sets || [])"
                   >
                 </th>
-                <th class="text-center py-2 px-1 font-medium text-[11px] md:py-3">
+                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
                   Reps
                 </th>
-                <th class="text-center py-2 px-1 font-medium text-[11px] md:py-3">
+                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
                   Kg
                 </th>
-                <th class="text-center py-2 px-1 font-medium text-[11px] w-16 md:w-24 md:py-3">
+                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
                   ⏱
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/20">
-                <td class="py-2 px-1 text-center md:py-3 md:px-2">
+                <td class="py-2 px-0 text-center md:py-3 md:px-2">
                   <input
                     type="checkbox"
                     :checked="!!set.completed"
@@ -236,7 +242,7 @@
                     @change="toggleSetComplete(set.id, set.completed)"
                   >
                 </td>
-                <td class="py-2 px-1 md:py-3 md:px-2">
+                <td class="py-2 px-0 md:py-3 md:px-2">
                   <Input
                     :model-value="String(set.reps)"
                     type="number"
@@ -245,7 +251,7 @@
                     @update:model-value="updateSet(set.id, 'reps', Number($event))"
                   />
                 </td>
-                <td class="py-2 px-1 md:py-3 md:px-2">
+                <td class="py-2 px-0 md:py-3 md:px-2">
                   <Input
                     :model-value="String(set.weight_kg)"
                     type="number"
@@ -255,8 +261,8 @@
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
                 </td>
-                <td class="py-2 px-1 md:py-3 md:px-2">
-                  <div class="flex items-center justify-end gap-0.5">
+                <td class="py-2 px-0 md:py-3 md:px-2">
+                  <div class="flex items-center justify-center gap-0.5">
                     <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-primary md:h-9 md:w-9" @click="openSetTimer(set)">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
