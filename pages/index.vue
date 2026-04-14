@@ -264,13 +264,22 @@ const creating = ref(false)
 const showCreateDialog = ref(false)
 const selectedTemplateId = ref<string | 'empty'>('empty')
 const newWorkoutName = ref('')
-const newWorkoutDate = ref(new Date().toISOString().split('T')[0])
+const newWorkoutDate = ref(getTodayString())
 
 const selectedTemplate = computed(() => {
   if (selectedTemplateId.value === 'empty')
     return null
   return templates.value.find(t => t.id === selectedTemplateId.value) || null
 })
+
+// Generate today's date as a local string (avoid UTC conversion issues)
+function getTodayString() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 async function fetchWorkouts() {
   if (!session.value?.user)
@@ -338,7 +347,7 @@ function closeCreateDialog() {
   showCreateDialog.value = false
   selectedTemplateId.value = 'empty'
   newWorkoutName.value = ''
-  newWorkoutDate.value = new Date().toISOString().split('T')[0]
+  newWorkoutDate.value = getTodayString()
 }
 
 async function createEmptyWorkout() {
@@ -346,7 +355,7 @@ async function createEmptyWorkout() {
     return
 
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('workouts')
       .insert({
         user_id: session.value.user.id,
@@ -359,8 +368,13 @@ async function createEmptyWorkout() {
     if (error)
       throw error
 
-    closeCreateDialog()
-    await fetchWorkouts()
+    showCreateDialog.value = false
+    selectedTemplateId.value = 'empty'
+    newWorkoutName.value = ''
+    newWorkoutDate.value = getTodayString()
+
+    // Navigate to the newly created workout
+    navigateTo(`/workouts/${data.id}`)
   }
   catch (error: any) {
     console.error('Erro ao criar treino:', error)
@@ -381,7 +395,7 @@ async function createWorkoutFromTemplate() {
       .insert({
         user_id: session.value.user.id,
         name: template.name,
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayString(),
         notes: template.comments || null,
       })
       .select()
@@ -431,8 +445,13 @@ async function createWorkoutFromTemplate() {
       }
     }
 
-    closeCreateDialog()
-    await fetchWorkouts()
+    showCreateDialog.value = false
+    selectedTemplateId.value = 'empty'
+    newWorkoutName.value = ''
+    newWorkoutDate.value = getTodayString()
+
+    // Navigate to the newly created workout
+    navigateTo(`/workouts/${workout.id}`)
   }
   catch (error: any) {
     console.error('Erro ao criar treino a partir do template:', error)
@@ -457,7 +476,8 @@ async function deleteWorkout(id: string) {
 onMounted(fetchWorkouts)
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('pt-BR', {
+  // Append T12:00:00 to avoid UTC conversion shifting the day
+  return new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
