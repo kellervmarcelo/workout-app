@@ -133,11 +133,14 @@ export function useOnboardingTour() {
         .eq('id', userId)
         .single()
 
-      if (error) throw error
+      if (error)
+        throw error
       tourCompleted.value = data?.onboarding_completed || false
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Erro ao verificar status do tour:', error)
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }
@@ -149,15 +152,18 @@ export function useOnboardingTour() {
         .update({ onboarding_completed: true })
         .eq('id', userId)
 
-      if (error) throw error
+      if (error)
+        throw error
       tourCompleted.value = true
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Erro ao salvar status do tour:', error)
     }
   }
 
   const startTour = () => {
-    if (tourCompleted.value || loading.value) return
+    if (tourCompleted.value || loading.value)
+      return
     driver.setSteps(steps)
     driver.drive()
     driver.onDestroyed(() => {
@@ -177,19 +183,6 @@ export function useOnboardingTour() {
 
 ```vue
 <!-- pages/index.vue -->
-<script setup lang="ts">
-// ... existing code ...
-const { checkTourStatus, startTour } = useOnboardingTour()
-
-onMounted(async () => {
-  // ... existing auth + fetch logic ...
-  if (session.value?.user) {
-    await checkTourStatus(session.value.user.id)
-    startTour()
-  }
-})
-</script>
-
 <template>
   <!-- Elementos com data-tour attributes -->
   <div data-tour="workout-list">
@@ -208,6 +201,19 @@ onMounted(async () => {
     <!-- Stats existentes -->
   </Card>
 </template>
+
+<script setup lang="ts">
+// ... existing code ...
+const { checkTourStatus, startTour } = useOnboardingTour()
+
+onMounted(async () => {
+  // ... existing auth + fetch logic ...
+  if (session.value?.user) {
+    await checkTourStatus(session.value.user.id)
+    startTour()
+  }
+})
+</script>
 ```
 
 ### Migração SQL

@@ -394,6 +394,7 @@ async function createWorkoutFromTemplate() {
         name: template.name,
         date: getTodayString(),
         notes: template.comments || null,
+        source_template_id: template.id,
       })
       .select()
       .single()
