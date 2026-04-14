@@ -43,4 +43,10 @@ const isOpen = ref(props.defaultOpen ?? false)
 function toggle() {
   isOpen.value = !isOpen.value
 }
+
+function close() {
+  isOpen.value = false
+}
+
+defineExpose({ isOpen, close })
 </script>
