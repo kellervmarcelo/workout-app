@@ -203,20 +203,26 @@
 
         <!-- Sets Table - scroll horizontal em mobile -->
         <div class="overflow-x-auto -mx-1 px-1">
-          <table class="w-full text-sm min-w-[280px]">
+          <table class="w-full text-sm min-w-[320px]">
             <thead>
               <tr class="text-muted-foreground border-b">
                 <th class="text-left py-2 px-2 font-medium text-xs w-10">
-                  ✓
-                </th>
-                <th class="text-left py-2 px-2 font-medium text-xs">
-                  Set
+                  <input
+                    type="checkbox"
+                    :checked="exercise.sets?.length ? exercise.sets.every(s => s.completed) : false"
+                    :indeterminate.prop="exercise.sets?.length ? exercise.sets.some(s => s.completed) && !exercise.sets.every(s => s.completed) : false"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                    @change="toggleAllSets(exercise.id, exercise.sets || [])"
+                  >
                 </th>
                 <th class="text-left py-2 px-2 font-medium text-xs">
                   Reps
                 </th>
                 <th class="text-left py-2 px-2 font-medium text-xs">
                   Carga
+                </th>
+                <th class="text-left py-2 px-2 font-medium text-xs">
+                  Descanso
                 </th>
                 <th class="text-right py-2 px-2 font-medium text-xs" />
               </tr>
@@ -230,11 +236,6 @@
                     class="h-5 w-5 rounded border-input text-primary focus:ring-primary cursor-pointer"
                     @change="toggleSetComplete(set.id, set.completed)"
                   >
-                </td>
-                <td class="py-2.5 px-2">
-                  <Badge variant="secondary" class="font-mono text-xs">
-                    {{ set.set_number }}
-                  </Badge>
                 </td>
                 <td class="py-2.5 px-2">
                   <Input
@@ -253,6 +254,16 @@
                     min="0"
                     class="w-20 h-10 text-base font-mono md:h-9 md:w-24 md:text-sm"
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
+                  />
+                </td>
+                <td class="py-2.5 px-2">
+                  <Input
+                    :model-value="String(set.rest_seconds || 60)"
+                    type="number"
+                    min="0"
+                    step="5"
+                    class="w-16 h-10 text-base font-mono md:h-9 md:w-20 md:text-sm"
+                    @update:model-value="updateSet(set.id, 'rest_seconds', Number($event))"
                   />
                 </td>
                 <td class="py-2.5 px-2 text-right">
@@ -279,17 +290,6 @@
           </svg>
           Adicionar Série
         </Button>
-
-        <!-- Rest Timer -->
-        <div class="mt-3 pt-3 border-t">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span class="text-sm font-medium">Descanso</span>
-          </div>
-          <RestTimer />
-        </div>
 
         <!-- Delete Exercise Button -->
         <Button
@@ -458,7 +458,7 @@ async function loadTemplate(templateId: string) {
           set_number: i,
           reps: exercise.default_reps,
           weight_kg: exercise.default_weight_kg,
-          completed: true,
+          completed: false,
         })
       }
 
@@ -573,7 +573,8 @@ async function addSet(exerciseId: string) {
       set_number: setNumber,
       reps: lastSet?.reps || 10,
       weight_kg: lastSet?.weight_kg || 0,
-      completed: true,
+      rest_seconds: lastSet?.rest_seconds || 60,
+      completed: false,
     })
 
     if (error)
@@ -639,6 +640,43 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
   }
   catch (error: any) {
     console.error('Erro ao atualizar série:', error)
+  }
+}
+
+async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
+  if (!sets.length)
+    return
+
+  const allComplete = sets.every(s => s.completed)
+  const newCompleted = !allComplete
+
+  try {
+    const { error } = await supabase
+      .from('workout_sets')
+      .update({ completed: newCompleted })
+      .in('id', sets.map(s => s.id))
+
+    if (error)
+      throw error
+
+    // Update local state
+    for (const set of sets) {
+      set.completed = newCompleted
+    }
+
+    // Auto-close if all completed
+    if (newCompleted && workout.value?.exercises) {
+      const exercise = workout.value.exercises.find(e => e.id === exerciseId)
+      if (exercise && collapsibleRefs.value[exerciseId]) {
+        const el = collapsibleRefs.value[exerciseId]
+        if (el && typeof el.close === 'function') {
+          el.close()
+        }
+      }
+    }
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar séries:', error)
   }
 }
 
