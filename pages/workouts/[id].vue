@@ -621,11 +621,6 @@ function completedSetCount(exercise: ExerciseWithSets): number {
   return (exercise.sets || []).filter(s => s.completed).length
 }
 
-function openSetTimer(set: WorkoutSet) {
-  timerRestSeconds.value = set.rest_seconds || 60
-  showTimerModal.value = true
-}
-
 function openExerciseTimer(_exercise: ExerciseWithSets) {
   timerRestSeconds.value = 60
   showTimerModal.value = true
@@ -703,18 +698,6 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
   }
   catch (error: any) {
     console.error('Erro ao atualizar séries:', error)
-  }
-}
-
-async function deleteSet(setId: string) {
-  try {
-    const { error } = await supabase.from('workout_sets').delete().eq('id', setId)
-    if (error)
-      throw error
-    await fetchWorkout()
-  }
-  catch (error: any) {
-    console.error('Erro ao deletar série:', error)
   }
 }
 
