@@ -21,6 +21,23 @@
         </p>
       </div>
 
+      <!-- Notes Section -->
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+          </svg>
+          <Label class="text-sm font-medium">Notas</Label>
+        </div>
+        <textarea
+          :value="workout.notes || ''"
+          placeholder="Adicionar notas ao treino..."
+          rows="2"
+          class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          @blur="updateWorkoutNotes(($event.target as HTMLTextAreaElement).value)"
+        />
+      </div>
+
       <!-- Action Buttons - coluna em mobile -->
       <div class="flex gap-2">
         <Button variant="outline" size="sm" class="flex-1 md:flex-none" @click="showTemplateSelector = true; fetchTemplates()">
@@ -415,6 +432,21 @@ async function loadTemplate(templateId: string) {
         throw setError
     }
 
+    // Copiar comentários do template para as notas do workout
+    if (template.comments) {
+      const existingNotes = workout.value.notes || ''
+      const newNotes = existingNotes
+        ? `${existingNotes}\n\n---\n\n${template.comments}`
+        : template.comments
+
+      await supabase
+        .from('workouts')
+        .update({ notes: newNotes })
+        .eq('id', workoutId)
+
+      workout.value.notes = newNotes
+    }
+
     showTemplateSelector.value = false
     await fetchWorkout()
   }
@@ -512,6 +544,26 @@ async function addSet(exerciseId: string) {
   }
   catch (error: any) {
     console.error('Erro ao adicionar série:', error)
+  }
+}
+
+async function updateWorkoutNotes(notes: string) {
+  if (!workout.value)
+    return
+
+  try {
+    const { error } = await supabase
+      .from('workouts')
+      .update({ notes: notes || null })
+      .eq('id', workoutId)
+
+    if (error)
+      throw error
+    // Atualizar localmente para refletir a mudança
+    workout.value.notes = notes || undefined
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar notas:', error)
   }
 }
 
