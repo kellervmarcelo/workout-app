@@ -129,21 +129,21 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                   <span class="truncate">{{ totalVolume(workout).toLocaleString('pt-BR') }} kg</span>
-              </span>
+                </span>
+              </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
+              @click.stop="deleteWorkout(workout.id)"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            class="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
-            @click.stop="deleteWorkout(workout.id)"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </Button>
-        </div>
-      </Card>
+        </Card>
       </NuxtLink>
     </div>
   </div>

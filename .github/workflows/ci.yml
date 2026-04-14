@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v4
         with:
@@ -28,14 +28,14 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Lint
-        run: npx eslint components/ composables/ data/ lib/ .github/ --max-warnings 0
+        run: npx eslint components/ composables/ pages/ lib/ types/ --max-warnings 0
 
   # TODO: Re-enable full type check once pre-existing errors are fixed
   # type-check:
   #   name: Type Check
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - uses: actions/checkout@v6
+  #     - uses: actions/checkout@v5
   #     - uses: actions/setup-node@v4
   #       with: { node-version-file: .nvmrc, cache: npm }
   #     - run: npm install --no-audit --no-fund
@@ -49,7 +49,7 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v4
         with:
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v4
         with:
