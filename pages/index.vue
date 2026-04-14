@@ -194,9 +194,6 @@
                 <Badge data-tour="stats" variant="outline" class="font-mono text-[10px] shrink-0">
                   {{ totalExercises(workout) }}
                 </Badge>
-                <Badge variant="secondary" class="text-[10px] shrink-0">
-                  {{ totalSets(workout) }}s
-                </Badge>
               </div>
               <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground md:gap-4 md:text-sm">
                 <span class="flex items-center gap-1">
