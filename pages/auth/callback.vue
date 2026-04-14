@@ -53,7 +53,7 @@ onMounted(async () => {
 
       if (exchangeError) {
         console.error('[callback] Erro ao trocar código:', exchangeError.message)
-        errorMessage.value = 'Erro ao completar autenticação: ' + exchangeError.message
+        errorMessage.value = `Erro ao completar autenticação: ${exchangeError.message}`
         loading.value = false
         setTimeout(() => navigateTo('/login'), 3000)
         return
