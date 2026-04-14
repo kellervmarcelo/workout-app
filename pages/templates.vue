@@ -231,9 +231,17 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
                 <div class="flex flex-wrap items-center gap-1.5">
-                  <h3 class="text-base font-semibold truncate md:text-lg">
+                  <h3 v-if="editingTemplateId !== template.id" class="text-base font-semibold truncate md:text-lg">
                     {{ template.name }}
                   </h3>
+                  <input
+                    v-else
+                    :value="template.name"
+                    class="text-base font-semibold truncate md:text-lg bg-background border border-input rounded px-2 py-0.5 min-w-[200px]"
+                    @blur="updateTemplateName(template.id, ($event.target as HTMLInputElement).value)"
+                    @keydown.enter="($event.target as HTMLInputElement).blur()"
+                    @click.stop
+                  >
                   <Badge
                     variant="outline"
                     class="font-mono text-[10px] shrink-0"
@@ -241,11 +249,30 @@
                   >
                     {{ totalExercises(template) }}
                   </Badge>
+                  <Button
+                    v-if="editingTemplateId !== template.id"
+                    variant="ghost"
+                    size="icon"
+                    class="h-6 w-6 shrink-0 text-muted-foreground hover:text-primary"
+                    @click.stop="editingTemplateId = template.id"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </Button>
                 </div>
               </div>
-              <p v-if="template.description" class="text-xs text-muted-foreground truncate pl-6 md:text-sm">
+              <p v-if="template.description && editingTemplateId !== template.id" class="text-xs text-muted-foreground truncate pl-6 md:text-sm">
                 {{ template.description }}
               </p>
+              <input
+                v-else-if="editingTemplateId === template.id"
+                :value="template.description || ''"
+                placeholder="Descrição (opcional)"
+                class="text-xs text-muted-foreground bg-background border border-input rounded px-2 py-0.5 w-full max-w-md"
+                @blur="updateTemplateDescription(template.id, ($event.target as HTMLInputElement).value)"
+                @click.stop
+              >
             </div>
             <Button
               variant="ghost"
@@ -501,6 +528,7 @@ const newTemplateComments = ref('')
 
 // Template detail state
 const activeTemplateId = ref<string | null>(null)
+const editingTemplateId = ref<string | null>(null)
 const newExerciseName = ref('')
 const newExerciseReps = ref(10)
 const newExerciseSets = ref(3)
@@ -687,9 +715,49 @@ async function updateTemplateComments(templateId: string, comments: string) {
 
     if (error)
       throw error
+    editingTemplateId.value = null
+    await fetchTemplates()
   }
   catch (error: any) {
     console.error('Erro ao atualizar comentários:', error)
+  }
+}
+
+async function updateTemplateName(templateId: string, name: string) {
+  const trimmed = name.trim()
+  if (!trimmed)
+    return
+
+  try {
+    const { error } = await supabase
+      .from('workout_templates')
+      .update({ name: trimmed })
+      .eq('id', templateId)
+
+    if (error)
+      throw error
+    editingTemplateId.value = null
+    await fetchTemplates()
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar nome:', error)
+  }
+}
+
+async function updateTemplateDescription(templateId: string, description: string) {
+  try {
+    const { error } = await supabase
+      .from('workout_templates')
+      .update({ description: description.trim() || null })
+      .eq('id', templateId)
+
+    if (error)
+      throw error
+    editingTemplateId.value = null
+    await fetchTemplates()
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar descrição:', error)
   }
 }
 
