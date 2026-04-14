@@ -1,67 +1,77 @@
 <template>
-  <div v-if="workout" class="space-y-4 md:space-y-6">
+  <div v-if="workout" class="space-y-5 md:space-y-8 px-3 md:px-0">
     <!-- Header -->
-    <div class="space-y-3 md:space-y-4">
-      <NuxtLink to="/" class="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors min-h-[44px]">
-        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Voltar
-      </NuxtLink>
-
-      <div class="space-y-2">
-        <h1 class="text-xl font-bold tracking-tight md:text-3xl">
-          {{ workout.name }}
-        </h1>
-        <p class="text-sm text-muted-foreground flex items-center gap-1">
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    <div class="space-y-4 md:space-y-6">
+      <div class="flex items-center justify-between">
+        <NuxtLink to="/" class="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors min-h-[44px]">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
+          Voltar
+        </NuxtLink>
+
+        <!-- More Options Menu -->
+        <div class="relative">
+          <Button variant="ghost" size="icon" class="h-9 w-9" @click="showMoreMenu = !showMoreMenu">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="5" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="12" cy="19" r="2" />
+            </svg>
+          </Button>
+          <div v-if="showMoreMenu" class="absolute right-0 top-10 z-50 w-56 bg-popover border rounded-md shadow-md">
+            <div class="py-1">
+              <Button variant="ghost" size="sm" class="w-full justify-start gap-2 font-normal" @click="showTemplateSelector = true; showMoreMenu = false; fetchTemplates()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Carregar Template
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="text-xl font-bold tracking-tight md:text-3xl">
+        {{ workout.name }}
+      </h1>
+
+      <!-- Notes Section - prominent -->
+      <div v-if="workout.notes" class="rounded-lg border-l-4 border-l-primary bg-muted/50 p-3 md:p-5">
+        <div class="flex items-center gap-2 mb-2">
+          <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+          </svg>
+          <span class="text-sm font-semibold">Notas</span>
+        </div>
+        <p class="text-sm whitespace-pre-wrap">
+          {{ workout.notes }}
         </p>
       </div>
 
-      <!-- Notes Section -->
-      <div class="space-y-1">
-        <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-          </svg>
-          <Label class="text-sm font-medium">Notas</Label>
-        </div>
-        <textarea
-          :value="workout.notes || ''"
-          placeholder="Adicionar notas ao treino..."
-          rows="2"
-          class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          @blur="updateWorkoutNotes(($event.target as HTMLTextAreaElement).value)"
-        />
-      </div>
+      <!-- +Infos Toggle -->
+      <Button variant="outline" size="sm" class="w-full" @click="showInfos = !showInfos">
+        <svg class="w-4 h-4 mr-2 transition-transform" :class="{ 'rotate-180': showInfos }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ showInfos ? 'Menos infos' : '+ Infos' }}
+      </Button>
 
-      <!-- Action Buttons - coluna em mobile -->
-      <div class="flex gap-2">
-        <Button variant="outline" size="sm" class="flex-1 md:flex-none" @click="showTemplateSelector = true; fetchTemplates()">
-          <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          <span class="hidden sm:inline">Carregar Template</span>
-          <span class="sm:hidden">Template</span>
-        </Button>
-        <Button size="sm" class="flex-1 md:flex-none" @click="showExercisePicker = true">
-          <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Exercício
-        </Button>
-      </div>
-
-      <!-- Stats - coluna em mobile, row em desktop -->
-      <div class="grid grid-cols-3 gap-2 md:gap-4">
+      <!-- Expanded Infos -->
+      <div v-if="showInfos" class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+        <Card class="p-3 md:p-4">
+          <div class="text-xs text-muted-foreground md:text-sm">
+            Data
+          </div>
+          <div class="text-sm font-semibold mt-1 md:text-lg">
+            {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) }}
+          </div>
+        </Card>
         <Card class="p-3 md:p-4">
           <div class="text-xs text-muted-foreground md:text-sm">
             Séries
           </div>
-          <div class="text-lg font-bold md:text-2xl">
+          <div class="text-sm font-bold mt-1 md:text-lg">
             {{ totalSets }}
           </div>
         </Card>
@@ -69,15 +79,15 @@
           <div class="text-xs text-muted-foreground md:text-sm">
             Volume
           </div>
-          <div class="text-lg font-bold md:text-2xl">
-            {{ totalVolume.toLocaleString('pt-BR') }}<span class="text-xs font-normal text-muted-foreground"> kg</span>
+          <div class="text-sm font-bold mt-1 md:text-lg">
+            {{ totalVolume.toLocaleString('pt-BR') }} <span class="text-xs font-normal text-muted-foreground">kg</span>
           </div>
         </Card>
         <Card class="p-3 md:p-4">
           <div class="text-xs text-muted-foreground md:text-sm">
             Exercícios
           </div>
-          <div class="text-lg font-bold md:text-2xl">
+          <div class="text-sm font-bold mt-1 md:text-lg">
             {{ workout.exercises?.length || 0 }}
           </div>
         </Card>
@@ -95,7 +105,7 @@
 
     <!-- Exercise Form (Custom) -->
     <Card v-if="showExerciseForm" class="p-4 md:p-6">
-      <h2 class="text-lg font-semibold mb-4 md:text-xl">
+      <h2 class="text-lg font-semibold mb-4 md:text-xl md:mb-6">
         Adicionar Exercício Customizado
       </h2>
       <form class="space-y-4" @submit.prevent="addExercise">
@@ -122,7 +132,7 @@
 
     <!-- Template Selector Modal -->
     <Card v-if="showTemplateSelector" class="p-4 md:p-6">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between mb-4 md:mb-6">
         <h2 class="text-lg font-semibold md:text-xl">
           Carregar Template
         </h2>
@@ -170,75 +180,82 @@
     </Card>
 
     <!-- Exercises -->
-    <div v-if="workout.exercises?.length" class="space-y-3 md:space-y-4">
+    <div v-if="workout.exercises?.length" class="space-y-4 md:space-y-6">
       <Collapsible
         v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
-        :default-open="true"
+        :ref="(el: any) => collapsibleRefs[exercise.id] = el"
+        :default-open="!exercise.sets?.every(s => s.completed)"
       >
         <template #title>
-          <div class="flex items-center gap-2 md:gap-3">
-            <Badge variant="outline" class="font-mono text-xs">
+          <div class="flex items-center gap-2 md:gap-3 min-w-0">
+            <Badge variant="outline" class="font-mono text-xs shrink-0">
               {{ idx + 1 }}
             </Badge>
-            <h3 class="text-sm font-semibold md:text-lg truncate">
+            <h3 class="text-sm font-semibold md:text-lg truncate min-w-0">
               {{ exercise.name }}
             </h3>
             <Badge variant="secondary" class="text-[10px] shrink-0">
-              {{ exercise.sets?.length || 0 }}s
+              {{ completedSetCount(exercise) }}/{{ exercise.sets?.length || 0 }}
             </Badge>
           </div>
         </template>
 
-        <!-- Sets Table - scroll horizontal em mobile -->
+        <!-- Sets Table -->
         <div class="overflow-x-auto -mx-1 px-1">
-          <table class="w-full text-sm min-w-[280px]">
+          <table class="w-full text-sm table-fixed">
+            <colgroup>
+              <col class="w-8">
+              <col class="w-24">
+              <col class="w-24">
+            </colgroup>
             <thead>
               <tr class="text-muted-foreground border-b">
-                <th class="text-left py-2 px-2 font-medium text-xs">
-                  Set
+                <th class="py-3 px-1 text-center">
+                  <input
+                    type="checkbox"
+                    :checked="exercise.sets?.length ? exercise.sets.every(s => s.completed) : false"
+                    :indeterminate.prop="exercise.sets?.length ? exercise.sets.some(s => s.completed) && !exercise.sets.every(s => s.completed) : false"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer mx-auto"
+                    @change="toggleAllSets(exercise.id, exercise.sets || [])"
+                  >
                 </th>
-                <th class="text-left py-2 px-2 font-medium text-xs">
+                <th class="py-3 px-1 text-center font-medium text-xs">
                   Reps
                 </th>
-                <th class="text-left py-2 px-2 font-medium text-xs">
-                  Carga
+                <th class="py-3 px-1 text-center font-medium text-xs">
+                  Kg
                 </th>
-                <th class="text-right py-2 px-2 font-medium text-xs" />
               </tr>
             </thead>
             <tbody>
-              <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0">
-                <td class="py-2.5 px-2">
-                  <Badge variant="secondary" class="font-mono text-xs">
-                    {{ set.set_number }}
-                  </Badge>
+              <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/20">
+                <td class="py-3 px-1 text-center">
+                  <input
+                    type="checkbox"
+                    :checked="!!set.completed"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                    @change="toggleSetComplete(set.id, set.completed)"
+                  >
                 </td>
-                <td class="py-2.5 px-2">
+                <td class="py-3 px-1">
                   <Input
                     :model-value="String(set.reps)"
                     type="number"
                     min="1"
-                    class="w-16 h-10 text-base font-mono md:h-9 md:w-20 md:text-sm"
+                    class="h-9 text-center text-sm font-mono"
                     @update:model-value="updateSet(set.id, 'reps', Number($event))"
                   />
                 </td>
-                <td class="py-2.5 px-2">
+                <td class="py-3 px-1">
                   <Input
                     :model-value="String(set.weight_kg)"
                     type="number"
                     step="0.5"
                     min="0"
-                    class="w-20 h-10 text-base font-mono md:h-9 md:w-24 md:text-sm"
+                    class="h-9 text-center text-sm font-mono"
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
-                </td>
-                <td class="py-2.5 px-2 text-right">
-                  <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </Button>
                 </td>
               </tr>
             </tbody>
@@ -249,7 +266,7 @@
         <Button
           variant="outline"
           size="sm"
-          class="mt-3 w-full h-11 md:h-9"
+          class="mt-3 w-full h-10"
           @click="addSet(exercise.id)"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,22 +275,24 @@
           Adicionar Série
         </Button>
 
-        <!-- Rest Timer -->
-        <div class="mt-3 pt-3 border-t">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span class="text-sm font-medium">Descanso</span>
-          </div>
-          <RestTimer />
-        </div>
+        <!-- Rest Timer Button -->
+        <Button
+          variant="outline"
+          size="sm"
+          class="mt-2 w-full h-10"
+          @click="openExerciseTimer(exercise)"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Timer de Descanso
+        </Button>
 
         <!-- Delete Exercise Button -->
         <Button
           variant="outline"
           size="sm"
-          class="mt-2 w-full h-11 text-destructive hover:text-destructive md:h-9"
+          class="mt-2 w-full h-10 text-destructive hover:text-destructive"
           @click="deleteExercise(exercise.id)"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,10 +301,23 @@
           Remover Exercício
         </Button>
       </Collapsible>
+
+      <!-- Add Exercise Button - at end of list -->
+      <Button
+        variant="outline"
+        size="sm"
+        class="w-full h-11 md:h-10 border-dashed"
+        @click="showExercisePicker = true"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Adicionar Exercício
+      </Button>
     </div>
 
     <!-- Empty State -->
-    <Card v-else class="p-12 text-center">
+    <Card v-else class="p-8 md:p-12 text-center">
       <div class="text-5xl mb-4">
         🏋️
       </div>
@@ -299,13 +331,30 @@
   </div>
 
   <!-- Loading -->
-  <div v-else class="flex justify-center py-12">
+  <div v-else class="flex justify-center py-12 md:py-20">
     <div class="text-center">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
       <p class="text-muted-foreground">
         Carregando...
       </p>
     </div>
+  </div>
+
+  <!-- Rest Timer Modal -->
+  <div v-if="showTimerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="showTimerModal = false">
+    <Card class="w-full max-w-md mx-4 p-6 md:p-8">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">
+          Timer de Descanso
+        </h3>
+        <Button variant="ghost" size="icon" class="h-8 w-8" @click="showTimerModal = false">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Button>
+      </div>
+      <RestTimer :default-seconds="timerRestSeconds" />
+    </Card>
   </div>
 </template>
 
@@ -325,7 +374,12 @@ const showExerciseForm = ref(false)
 const showExercisePicker = ref(false)
 const newExerciseName = ref('')
 const showTemplateSelector = ref(false)
+const showMoreMenu = ref(false)
+const showInfos = ref(false)
 const templates = ref<WorkoutTemplateWithExercises[]>([])
+const collapsibleRefs = ref<Record<string, any>>({})
+const showTimerModal = ref(false)
+const timerRestSeconds = ref(60)
 
 const existingExerciseNames = computed(() => {
   return workout.value?.exercises?.map(e => e.name.toLowerCase()) || []
@@ -420,7 +474,7 @@ async function loadTemplate(templateId: string) {
           set_number: i,
           reps: exercise.default_reps,
           weight_kg: exercise.default_weight_kg,
-          completed: true,
+          completed: false,
         })
       }
 
@@ -535,7 +589,8 @@ async function addSet(exerciseId: string) {
       set_number: setNumber,
       reps: lastSet?.reps || 10,
       weight_kg: lastSet?.weight_kg || 0,
-      completed: true,
+      rest_seconds: lastSet?.rest_seconds || 60,
+      completed: false,
     })
 
     if (error)
@@ -544,26 +599,6 @@ async function addSet(exerciseId: string) {
   }
   catch (error: any) {
     console.error('Erro ao adicionar série:', error)
-  }
-}
-
-async function updateWorkoutNotes(notes: string) {
-  if (!workout.value)
-    return
-
-  try {
-    const { error } = await supabase
-      .from('workouts')
-      .update({ notes: notes || null })
-      .eq('id', workoutId)
-
-    if (error)
-      throw error
-    // Atualizar localmente para refletir a mudança
-    workout.value.notes = notes || undefined
-  }
-  catch (error: any) {
-    console.error('Erro ao atualizar notas:', error)
   }
 }
 
@@ -582,15 +617,87 @@ async function updateSet(setId: string, field: keyof WorkoutSet, value: number) 
   }
 }
 
-async function deleteSet(setId: string) {
+function completedSetCount(exercise: ExerciseWithSets): number {
+  return (exercise.sets || []).filter(s => s.completed).length
+}
+
+function openExerciseTimer(_exercise: ExerciseWithSets) {
+  timerRestSeconds.value = 60
+  showTimerModal.value = true
+}
+
+async function toggleSetComplete(setId: string, currentCompleted: boolean | undefined) {
+  const newCompleted = !currentCompleted
+
   try {
-    const { error } = await supabase.from('workout_sets').delete().eq('id', setId)
+    const { error } = await supabase
+      .from('workout_sets')
+      .update({ completed: newCompleted })
+      .eq('id', setId)
+
     if (error)
       throw error
-    await fetchWorkout()
+
+    // Update local state
+    const set = workout.value?.exercises
+      ?.flatMap(e => e.sets || [])
+      .find(s => s.id === setId)
+    if (set)
+      set.completed = newCompleted
+
+    // Auto-close exercise accordion when all sets are completed
+    if (newCompleted && workout.value?.exercises) {
+      for (const exercise of workout.value.exercises) {
+        const allComplete = (exercise.sets || []).every(s => s.completed)
+        if (allComplete && collapsibleRefs.value[exercise.id]) {
+          const el = collapsibleRefs.value[exercise.id]
+          // Collapsible component exposes a toggle method or isOpen ref
+          if (el && typeof el.close === 'function') {
+            el.close()
+          }
+        }
+      }
+    }
   }
   catch (error: any) {
-    console.error('Erro ao deletar série:', error)
+    console.error('Erro ao atualizar série:', error)
+  }
+}
+
+async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
+  if (!sets.length)
+    return
+
+  const allComplete = sets.every(s => s.completed)
+  const newCompleted = !allComplete
+
+  try {
+    const { error } = await supabase
+      .from('workout_sets')
+      .update({ completed: newCompleted })
+      .in('id', sets.map(s => s.id))
+
+    if (error)
+      throw error
+
+    // Update local state
+    for (const set of sets) {
+      set.completed = newCompleted
+    }
+
+    // Auto-close if all completed
+    if (newCompleted && workout.value?.exercises) {
+      const exercise = workout.value.exercises.find(e => e.id === exerciseId)
+      if (exercise && collapsibleRefs.value[exerciseId]) {
+        const el = collapsibleRefs.value[exerciseId]
+        if (el && typeof el.close === 'function') {
+          el.close()
+        }
+      }
+    }
+  }
+  catch (error: any) {
+    console.error('Erro ao atualizar séries:', error)
   }
 }
 
