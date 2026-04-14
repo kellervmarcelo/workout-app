@@ -430,7 +430,7 @@ async function addExerciseFromLibrary(exercise: ExerciseLibraryItem) {
   const order = workout.value.exercises?.length || 0
 
   try {
-    const { data, error } = await supabase
+    const { data: _data, error } = await supabase
       .from('exercises')
       .insert({
         workout_id: workoutId,
@@ -463,7 +463,7 @@ async function addExercise() {
   const order = workout.value.exercises?.length || 0
 
   try {
-    const { data, error } = await supabase
+    const { data: _data, error } = await supabase
       .from('exercises')
       .insert({
         workout_id: workoutId,

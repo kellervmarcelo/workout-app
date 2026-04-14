@@ -213,7 +213,7 @@ async function addExercise() {
   const order = template.value.exercises?.length || 0
 
   try {
-    const { data, error } = await supabase
+    const { data: _data, error } = await supabase
       .from('template_exercises')
       .insert({
         template_id: templateId.value,

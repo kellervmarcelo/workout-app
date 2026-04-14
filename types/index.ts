@@ -87,15 +87,3 @@ export interface ExerciseLibraryItem {
   muscleGroup: MuscleGroup
   imageUrl: string
 }
-
-export const MUSCLE_GROUPS: { value: MuscleGroup, label: string }[] = [
-  { value: 'peito', label: 'Peito' },
-  { value: 'costas', label: 'Costas' },
-  { value: 'pernas', label: 'Pernas' },
-  { value: 'ombro', label: 'Ombro' },
-  { value: 'bíceps', label: 'Bíceps' },
-  { value: 'tríceps', label: 'Tríceps' },
-  { value: 'core', label: 'Core' },
-  { value: 'glúteos', label: 'Glúteos' },
-  { value: 'panturrilha', label: 'Panturrilha' },
-]

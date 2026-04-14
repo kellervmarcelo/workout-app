@@ -34,13 +34,10 @@
     "preview:caddy": "npm run generate && caddy run --config Caddyfile.preview"
   },
   "dependencies": {
-    "@pinia/nuxt": "^0.9.0",
     "@vueuse/core": "^12.4.0",
     "@vueuse/nuxt": "^12.4.0",
-    "bcrypt": "^6.0.0",
     "driver.js": "^1.4.0",
     "nuxt": "^3.15.4",
-    "pinia": "^2.3.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
@@ -48,11 +45,9 @@
     "@antfu/eslint-config": "^4.5.0",
     "@nuxtjs/supabase": "^1.4.6",
     "@nuxtjs/tailwindcss": "^6.13.1",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eslint": "^9.19.0",
     "eslint-plugin-format": "^1.0.1",
-    "lucide-vue-next": "^0.474.0",
     "prettier": "^3.4.2",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
