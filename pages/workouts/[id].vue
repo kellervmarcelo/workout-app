@@ -636,12 +636,12 @@ async function syncSetToTemplate(setId: string, field: keyof WorkoutSet, value: 
   if (!templateField)
     return
 
-  // Update corresponding template exercise
+  // 'order' is a reserved word in PostgREST — must use double-quoted column name
   const { error } = await supabase
     .from('template_exercises')
     .update({ [templateField]: value })
     .eq('template_id', (workout.value as any).source_template_id)
-    .eq('order', exercise.order)
+    .eq('"order"', exercise.order)
 
   if (error)
     console.error('Erro ao sincronizar com template:', error)
