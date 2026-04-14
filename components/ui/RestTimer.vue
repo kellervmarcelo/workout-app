@@ -35,6 +35,26 @@
       <!-- Controls -->
       <div class="flex items-center gap-1">
         <button
+          v-if="remainingSeconds === 0 && !isRunning"
+          class="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
+          @click="adjustTime(-10)"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <button
+          v-if="remainingSeconds === 0 && !isRunning"
+          class="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
+          @click="adjustTime(10)"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        <button
           v-if="remainingSeconds > 0"
           class="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
           @click="resetTimer"
@@ -90,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps<{
   defaultSeconds?: number
@@ -102,6 +122,13 @@ const totalSeconds = ref(props.defaultSeconds ?? 60)
 const remainingSeconds = ref(0)
 const isRunning = ref(false)
 const showPresets = ref(false)
+
+// Reset when defaultSeconds prop changes
+watch(() => props.defaultSeconds, (newVal) => {
+  if (newVal && !isRunning.value && remainingSeconds.value === 0) {
+    totalSeconds.value = newVal
+  }
+})
 
 const displayTime = computed(() => {
   const mins = Math.floor(remainingSeconds.value / 60)
@@ -175,6 +202,12 @@ function resetTimer() {
   pauseTimer()
   remainingSeconds.value = 0
   showPresets.value = false
+}
+
+function adjustTime(seconds: number) {
+  if (isRunning.value)
+    return
+  totalSeconds.value = Math.max(5, totalSeconds.value + seconds)
 }
 
 function stopTimer() {

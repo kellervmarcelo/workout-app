@@ -203,7 +203,7 @@
 
         <!-- Sets Table - scroll horizontal em mobile -->
         <div class="overflow-x-auto -mx-1 px-1">
-          <table class="w-full text-sm min-w-[320px]">
+          <table class="w-full text-sm min-w-[280px]">
             <thead>
               <tr class="text-muted-foreground border-b">
                 <th class="text-left py-2 px-2 font-medium text-xs w-10">
@@ -220,9 +220,6 @@
                 </th>
                 <th class="text-left py-2 px-2 font-medium text-xs">
                   Carga
-                </th>
-                <th class="text-left py-2 px-2 font-medium text-xs">
-                  Descanso
                 </th>
                 <th class="text-right py-2 px-2 font-medium text-xs" />
               </tr>
@@ -256,17 +253,12 @@
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
                 </td>
-                <td class="py-2.5 px-2">
-                  <Input
-                    :model-value="String(set.rest_seconds || 60)"
-                    type="number"
-                    min="0"
-                    step="5"
-                    class="w-16 h-10 text-base font-mono md:h-9 md:w-20 md:text-sm"
-                    @update:model-value="updateSet(set.id, 'rest_seconds', Number($event))"
-                  />
-                </td>
                 <td class="py-2.5 px-2 text-right">
+                  <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-primary" @click="openSetTimer(set)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </Button>
                   <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -342,6 +334,23 @@
       </p>
     </div>
   </div>
+
+  <!-- Rest Timer Modal -->
+  <div v-if="showTimerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="showTimerModal = false">
+    <Card class="w-full max-w-sm mx-4 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">
+          Timer de Descanso
+        </h3>
+        <Button variant="ghost" size="icon" class="h-8 w-8" @click="showTimerModal = false">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Button>
+      </div>
+      <RestTimer :default-seconds="timerRestSeconds" />
+    </Card>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -364,6 +373,8 @@ const showMoreMenu = ref(false)
 const showInfos = ref(false)
 const templates = ref<WorkoutTemplateWithExercises[]>([])
 const collapsibleRefs = ref<Record<string, any>>({})
+const showTimerModal = ref(false)
+const timerRestSeconds = ref(60)
 
 const existingExerciseNames = computed(() => {
   return workout.value?.exercises?.map(e => e.name.toLowerCase()) || []
@@ -603,6 +614,11 @@ async function updateSet(setId: string, field: keyof WorkoutSet, value: number) 
 
 function completedSetCount(exercise: ExerciseWithSets): number {
   return (exercise.sets || []).filter(s => s.completed).length
+}
+
+function openSetTimer(set: WorkoutSet) {
+  timerRestSeconds.value = set.rest_seconds || 60
+  showTimerModal.value = true
 }
 
 async function toggleSetComplete(setId: string, currentCompleted: boolean | undefined) {
