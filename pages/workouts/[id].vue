@@ -203,66 +203,66 @@
 
         <!-- Sets Table - scroll horizontal em mobile -->
         <div class="overflow-x-auto -mx-1 px-1">
-          <table class="w-full text-sm min-w-[400px]">
+          <table class="w-full text-sm">
             <thead>
               <tr class="text-muted-foreground border-b">
-                <th class="text-center py-3 px-2 font-medium text-xs w-12">
+                <th class="text-center py-2 px-1 font-medium text-[11px] w-8 md:w-12 md:py-3">
                   <input
                     type="checkbox"
                     :checked="exercise.sets?.length ? exercise.sets.every(s => s.completed) : false"
                     :indeterminate.prop="exercise.sets?.length ? exercise.sets.some(s => s.completed) && !exercise.sets.every(s => s.completed) : false"
-                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                    class="h-3.5 w-3.5 rounded border-input text-primary focus:ring-primary cursor-pointer md:h-4 md:w-4"
                     @change="toggleAllSets(exercise.id, exercise.sets || [])"
                   >
                 </th>
-                <th class="text-center py-3 px-2 font-medium text-xs">
+                <th class="text-center py-2 px-1 font-medium text-[11px] md:py-3">
                   Reps
                 </th>
-                <th class="text-center py-3 px-2 font-medium text-xs">
-                  Carga (kg)
+                <th class="text-center py-2 px-1 font-medium text-[11px] md:py-3">
+                  Kg
                 </th>
-                <th class="text-center py-3 px-2 font-medium text-xs w-24">
-                  Ações
+                <th class="text-center py-2 px-1 font-medium text-[11px] w-16 md:w-24 md:py-3">
+                  ⏱
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/20">
-                <td class="py-3 px-2 text-center">
+                <td class="py-2 px-1 text-center md:py-3 md:px-2">
                   <input
                     type="checkbox"
                     :checked="!!set.completed"
-                    class="h-5 w-5 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
                     @change="toggleSetComplete(set.id, set.completed)"
                   >
                 </td>
-                <td class="py-3 px-2">
+                <td class="py-2 px-1 md:py-3 md:px-2">
                   <Input
                     :model-value="String(set.reps)"
                     type="number"
                     min="1"
-                    class="h-10 text-center font-mono"
+                    class="h-8 text-center text-sm font-mono md:h-10 md:text-base"
                     @update:model-value="updateSet(set.id, 'reps', Number($event))"
                   />
                 </td>
-                <td class="py-3 px-2">
+                <td class="py-2 px-1 md:py-3 md:px-2">
                   <Input
                     :model-value="String(set.weight_kg)"
                     type="number"
                     step="0.5"
                     min="0"
-                    class="h-10 text-center font-mono"
+                    class="h-8 text-center text-sm font-mono md:h-10 md:text-base"
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
                 </td>
-                <td class="py-3 px-2">
-                  <div class="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-primary" @click="openSetTimer(set)">
+                <td class="py-2 px-1 md:py-3 md:px-2">
+                  <div class="flex items-center justify-end gap-0.5">
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-primary md:h-9 md:w-9" @click="openSetTimer(set)">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </Button>
-                    <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground hover:text-destructive" @click="deleteSet(set.id)">
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive md:h-9 md:w-9" @click="deleteSet(set.id)">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                       </svg>
