@@ -185,14 +185,14 @@
         v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
         :ref="(el: any) => collapsibleRefs[exercise.id] = el"
-        :default-open="true"
+        :default-open="!exercise.sets?.every(s => s.completed)"
       >
         <template #title>
-          <div class="flex items-center gap-2 md:gap-3">
-            <Badge variant="outline" class="font-mono text-xs">
+          <div class="flex items-center gap-2 md:gap-3 min-w-0">
+            <Badge variant="outline" class="font-mono text-xs shrink-0">
               {{ idx + 1 }}
             </Badge>
-            <h3 class="text-sm font-semibold md:text-lg truncate">
+            <h3 class="text-sm font-semibold md:text-lg truncate min-w-0">
               {{ exercise.name }}
             </h3>
             <Badge variant="secondary" class="text-[10px] shrink-0">
@@ -205,75 +205,57 @@
         <div class="overflow-x-auto -mx-1 px-1">
           <table class="w-full text-sm table-fixed">
             <colgroup>
-              <col class="w-8 md:w-12">
-              <col class="w-20 md:w-28">
-              <col class="w-20 md:w-28">
-              <col class="w-20 md:w-28">
+              <col class="w-8">
+              <col class="w-24">
+              <col class="w-24">
             </colgroup>
             <thead>
               <tr class="text-muted-foreground border-b">
-                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
+                <th class="py-3 px-1 text-center">
                   <input
                     type="checkbox"
                     :checked="exercise.sets?.length ? exercise.sets.every(s => s.completed) : false"
                     :indeterminate.prop="exercise.sets?.length ? exercise.sets.some(s => s.completed) && !exercise.sets.every(s => s.completed) : false"
-                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer mx-auto"
                     @change="toggleAllSets(exercise.id, exercise.sets || [])"
                   >
                 </th>
-                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
+                <th class="py-3 px-1 text-center font-medium text-xs">
                   Reps
                 </th>
-                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
+                <th class="py-3 px-1 text-center font-medium text-xs">
                   Kg
-                </th>
-                <th class="text-center py-2 px-0 font-medium text-[11px] md:py-3 md:px-2">
-                  ⏱
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/20">
-                <td class="py-2 px-0 text-center md:py-3 md:px-2">
+                <td class="py-3 px-1 text-center">
                   <input
                     type="checkbox"
                     :checked="!!set.completed"
-                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer mx-auto"
+                    class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
                     @change="toggleSetComplete(set.id, set.completed)"
                   >
                 </td>
-                <td class="py-2 px-0 md:py-3 md:px-2">
+                <td class="py-3 px-1">
                   <Input
                     :model-value="String(set.reps)"
                     type="number"
                     min="1"
-                    class="h-8 text-center text-sm font-mono md:h-9"
+                    class="h-9 text-center text-sm font-mono"
                     @update:model-value="updateSet(set.id, 'reps', Number($event))"
                   />
                 </td>
-                <td class="py-2 px-0 md:py-3 md:px-2">
+                <td class="py-3 px-1">
                   <Input
                     :model-value="String(set.weight_kg)"
                     type="number"
                     step="0.5"
                     min="0"
-                    class="h-8 text-center text-sm font-mono md:h-9"
+                    class="h-9 text-center text-sm font-mono"
                     @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
                   />
-                </td>
-                <td class="py-2 px-0 md:py-3 md:px-2">
-                  <div class="flex items-center justify-center gap-0.5">
-                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-primary md:h-9 md:w-9" @click="openSetTimer(set)">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </Button>
-                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive md:h-9 md:w-9" @click="deleteSet(set.id)">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </Button>
-                  </div>
                 </td>
               </tr>
             </tbody>
@@ -284,7 +266,7 @@
         <Button
           variant="outline"
           size="sm"
-          class="mt-3 w-full h-11 md:h-10"
+          class="mt-3 w-full h-10"
           @click="addSet(exercise.id)"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,11 +275,24 @@
           Adicionar Série
         </Button>
 
+        <!-- Rest Timer Button -->
+        <Button
+          variant="outline"
+          size="sm"
+          class="mt-2 w-full h-10"
+          @click="openExerciseTimer(exercise)"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Timer de Descanso
+        </Button>
+
         <!-- Delete Exercise Button -->
         <Button
           variant="outline"
           size="sm"
-          class="mt-2 w-full h-11 text-destructive hover:text-destructive md:h-10"
+          class="mt-2 w-full h-10 text-destructive hover:text-destructive"
           @click="deleteExercise(exercise.id)"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -628,6 +623,11 @@ function completedSetCount(exercise: ExerciseWithSets): number {
 
 function openSetTimer(set: WorkoutSet) {
   timerRestSeconds.value = set.rest_seconds || 60
+  showTimerModal.value = true
+}
+
+function openExerciseTimer(_exercise: ExerciseWithSets) {
+  timerRestSeconds.value = 60
   showTimerModal.value = true
 }
 

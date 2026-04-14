@@ -219,7 +219,7 @@
               :aria-label="`Exercícios de ${template.name}`"
               @click="openTemplate(template.id)"
             >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 min-w-0">
                 <!-- Chevron indicator -->
                 <svg
                   class="w-4 h-4 shrink-0 transition-transform duration-200 text-muted-foreground"
@@ -230,18 +230,10 @@
                 >
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <h3 v-if="editingTemplateId !== template.id" class="text-base font-semibold truncate md:text-lg">
+                <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                  <h3 class="text-sm font-semibold truncate md:text-lg">
                     {{ template.name }}
                   </h3>
-                  <input
-                    v-else
-                    :value="template.name"
-                    class="text-base font-semibold truncate md:text-lg bg-background border border-input rounded px-2 py-0.5 min-w-[200px]"
-                    @blur="updateTemplateName(template.id, ($event.target as HTMLInputElement).value)"
-                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                    @click.stop
-                  >
                   <Badge
                     variant="outline"
                     class="font-mono text-[10px] shrink-0"
@@ -249,30 +241,11 @@
                   >
                     {{ totalExercises(template) }}
                   </Badge>
-                  <Button
-                    v-if="editingTemplateId !== template.id"
-                    variant="ghost"
-                    size="icon"
-                    class="h-6 w-6 shrink-0 text-muted-foreground hover:text-primary"
-                    @click.stop="editingTemplateId = template.id"
-                  >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </Button>
                 </div>
               </div>
-              <p v-if="template.description && editingTemplateId !== template.id" class="text-xs text-muted-foreground truncate pl-6 md:text-sm">
+              <p v-if="template.description" class="text-xs text-muted-foreground truncate pl-6 md:text-sm">
                 {{ template.description }}
               </p>
-              <input
-                v-else-if="editingTemplateId === template.id"
-                :value="template.description || ''"
-                placeholder="Descrição (opcional)"
-                class="text-xs text-muted-foreground bg-background border border-input rounded px-2 py-0.5 w-full max-w-md"
-                @blur="updateTemplateDescription(template.id, ($event.target as HTMLInputElement).value)"
-                @click.stop
-              >
             </div>
             <Button
               variant="ghost"
@@ -295,16 +268,52 @@
         >
           <div class="ml-6 md:ml-8 mt-2 p-4 md:p-6 rounded-lg border-l-4 border-l-primary bg-muted/30 border border-t-0">
             <!-- Section header with distinct styling -->
-            <div class="flex items-center justify-between mb-5 pb-3 border-b border-border/50">
-              <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-start justify-between gap-3 mb-5 pb-3 border-b border-border/50">
+              <div class="flex items-start gap-3 min-w-0 flex-1">
+                <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                <h2 class="text-base font-semibold md:text-lg">
-                  Exercícios
-                </h2>
+                <div class="space-y-1 min-w-0 flex-1">
+                  <!-- Title with edit -->
+                  <div class="flex items-center gap-1.5">
+                    <h2 v-if="editingTemplateId !== template.id" class="text-base font-semibold truncate md:text-lg">
+                      {{ activeTemplate?.name }}
+                    </h2>
+                    <input
+                      v-else
+                      :value="activeTemplate?.name || ''"
+                      class="text-sm font-semibold bg-background border border-input rounded px-2 py-0.5 min-w-[120px] md:text-base"
+                      @blur="updateTemplateName(template.id, ($event.target as HTMLInputElement).value)"
+                      @keydown.enter="($event.target as HTMLInputElement).blur()"
+                      @click.stop
+                    >
+                    <Button
+                      v-if="editingTemplateId !== template.id"
+                      variant="ghost"
+                      size="icon"
+                      class="h-6 w-6 shrink-0 text-muted-foreground hover:text-primary"
+                      @click.stop="editingTemplateId = template.id"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </Button>
+                  </div>
+                  <!-- Description with edit -->
+                  <input
+                    v-if="editingTemplateId === template.id"
+                    :value="activeTemplate?.description || ''"
+                    placeholder="Descrição (opcional)"
+                    class="text-xs text-muted-foreground bg-background border border-input rounded px-2 py-1 w-full md:text-sm"
+                    @blur="updateTemplateDescription(template.id, ($event.target as HTMLInputElement).value)"
+                    @click.stop
+                  >
+                  <p v-else-if="activeTemplate?.description" class="text-xs text-muted-foreground md:text-sm">
+                    {{ activeTemplate.description }}
+                  </p>
+                </div>
               </div>
-              <Button variant="ghost" size="icon" class="h-8 w-8" aria-label="Fechar painel" @click="activeTemplateId = null">
+              <Button variant="ghost" size="icon" class="h-8 w-8 shrink-0" aria-label="Fechar painel" @click="activeTemplateId = null; editingTemplateId = null">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -312,9 +321,9 @@
             </div>
 
             <!-- Comments Section -->
-            <div class="mb-5">
+            <div class="mb-5 p-3 rounded-md bg-background/60 border border-border/30">
               <div class="flex items-center gap-2 mb-2">
-                <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-muted-foreground shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                 </svg>
                 <Label for="template-comments-edit" class="text-sm font-medium">Comentários</Label>
@@ -327,6 +336,16 @@
                 class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 @blur="updateTemplateComments(activeTemplateId!, ($event.target as HTMLTextAreaElement).value)"
               />
+            </div>
+
+            <!-- Separator: Comments vs Exercises -->
+            <div class="mb-5 flex items-center gap-3">
+              <div class="flex-1 h-px bg-border/50" />
+              <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span class="text-sm font-semibold text-primary">Adicionar Exercícios</span>
+              <div class="flex-1 h-px bg-border/50" />
             </div>
 
             <!-- Mode Toggle (inline panel) -->
