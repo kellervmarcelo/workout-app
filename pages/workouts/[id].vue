@@ -181,9 +181,14 @@
 
     <!-- Exercises -->
     <div v-if="workout.exercises?.length" class="space-y-4 md:space-y-6">
-      <Collapsible
+      <SwipeToDelete
         v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
+        :ref="(el: any) => swipeRefs[exercise.id] = el"
+        @delete="deleteExercise(exercise.id)"
+        @swipe-open="closeOtherSwipes(exercise.id)"
+      >
+      <Collapsible
         :ref="(el: any) => collapsibleRefs[exercise.id] = el"
         :default-open="!exercise.sets?.every(s => s.completed)"
       >
@@ -301,6 +306,7 @@
           Remover Exercício
         </Button>
       </Collapsible>
+      </SwipeToDelete>
 
       <!-- Add Exercise Button - at end of list -->
       <Button
@@ -380,6 +386,7 @@ const showMoreMenu = ref(false)
 const showInfos = ref(false)
 const templates = ref<WorkoutTemplateWithExercises[]>([])
 const collapsibleRefs = ref<Record<string, any>>({})
+const swipeRefs = ref<Record<string, any>>({})
 const showTimerModal = ref(false)
 const timerRestSeconds = ref(60)
 
@@ -613,10 +620,40 @@ async function updateSet(setId: string, field: keyof WorkoutSet, value: number) 
 
     if (error)
       throw error
+
+    // Sync back to template if workout was created from one
+    await syncSetToTemplate(setId, field, value)
   }
   catch (error: any) {
     console.error('Erro ao atualizar série:', error)
   }
+}
+
+async function syncSetToTemplate(setId: string, field: keyof WorkoutSet, value: number) {
+  if (!workout.value || !(workout.value as any).source_template_id)
+    return
+
+  // Find which exercise this set belongs to
+  const exercise = workout.value.exercises?.find(e =>
+    e.sets?.some((s: WorkoutSet) => s.id === setId),
+  )
+  if (!exercise)
+    return
+
+  // Map field name to template column
+  const templateField = field === 'weight_kg' ? 'default_weight_kg' : field === 'reps' ? 'default_reps' : null
+  if (!templateField)
+    return
+
+  // 'order' is a reserved word in PostgREST — must use double-quoted column name
+  const { error } = await supabase
+    .from('template_exercises')
+    .update({ [templateField]: value })
+    .eq('template_id', (workout.value as any).source_template_id)
+    .eq('"order"', exercise.order)
+
+  if (error)
+    console.error('Erro ao sincronizar com template:', error)
 }
 
 function completedSetCount(exercise: ExerciseWithSets): number {
@@ -700,6 +737,14 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
   }
   catch (error: any) {
     console.error('Erro ao atualizar séries:', error)
+  }
+}
+
+function closeOtherSwipes(openedId: string) {
+  for (const [id, ref] of Object.entries(swipeRefs.value)) {
+    if (id !== openedId && ref && typeof ref.close === 'function') {
+      ref.close()
+    }
   }
 }
 

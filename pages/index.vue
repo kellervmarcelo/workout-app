@@ -35,41 +35,122 @@
         <h2 class="text-lg font-semibold md:text-xl">
           Novo Treino
         </h2>
-        <Button variant="ghost" size="icon" class="h-9 w-9" @click="showCreateDialog = false">
+        <Button variant="ghost" size="icon" class="h-9 w-9" @click="closeCreateDialog">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </Button>
       </div>
-      <form class="space-y-4" @submit.prevent="createWorkout">
+
+      <!-- Template Selection -->
+      <div class="space-y-4">
         <div class="space-y-2">
-          <Label for="workout-name" required>Nome</Label>
-          <Input
-            id="workout-name"
-            v-model="newWorkoutName"
-            placeholder="Ex: Treino A - Peito"
-            required
-            class="h-11 text-base"
-          />
+          <Label for="template-select">Template</Label>
+          <select
+            id="template-select"
+            v-model="selectedTemplateId"
+            class="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            @change="onTemplateSelected"
+          >
+            <option value="empty">
+              Treino vazio
+            </option>
+            <option
+              v-for="template in templates"
+              :key="template.id"
+              :value="template.id"
+            >
+              {{ template.name }} ({{ template.exercises?.length || 0 }} exercícios)
+            </option>
+          </select>
+          <p v-if="templates.length === 0" class="text-xs text-muted-foreground">
+            <NuxtLink to="/templates" class="text-primary hover:underline">
+              Crie um template
+            </NuxtLink>
+            para reutilizar treinos.
+          </p>
         </div>
-        <div class="space-y-2">
-          <Label for="workout-date">Data</Label>
-          <Input
-            id="workout-date"
-            v-model="newWorkoutDate"
-            type="date"
-            class="h-11 text-base"
-          />
+
+        <!-- Empty workout mode -->
+        <template v-if="selectedTemplateId === 'empty'">
+          <div class="space-y-2">
+            <Label for="workout-name" required>Nome</Label>
+            <Input
+              id="workout-name"
+              v-model="newWorkoutName"
+              placeholder="Ex: Treino A - Peito"
+              required
+              class="h-11 text-base"
+            />
+          </div>
+          <div class="space-y-2">
+            <Label for="workout-date">Data</Label>
+            <Input
+              id="workout-date"
+              v-model="newWorkoutDate"
+              type="date"
+              class="h-11 text-base"
+            />
+          </div>
+        </template>
+
+        <!-- Template selected - show preview -->
+        <div v-else-if="selectedTemplate" class="space-y-3">
+          <div class="rounded-lg border bg-muted/30 p-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium text-sm">
+                  {{ selectedTemplate.name }}
+                </p>
+                <p v-if="selectedTemplate.description" class="text-xs text-muted-foreground mt-0.5">
+                  {{ selectedTemplate.description }}
+                </p>
+              </div>
+              <Badge variant="outline" class="font-mono text-xs">
+                {{ selectedTemplate.exercises?.length || 0 }} exercícios
+              </Badge>
+            </div>
+          </div>
+
+          <!-- Exercise preview list -->
+          <div
+            v-if="selectedTemplate.exercises?.length"
+            class="space-y-1.5"
+          >
+            <div
+              v-for="(ex, idx) in selectedTemplate.exercises"
+              :key="ex.id"
+              class="flex items-center gap-2 text-sm px-3 py-1.5 rounded-md bg-muted/50"
+            >
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary">
+                {{ idx + 1 }}
+              </span>
+              <span class="truncate flex-1">{{ ex.name }}</span>
+              <span class="text-xs font-mono text-muted-foreground shrink-0">
+                {{ ex.default_sets }}s × {{ ex.default_reps }} reps
+              </span>
+            </div>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <Button type="button" variant="outline" class="flex-1" @click="showCreateDialog = false">
+
+        <div class="flex gap-2 pt-2">
+          <Button type="button" variant="outline" class="flex-1" @click="closeCreateDialog">
             Cancelar
           </Button>
-          <Button type="submit" class="flex-1">
-            Criar Treino
+          <Button
+            type="submit"
+            class="flex-1"
+            :disabled="creating || (selectedTemplateId === 'empty' && !newWorkoutName)"
+            @click="selectedTemplateId === 'empty' ? createEmptyWorkout() : createWorkoutFromTemplate()"
+          >
+            <svg v-if="creating" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            {{ creating ? 'Criando...' : 'Criar Treino' }}
           </Button>
         </div>
-      </form>
+      </div>
     </Card>
 
     <!-- Loading -->
@@ -112,9 +193,6 @@
                 </h3>
                 <Badge data-tour="stats" variant="outline" class="font-mono text-[10px] shrink-0">
                   {{ totalExercises(workout) }}
-                </Badge>
-                <Badge variant="secondary" class="text-[10px] shrink-0">
-                  {{ totalSets(workout) }}s
                 </Badge>
               </div>
               <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground md:gap-4 md:text-sm">
@@ -168,17 +246,38 @@ onMounted(async () => {
   })
 
   await fetchWorkouts()
+  await fetchTemplates()
 
   // Start onboarding tour for first-time users
-  await checkTourStatus(data.session.user.id)
+  if (data.session) {
+    await checkTourStatus(data.session.user.id)
+  }
   startTour()
 })
 
 const workouts = ref<WorkoutWithExercises[]>([])
+const templates = ref<WorkoutTemplateWithExercises[]>([])
 const loading = ref(false)
+const creating = ref(false)
 const showCreateDialog = ref(false)
+const selectedTemplateId = ref<string | 'empty'>('empty')
 const newWorkoutName = ref('')
-const newWorkoutDate = ref(new Date().toISOString().split('T')[0])
+const newWorkoutDate = ref(getTodayString())
+
+const selectedTemplate = computed(() => {
+  if (selectedTemplateId.value === 'empty')
+    return null
+  return templates.value.find(t => t.id === selectedTemplateId.value) || null
+})
+
+// Generate today's date as a local string (avoid UTC conversion issues)
+function getTodayString() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 async function fetchWorkouts() {
   if (!session.value?.user)
@@ -210,12 +309,51 @@ async function fetchWorkouts() {
   }
 }
 
-async function createWorkout() {
+async function fetchTemplates() {
+  if (!session.value?.user)
+    return
+
+  try {
+    const { data, error } = await supabase
+      .from('workout_templates')
+      .select(`
+        *,
+        exercises:template_exercises(*)
+      `)
+      .eq('user_id', session.value.user.id)
+      .order('created_at', { ascending: false })
+
+    if (error)
+      throw error
+    templates.value = data || []
+  }
+  catch (error: any) {
+    console.error('Erro ao buscar templates:', error)
+  }
+}
+
+function onTemplateSelected() {
+  if (selectedTemplateId.value !== 'empty' && selectedTemplate.value) {
+    newWorkoutName.value = selectedTemplate.value.name
+  }
+  else {
+    newWorkoutName.value = ''
+  }
+}
+
+function closeCreateDialog() {
+  showCreateDialog.value = false
+  selectedTemplateId.value = 'empty'
+  newWorkoutName.value = ''
+  newWorkoutDate.value = getTodayString()
+}
+
+async function createEmptyWorkout() {
   if (!session.value?.user || !newWorkoutName.value)
     return
 
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('workouts')
       .insert({
         user_id: session.value.user.id,
@@ -229,13 +367,96 @@ async function createWorkout() {
       throw error
 
     showCreateDialog.value = false
+    selectedTemplateId.value = 'empty'
     newWorkoutName.value = ''
-    newWorkoutDate.value = new Date().toISOString().split('T')[0]
+    newWorkoutDate.value = getTodayString()
 
-    await fetchWorkouts()
+    // Navigate to the newly created workout
+    navigateTo(`/workouts/${data.id}`)
   }
   catch (error: any) {
     console.error('Erro ao criar treino:', error)
+  }
+}
+
+async function createWorkoutFromTemplate() {
+  if (!session.value?.user || !selectedTemplate.value)
+    return
+
+  const template = selectedTemplate.value
+  creating.value = true
+
+  try {
+    // 1. Create the workout
+    const { data: workout, error: workoutError } = await supabase
+      .from('workouts')
+      .insert({
+        user_id: session.value.user.id,
+        name: template.name,
+        date: getTodayString(),
+        notes: template.comments || null,
+        source_template_id: template.id,
+      })
+      .select()
+      .single()
+
+    if (workoutError)
+      throw workoutError
+
+    // 2. Copy exercises and sets from template
+    if (template.exercises?.length) {
+      for (let i = 0; i < template.exercises.length; i++) {
+        const templateEx = template.exercises[i]
+
+        // Create exercise
+        const { data: exercise, error: exError } = await supabase
+          .from('exercises')
+          .insert({
+            workout_id: workout.id,
+            name: templateEx.name,
+            order: templateEx.order,
+            notes: null,
+          })
+          .select()
+          .single()
+
+        if (exError)
+          throw exError
+
+        // Create default sets from template
+        if (templateEx.default_sets > 0) {
+          for (let s = 1; s <= templateEx.default_sets; s++) {
+            const { error: setError } = await supabase
+              .from('workout_sets')
+              .insert({
+                exercise_id: exercise.id,
+                set_number: s,
+                reps: templateEx.default_reps,
+                weight_kg: templateEx.default_weight_kg,
+                rest_seconds: 60,
+                completed: false,
+              })
+
+            if (setError)
+              throw setError
+          }
+        }
+      }
+    }
+
+    showCreateDialog.value = false
+    selectedTemplateId.value = 'empty'
+    newWorkoutName.value = ''
+    newWorkoutDate.value = getTodayString()
+
+    // Navigate to the newly created workout
+    navigateTo(`/workouts/${workout.id}`)
+  }
+  catch (error: any) {
+    console.error('Erro ao criar treino a partir do template:', error)
+  }
+  finally {
+    creating.value = false
   }
 }
 
@@ -254,7 +475,8 @@ async function deleteWorkout(id: string) {
 onMounted(fetchWorkouts)
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('pt-BR', {
+  // Append T12:00:00 to avoid UTC conversion shifting the day
+  return new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
