@@ -3,14 +3,14 @@
     <Card class="w-full max-w-md">
       <div class="p-4 space-y-5 md:p-6 md:space-y-6">
         <!-- Header -->
-        <div class="text-center space-y-2">
-          <div class="text-4xl mb-1 md:text-5xl md:mb-2">
-            💪
+        <div class="text-center space-y-1">
+          <div class="flex justify-center mb-2">
+            <img src="/yafa_logo_final_transparent.png" alt="YAFA" class="h-32 w-auto dark:brightness-90">
           </div>
-          <h1 class="text-2xl font-bold tracking-tight md:text-3xl">
-            Workout Tracker
-          </h1>
-          <p class="text-sm text-muted-foreground">
+          <p class="text-xs text-muted-foreground italic">
+            Yet another fitness app
+          </p>
+          <p class="text-sm text-muted-foreground pt-1">
             {{ isLogin ? 'Entre na sua conta para continuar' : 'Crie sua conta para começar' }}
           </p>
         </div>
