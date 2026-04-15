@@ -4,7 +4,7 @@
     <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div class="flex h-14 items-center justify-between px-4 md:h-16 md:px-6">
         <NuxtLink to="/" class="flex items-center gap-2 font-bold text-lg md:text-xl">
-          <img src="/yafa_favicon.png" alt="YAFA" class="h-7 w-7">
+          <img src="/yafa_logo_final_filled.png" alt="YAFA" class="h-8 w-auto">
           <span>YAFA</span>
         </NuxtLink>
 

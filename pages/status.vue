@@ -55,6 +55,7 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
+useHead({ title: 'YAFA — Status' })
 
 interface WorkoutSummary {
   id: string
@@ -112,7 +113,7 @@ const currentStreak = computed(() => {
 
   const todayStr = getTodayString()
   let streak = 0
-  let cursor = new Date()
+  const cursor = new Date()
 
   // Se não treinou hoje, começa checando ontem
   if (!workoutDates.has(todayStr)) {

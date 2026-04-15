@@ -67,6 +67,8 @@
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
+useHead({ title: 'YAFA — Recuperar Senha' })
+
 const supabase = useSupabaseClient()
 
 const email = ref('')

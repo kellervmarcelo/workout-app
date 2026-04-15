@@ -535,6 +535,7 @@ import type { Session } from '@supabase/supabase-js'
 import type { ParsedTemplate } from '~/composables/useMarkdownTemplate'
 
 definePageMeta({ middleware: 'auth' })
+useHead({ title: 'YAFA — Templates' })
 
 const supabase = useSupabaseClient()
 const session = ref<Session | null>(null)

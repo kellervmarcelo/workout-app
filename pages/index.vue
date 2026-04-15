@@ -153,6 +153,7 @@
 import type { Session } from '@supabase/supabase-js'
 
 definePageMeta({ middleware: 'auth' })
+useHead({ title: 'YAFA — Treinos' })
 
 const supabase = useSupabaseClient()
 const session = ref<Session | null>(null)

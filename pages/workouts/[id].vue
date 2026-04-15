@@ -369,6 +369,8 @@ const workoutId = route.params.id as string
 const supabase = useSupabaseClient()
 
 const workout = ref<WorkoutWithExercises | null>(null)
+
+useHead(() => ({ title: workout.value?.name ? `YAFA — ${workout.value.name}` : 'YAFA — Treino' }))
 const loading = ref(false)
 const showExerciseForm = ref(false)
 const showExercisePicker = ref(false)
