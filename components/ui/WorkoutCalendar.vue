@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-  workoutsByDate: Record<string, string>  // YYYY-MM-DD → workoutId (mais recente)
+  workoutsByDate: Record<string, string> // YYYY-MM-DD → workoutId (mais recente)
 }>()
 
 const emit = defineEmits<{

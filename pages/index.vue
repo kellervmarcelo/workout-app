@@ -476,7 +476,7 @@ onMounted(fetchWorkouts)
 
 function formatDate(date: string) {
   // Append T12:00:00 to avoid UTC conversion shifting the day
-  return new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
+  return new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -485,10 +485,6 @@ function formatDate(date: string) {
 
 function totalExercises(workout: WorkoutWithExercises) {
   return workout.exercises?.length || 0
-}
-
-function totalSets(workout: WorkoutWithExercises) {
-  return workout.exercises?.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0) || 0
 }
 
 function totalVolume(workout: WorkoutWithExercises) {

@@ -25,13 +25,12 @@
 </template>
 
 <script setup lang="ts">
-const BUTTON_WIDTH = 72
-const THRESHOLD = BUTTON_WIDTH / 2
-
 const emit = defineEmits<{
   delete: []
   swipeOpen: []
 }>()
+const BUTTON_WIDTH = 72
+const THRESHOLD = BUTTON_WIDTH / 2
 
 const containerRef = ref<HTMLElement | null>(null)
 const offset = ref(0)
