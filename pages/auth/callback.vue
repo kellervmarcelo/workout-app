@@ -64,7 +64,10 @@ onMounted(async () => {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         })
-        navigateTo('/')
+        // Suporta redirecionamento customizado (ex.: fluxo de recuperação de senha)
+        const next = route.query.next as string
+        const redirect = next?.startsWith('/') && !next.startsWith('//') ? next : '/'
+        navigateTo(redirect)
       }
       else {
         errorMessage.value = 'Sessão não criada'
