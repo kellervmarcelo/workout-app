@@ -166,6 +166,8 @@ const templateId = computed(() => route.params.id as string)
 const supabase = useSupabaseClient()
 
 const template = ref<WorkoutTemplateWithExercises | null>(null)
+
+useHead(() => ({ title: template.value?.name ? `YAFA — ${template.value.name}` : 'YAFA — Template' }))
 const loading = ref(false)
 const showExerciseForm = ref(false)
 const newExerciseName = ref('')

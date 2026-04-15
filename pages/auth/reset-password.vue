@@ -83,6 +83,7 @@
 import { cn } from '~/lib/utils'
 
 definePageMeta({ middleware: 'auth' })
+useHead({ title: 'YAFA — Nova Senha' })
 
 const supabase = useSupabaseClient()
 

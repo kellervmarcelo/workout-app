@@ -4,9 +4,8 @@
     <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div class="flex h-14 items-center justify-between px-4 md:h-16 md:px-6">
         <NuxtLink to="/" class="flex items-center gap-2 font-bold text-lg md:text-xl">
-          <span>💪</span>
-          <span class="hidden sm:inline">Workout Tracker</span>
-          <span class="sm:hidden">WT</span>
+          <img src="/yafa_logo_final_filled.png" alt="YAFA" class="h-8 w-auto">
+          <span>YAFA</span>
         </NuxtLink>
 
         <div v-if="user" class="flex items-center gap-2">
@@ -78,18 +77,6 @@
           <span>Templates</span>
         </NuxtLink>
 
-        <!-- FAB central para novo treino -->
-        <div class="relative -mt-8">
-          <NuxtLink
-            to="/"
-            class="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
-          >
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-          </NuxtLink>
-        </div>
-
         <NuxtLink
           to="/status"
           class="flex flex-col items-center justify-center gap-1 min-w-[64px] flex-1 py-1 text-xs font-medium transition-colors"
@@ -118,7 +105,7 @@
     <footer class="hidden border-t py-4 md:block">
       <div class="container mx-auto px-6">
         <p class="text-center text-sm text-muted-foreground">
-          &copy; {{ new Date().getFullYear() }} Workout Tracker
+          &copy; {{ new Date().getFullYear() }} YAFA
         </p>
       </div>
     </footer>

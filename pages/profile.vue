@@ -209,6 +209,7 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
+useHead({ title: 'YAFA — Perfil' })
 
 const supabase = useSupabaseClient()
 const { session } = useAuth()
