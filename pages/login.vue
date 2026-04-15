@@ -43,9 +43,9 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <Label for="password" required>Senha</Label>
-              <a v-if="isLogin" href="#" class="text-xs text-primary hover:underline">
+              <NuxtLink v-if="isLogin" to="/forgot-password" class="text-xs text-primary hover:underline">
                 Esqueceu a senha?
-              </a>
+              </NuxtLink>
             </div>
             <Input
               id="password"
@@ -131,14 +131,6 @@ const error = ref('')
 const isLogin = ref(true)
 
 const supabase = useSupabaseClient()
-
-// Se já estiver logado, redireciona para dashboard
-onMounted(async () => {
-  const { data } = await supabase.auth.getSession()
-  if (data.session) {
-    navigateTo('/')
-  }
-})
 
 async function handleSubmit() {
   loading.value = true

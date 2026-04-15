@@ -208,12 +208,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Session } from '@supabase/supabase-js'
-
 definePageMeta({ middleware: 'auth' })
 
 const supabase = useSupabaseClient()
-const session = ref<Session | null>(null)
+const { session } = useAuth()
 
 // Profile data
 const loading = ref(true)
@@ -253,15 +251,9 @@ const passwordsMatch = computed(() => {
 })
 
 onMounted(async () => {
-  const { data } = await supabase.auth.getSession()
-  session.value = data.session
-
-  if (!data.session) {
-    navigateTo('/login')
-    return
+  if (session.value?.user) {
+    await loadProfile()
   }
-
-  await loadProfile()
 })
 
 async function loadProfile() {
