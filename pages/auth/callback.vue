@@ -27,13 +27,13 @@ onMounted(async () => {
   const hash = route.hash
 
   if (queryError || hash?.includes('error=')) {
-    let error = queryError
-    let errorDescription = queryErrorDescription
+    let error: string | undefined = queryError || undefined
+    let errorDescription: string | undefined = queryErrorDescription || undefined
 
     if (hash && !error) {
       const params = new URLSearchParams(hash.replace('#', '&'))
-      error = params.get('error') || undefined
-      errorDescription = params.get('error_description') || undefined
+      error = params.get('error') ?? undefined
+      errorDescription = params.get('error_description') ?? undefined
     }
 
     if (error) {
