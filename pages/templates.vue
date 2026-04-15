@@ -113,11 +113,11 @@
       <!-- Markdown Mode -->
       <div v-else class="space-y-4">
         <div class="space-y-2">
-          <Label for="markdown-input">Colar Markdown</Label>
+          <Label for="markdown-input">Colar Exercícios</Label>
           <textarea
             id="markdown-input"
             v-model="markdownInput"
-            placeholder="### ** FULL BODY A **&#10;**Força + densidade | Descanso: 45-60s**&#10;&#10;- [ ] Agachamento com Barra .......... 4x6-8&#10;- [ ] Supino Reto com Halteres ....... 3x8-10"
+            placeholder="Formato 1 — Markdown:&#10;### ** TREINO A **&#10;**Descrição**&#10;- [ ] Supino ......... 4x8&#10;&#10;Formato 2 — Lista com dash:&#10;Nome do treino&#10;Descrição&#10;- Supino 4x8&#10;- Rosca direta&#10;&#10;Formato 3 — Lista plain:&#10;Nome do treino&#10;Descrição&#10;Supino 4x8&#10;Rosca direta"
             rows="8"
             class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
@@ -380,11 +380,11 @@
                 <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <Label class="text-sm font-medium">Colar Markdown</Label>
+                <Label class="text-sm font-medium">Colar Exercícios</Label>
               </div>
               <textarea
                 v-model="inlineMarkdownInput"
-                placeholder="### ** FULL BODY A **&#10;**Força + densidade | Descanso: 45-60s**&#10;&#10;- [ ] Agachamento com Barra .......... 4x6-8&#10;- [ ] Supino Reto com Halteres ....... 3x8-10"
+                placeholder="Formato 1 — Markdown:&#10;### ** TREINO A **&#10;**Descrição**&#10;- [ ] Supino ......... 4x8&#10;&#10;Formato 2 — Lista com dash:&#10;Nome do treino&#10;Descrição&#10;- Supino 4x8&#10;- Rosca direta&#10;&#10;Formato 3 — Lista plain:&#10;Nome do treino&#10;Descrição&#10;Supino 4x8&#10;Rosca direta"
                 rows="6"
                 class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
