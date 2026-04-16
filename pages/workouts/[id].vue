@@ -119,6 +119,24 @@
             class="h-11 text-base"
           />
         </div>
+        <div class="flex gap-1 bg-muted rounded-md p-1">
+          <button
+            type="button"
+            class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+            :class="newExerciseType === 'reps' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+            @click="newExerciseType = 'reps'"
+          >
+            Reps
+          </button>
+          <button
+            type="button"
+            class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+            :class="newExerciseType === 'time' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+            @click="newExerciseType = 'time'"
+          >
+            Tempo
+          </button>
+        </div>
         <div class="flex gap-2">
           <Button type="button" variant="outline" class="flex-1" @click="showExerciseForm = false">
             Cancelar
@@ -387,6 +405,7 @@ const loading = ref(false)
 const showExerciseForm = ref(false)
 const showExercisePicker = ref(false)
 const newExerciseName = ref('')
+const newExerciseType = ref<'reps' | 'time'>('reps')
 const showTemplateSelector = ref(false)
 const showMoreMenu = ref(false)
 const showInfos = ref(false)
@@ -574,6 +593,7 @@ async function addExercise() {
         workout_id: workoutId,
         name: newExerciseName.value,
         order,
+        exercise_type: newExerciseType.value,
       })
       .select()
       .single()
@@ -582,6 +602,7 @@ async function addExercise() {
       throw error
 
     newExerciseName.value = ''
+    newExerciseType.value = 'reps'
     showExerciseForm.value = false
     await fetchWorkout()
   }
