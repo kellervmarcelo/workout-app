@@ -226,7 +226,7 @@
                     >
                   </th>
                   <th class="py-3 px-1 text-center font-medium text-xs">
-                    Reps
+                    {{ exercise.exercise_type === 'time' ? 'Tempo' : 'Reps' }}
                   </th>
                   <th class="py-3 px-1 text-center font-medium text-xs">
                     Kg
@@ -244,7 +244,13 @@
                     >
                   </td>
                   <td class="py-3 px-1">
+                    <SetTimer
+                      v-if="exercise.exercise_type === 'time'"
+                      :duration-seconds="set.duration_seconds || 30"
+                      @complete="toggleSetComplete(set.id, false)"
+                    />
                     <Input
+                      v-else
                       :model-value="String(set.reps)"
                       type="number"
                       min="1"
@@ -467,6 +473,7 @@ async function loadTemplate(templateId: string) {
           name: exercise.name,
           order: exercise.order,
           rest_seconds: exercise.default_rest_seconds ?? 60,
+          exercise_type: exercise.exercise_type || 'reps',
         })
         .select()
         .single()
@@ -476,14 +483,16 @@ async function loadTemplate(templateId: string) {
 
       // Gerar séries baseado no default_sets do template
       const totalSets = exercise.default_sets || 3
+      const isTime = exercise.exercise_type === 'time'
 
       const setsToInsert = []
       for (let i = 1; i <= totalSets; i++) {
         setsToInsert.push({
           exercise_id: exerciseData.id,
           set_number: i,
-          reps: exercise.default_reps,
+          reps: isTime ? 0 : exercise.default_reps,
           weight_kg: exercise.default_weight_kg,
+          duration_seconds: isTime ? (exercise.default_duration_seconds || 30) : null,
           completed: false,
         })
       }
@@ -594,12 +603,14 @@ async function addSet(exerciseId: string) {
   const lastSet = sets[sets.length - 1]
 
   try {
+    const isTime = exercise.exercise_type === 'time'
     const { error } = await supabase.from('workout_sets').insert({
       exercise_id: exerciseId,
       set_number: setNumber,
-      reps: lastSet?.reps || 10,
+      reps: isTime ? 0 : (lastSet?.reps || 10),
       weight_kg: lastSet?.weight_kg || 0,
       rest_seconds: lastSet?.rest_seconds || 60,
+      duration_seconds: isTime ? (lastSet?.duration_seconds || 30) : null,
       completed: false,
     })
 

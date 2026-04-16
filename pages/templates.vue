@@ -155,7 +155,7 @@
               </span>
               <span class="truncate flex-1">{{ ex.name }}</span>
               <span class="text-xs font-mono text-muted-foreground shrink-0">
-                {{ ex.default_sets }}s × {{ ex.default_reps || 'tempo' }}{{ ex.default_reps ? ' reps' : '' }}
+                {{ ex.exercise_type === 'time' ? `${ex.default_sets}×${ex.default_duration_seconds}s` : `${ex.default_sets}×${ex.default_reps} reps` }}
               </span>
             </div>
           </div>
@@ -436,10 +436,43 @@
                   class="h-10"
                 />
               </div>
+
+              <!-- Tipo: Reps / Tempo -->
+              <div class="flex gap-1 bg-muted rounded-md p-1">
+                <button
+                  type="button"
+                  class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+                  :class="newExerciseType === 'reps' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+                  @click="newExerciseType = 'reps'"
+                >
+                  Reps
+                </button>
+                <button
+                  type="button"
+                  class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+                  :class="newExerciseType === 'time' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+                  @click="newExerciseType = 'time'"
+                >
+                  Tempo
+                </button>
+              </div>
+
               <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div class="space-y-2">
-                  <Label for="exercise-reps">Reps</Label>
+                  <Label :for="newExerciseType === 'time' ? 'exercise-duration' : 'exercise-reps'">
+                    {{ newExerciseType === 'time' ? 'Duração (s)' : 'Reps' }}
+                  </Label>
                   <Input
+                    v-if="newExerciseType === 'time'"
+                    id="exercise-duration"
+                    v-model.number="newExerciseDuration"
+                    type="number"
+                    min="5"
+                    step="5"
+                    class="h-10 font-mono"
+                  />
+                  <Input
+                    v-else
                     id="exercise-reps"
                     v-model.number="newExerciseReps"
                     type="number"
@@ -504,7 +537,9 @@
                       {{ exercise.name }}
                     </p>
                     <p class="text-xs text-muted-foreground font-mono">
-                      {{ exercise.default_sets }}s × {{ exercise.default_reps }} reps · {{ exercise.default_rest_seconds }}s desc.
+                      {{ exercise.exercise_type === 'time'
+                        ? `${exercise.default_sets}×${exercise.default_duration_seconds}s`
+                        : `${exercise.default_sets}×${exercise.default_reps} reps` }} · {{ exercise.default_rest_seconds }}s desc.
                     </p>
                   </div>
                 </div>
@@ -565,6 +600,8 @@ const newExerciseReps = ref(10)
 const newExerciseSets = ref(3)
 const newExerciseWeight = ref(0)
 const newExerciseRest = ref(60)
+const newExerciseType = ref<'reps' | 'time'>('reps')
+const newExerciseDuration = ref(30)
 
 // Create dialog state
 const createMode = ref<'manual' | 'markdown'>('manual')
@@ -699,16 +736,19 @@ async function addExercise() {
   const order = template.exercises?.length || 0
 
   try {
+    const isTime = newExerciseType.value === 'time'
     const { error } = await supabase
       .from('template_exercises')
       .insert({
         template_id: activeTemplateId.value,
         name: newExerciseName.value,
         order,
-        default_reps: newExerciseReps.value,
+        default_reps: isTime ? 0 : newExerciseReps.value,
         default_sets: newExerciseSets.value,
         default_weight_kg: newExerciseWeight.value,
         default_rest_seconds: newExerciseRest.value,
+        exercise_type: newExerciseType.value,
+        default_duration_seconds: isTime ? newExerciseDuration.value : null,
       })
 
     if (error)
@@ -719,6 +759,8 @@ async function addExercise() {
     newExerciseSets.value = 3
     newExerciseWeight.value = 0
     newExerciseRest.value = 60
+    newExerciseType.value = 'reps'
+    newExerciseDuration.value = 30
 
     // Recarrega apenas o template ativo
     await fetchTemplates()
@@ -844,6 +886,8 @@ async function createFromMarkdown() {
           default_sets: ex.default_sets,
           default_weight_kg: ex.default_weight_kg,
           default_rest_seconds: ex.default_rest_seconds,
+          exercise_type: ex.exercise_type,
+          default_duration_seconds: ex.default_duration_seconds ?? null,
         })
 
       if (exError)
@@ -904,6 +948,8 @@ async function confirmInlineImport() {
           default_sets: ex.default_sets,
           default_weight_kg: ex.default_weight_kg,
           default_rest_seconds: ex.default_rest_seconds,
+          exercise_type: ex.exercise_type,
+          default_duration_seconds: ex.default_duration_seconds ?? null,
         })
 
       if (error)
