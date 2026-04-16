@@ -1,9 +1,13 @@
+import type { ExerciseType } from '~/types'
+
 export interface ParsedExercise {
   name: string
   default_sets: number
   default_reps: number
   default_weight_kg: number
   default_rest_seconds: number
+  exercise_type: ExerciseType
+  default_duration_seconds?: number
 }
 
 export interface ParsedTemplate {
@@ -25,21 +29,32 @@ const DEFAULT_REST = 60
  * Extrai o padrão NxM e o descanso opcional do final de uma string.
  * Aceita: 4x8, 3x10-12 (range → pega o menor), 3x30s (tempo → reps=0), case-insensitive.
  * O sufixo "Ns" separado ao final indica descanso em segundos: "3x10 30s" → rest=30.
+ * Combinado: "3x30s 30s" → isTime=true, durationSeconds=30, restSeconds=30.
  */
-function extractNxM(text: string): { sets: number, reps: number, restSeconds: number, index: number } | null {
+function extractNxM(text: string): { sets: number, reps: number, durationSeconds: number | undefined, restSeconds: number, index: number } | null {
   const m = text.match(/(\d+)[xX](\d+)(?:-\d+)?(s)?(?:\s+(\d+)s)?\s*$/)
   if (!m)
     return null
+  const isTime = !!m[3]
   return {
     sets: Number.parseInt(m[1], 10),
-    reps: m[3] ? 0 : Number.parseInt(m[2], 10), // "s" sufixo = baseado em tempo → reps=0
+    reps: isTime ? 0 : Number.parseInt(m[2], 10),
+    durationSeconds: isTime ? Number.parseInt(m[2], 10) : undefined,
     restSeconds: m[4] ? Number.parseInt(m[4], 10) : DEFAULT_REST,
     index: text.lastIndexOf(m[0]),
   }
 }
 
-function makeExercise(name: string, sets: number, reps: number, restSeconds: number = DEFAULT_REST): ParsedExercise {
-  return { name, default_sets: sets, default_reps: reps, default_weight_kg: 0, default_rest_seconds: restSeconds }
+function makeExercise(name: string, sets: number, reps: number, durationSeconds?: number, restSeconds: number = DEFAULT_REST): ParsedExercise {
+  return {
+    name,
+    default_sets: sets,
+    default_reps: reps,
+    default_weight_kg: 0,
+    default_rest_seconds: restSeconds,
+    exercise_type: durationSeconds !== undefined ? 'time' : 'reps',
+    default_duration_seconds: durationSeconds,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -83,7 +98,7 @@ function parseMarkdownFormat(lines: string[]): ParsedTemplate {
       if (nxm) {
         const rawName = rest.slice(0, nxm.index).trim().replace(/[.\s]+$/, '')
         if (rawName)
-          exercises.push(makeExercise(rawName, nxm.sets, nxm.reps, nxm.restSeconds))
+          exercises.push(makeExercise(rawName, nxm.sets, nxm.reps, nxm.durationSeconds, nxm.restSeconds))
         continue
       }
     }
@@ -134,7 +149,7 @@ function parseDashList(lines: string[]): ParsedTemplate {
         if (nxm) {
           const exName = rest.slice(0, nxm.index).trim()
           if (exName)
-            exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.restSeconds))
+            exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.durationSeconds, nxm.restSeconds))
         }
         else {
           // Linha "- nome" sem NxM → exercício com default
@@ -181,7 +196,7 @@ function parsePlainList(lines: string[]): ParsedTemplate {
         state = 'exercises'
         const exName = trimmed.slice(0, nxm.index).trim()
         if (exName)
-          exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.restSeconds))
+          exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.durationSeconds, nxm.restSeconds))
       }
       else {
         if (!name) {
@@ -199,7 +214,7 @@ function parsePlainList(lines: string[]): ParsedTemplate {
       if (nxm) {
         const exName = trimmed.slice(0, nxm.index).trim()
         if (exName)
-          exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.restSeconds))
+          exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.durationSeconds, nxm.restSeconds))
       }
       else {
         // Linha sem NxM após exercícios → comments
