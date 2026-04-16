@@ -16,6 +16,8 @@ export interface Workout {
   updated_at: string
 }
 
+export type ExerciseType = 'reps' | 'time'
+
 export interface Exercise {
   id: string
   workout_id: string
@@ -23,6 +25,7 @@ export interface Exercise {
   notes?: string
   order: number
   rest_seconds?: number
+  exercise_type: ExerciseType
   created_at: string
 }
 
@@ -33,6 +36,7 @@ export interface WorkoutSet {
   reps: number
   weight_kg: number
   rest_seconds?: number
+  duration_seconds?: number
   completed: boolean
   created_at: string
 }
@@ -64,6 +68,8 @@ export interface TemplateExercise {
   default_weight_kg: number
   default_sets: number
   default_rest_seconds: number
+  exercise_type: ExerciseType
+  default_duration_seconds?: number
   created_at: string
 }
 
