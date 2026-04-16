@@ -47,3 +47,15 @@ SPEC-*.md
 # Caddy data
 caddy_data/
 caddy_config/
+CADDY.md
+
+# Dev artifacts (specs, sessions, AI context files)
+SPEC-*.md
+TASKS-*.md
+SESSION-*.md
+QWEN.md
+.env.local
+
+# Claude Code local config
+.claude/
+.mcp.json
