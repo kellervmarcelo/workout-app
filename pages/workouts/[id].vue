@@ -119,6 +119,24 @@
             class="h-11 text-base"
           />
         </div>
+        <div class="flex gap-1 bg-muted rounded-md p-1">
+          <button
+            type="button"
+            class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+            :class="newExerciseType === 'reps' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+            @click="newExerciseType = 'reps'"
+          >
+            Reps
+          </button>
+          <button
+            type="button"
+            class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+            :class="newExerciseType === 'time' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+            @click="newExerciseType = 'time'"
+          >
+            Tempo
+          </button>
+        </div>
         <div class="flex gap-2">
           <Button type="button" variant="outline" class="flex-1" @click="showExerciseForm = false">
             Cancelar
@@ -226,7 +244,7 @@
                     >
                   </th>
                   <th class="py-3 px-1 text-center font-medium text-xs">
-                    Reps
+                    {{ exercise.exercise_type === 'time' ? 'Tempo' : 'Reps' }}
                   </th>
                   <th class="py-3 px-1 text-center font-medium text-xs">
                     Kg
@@ -244,7 +262,13 @@
                     >
                   </td>
                   <td class="py-3 px-1">
+                    <SetTimer
+                      v-if="exercise.exercise_type === 'time'"
+                      :duration-seconds="set.duration_seconds || 30"
+                      @complete="toggleSetComplete(set.id, false)"
+                    />
                     <Input
+                      v-else
                       :model-value="String(set.reps)"
                       type="number"
                       min="1"
@@ -381,6 +405,7 @@ const loading = ref(false)
 const showExerciseForm = ref(false)
 const showExercisePicker = ref(false)
 const newExerciseName = ref('')
+const newExerciseType = ref<'reps' | 'time'>('reps')
 const showTemplateSelector = ref(false)
 const showMoreMenu = ref(false)
 const showInfos = ref(false)
@@ -467,6 +492,7 @@ async function loadTemplate(templateId: string) {
           name: exercise.name,
           order: exercise.order,
           rest_seconds: exercise.default_rest_seconds ?? 60,
+          exercise_type: exercise.exercise_type || 'reps',
         })
         .select()
         .single()
@@ -476,14 +502,16 @@ async function loadTemplate(templateId: string) {
 
       // Gerar séries baseado no default_sets do template
       const totalSets = exercise.default_sets || 3
+      const isTime = exercise.exercise_type === 'time'
 
       const setsToInsert = []
       for (let i = 1; i <= totalSets; i++) {
         setsToInsert.push({
           exercise_id: exerciseData.id,
           set_number: i,
-          reps: exercise.default_reps,
+          reps: isTime ? 0 : exercise.default_reps,
           weight_kg: exercise.default_weight_kg,
+          duration_seconds: isTime ? (exercise.default_duration_seconds || 30) : null,
           completed: false,
         })
       }
@@ -565,6 +593,7 @@ async function addExercise() {
         workout_id: workoutId,
         name: newExerciseName.value,
         order,
+        exercise_type: newExerciseType.value,
       })
       .select()
       .single()
@@ -573,6 +602,7 @@ async function addExercise() {
       throw error
 
     newExerciseName.value = ''
+    newExerciseType.value = 'reps'
     showExerciseForm.value = false
     await fetchWorkout()
   }
@@ -594,12 +624,14 @@ async function addSet(exerciseId: string) {
   const lastSet = sets[sets.length - 1]
 
   try {
+    const isTime = exercise.exercise_type === 'time'
     const { error } = await supabase.from('workout_sets').insert({
       exercise_id: exerciseId,
       set_number: setNumber,
-      reps: lastSet?.reps || 10,
+      reps: isTime ? 0 : (lastSet?.reps || 10),
       weight_kg: lastSet?.weight_kg || 0,
       rest_seconds: lastSet?.rest_seconds || 60,
+      duration_seconds: isTime ? (lastSet?.duration_seconds || 30) : null,
       completed: false,
     })
 

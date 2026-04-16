@@ -126,8 +126,12 @@
                 {{ idx + 1 }}
               </span>
               <span class="truncate flex-1">{{ ex.name }}</span>
-              <span class="text-xs font-mono text-muted-foreground shrink-0">
+              <span v-if="ex.exercise_type === 'reps'" class="text-xs font-mono text-muted-foreground shrink-0">
                 {{ ex.default_sets }}s × {{ ex.default_reps }} reps
+              </span>
+
+              <span v-else class="text-xs font-mono text-muted-foreground shrink-0">
+                {{ ex.default_sets }}s × {{ ex.default_duration_seconds }}sec
               </span>
             </div>
           </div>
@@ -382,7 +386,6 @@ async function createEmptyWorkout() {
 async function createWorkoutFromTemplate() {
   if (!session.value?.user || !selectedTemplate.value)
     return
-
   const template = selectedTemplate.value
   creating.value = true
 
@@ -409,12 +412,14 @@ async function createWorkoutFromTemplate() {
         const templateEx = template.exercises[i]
 
         // Create exercise
+        const isTime = templateEx.exercise_type === 'time'
         const { data: exercise, error: exError } = await supabase
           .from('exercises')
           .insert({
             workout_id: workout.id,
             name: templateEx.name,
             order: templateEx.order,
+            exercise_type: templateEx.exercise_type || 'reps',
             notes: null,
             rest_seconds: templateEx.default_rest_seconds ?? 60,
           })
@@ -432,8 +437,9 @@ async function createWorkoutFromTemplate() {
               .insert({
                 exercise_id: exercise.id,
                 set_number: s,
-                reps: templateEx.default_reps,
+                reps: isTime ? 0 : templateEx.default_reps,
                 weight_kg: templateEx.default_weight_kg,
+                duration_seconds: isTime ? (templateEx.default_duration_seconds || 30) : null,
                 rest_seconds: templateEx.default_rest_seconds ?? 60,
                 completed: false,
               })

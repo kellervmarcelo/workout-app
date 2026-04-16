@@ -42,10 +42,43 @@
             required
           />
         </div>
+
+        <!-- Tipo -->
+        <div class="flex gap-1 bg-muted rounded-md p-1">
+          <button
+            type="button"
+            class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+            :class="newExerciseType === 'reps' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+            @click="newExerciseType = 'reps'"
+          >
+            Reps
+          </button>
+          <button
+            type="button"
+            class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
+            :class="newExerciseType === 'time' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
+            @click="newExerciseType = 'time'"
+          >
+            Tempo
+          </button>
+        </div>
+
         <div class="grid grid-cols-3 gap-4">
           <div class="space-y-2">
-            <Label for="exercise-reps">Reps Padrão</Label>
+            <Label :for="newExerciseType === 'time' ? 'exercise-duration' : 'exercise-reps'">
+              {{ newExerciseType === 'time' ? 'Duração Padrão (s)' : 'Reps Padrão' }}
+            </Label>
             <Input
+              v-if="newExerciseType === 'time'"
+              id="exercise-duration"
+              :model-value="String(newExerciseDuration)"
+              type="number"
+              min="5"
+              step="5"
+              @update:model-value="newExerciseDuration = Number($event)"
+            />
+            <Input
+              v-else
               id="exercise-reps"
               :model-value="String(newExerciseReps)"
               type="number"
@@ -107,8 +140,20 @@
         <div class="space-y-3 pt-2">
           <div class="grid grid-cols-3 gap-4">
             <div class="space-y-2">
-              <Label class="text-sm text-muted-foreground">Reps Padrão</Label>
+              <Label class="text-sm text-muted-foreground">
+                {{ exercise.exercise_type === 'time' ? 'Duração Padrão (s)' : 'Reps Padrão' }}
+              </Label>
               <Input
+                v-if="exercise.exercise_type === 'time'"
+                :model-value="String(exercise.default_duration_seconds ?? 30)"
+                type="number"
+                min="5"
+                step="5"
+                class="font-mono"
+                @update:model-value="updateExerciseDefaults(exercise.id, 'default_duration_seconds', Number($event))"
+              />
+              <Input
+                v-else
                 :model-value="String(exercise.default_reps)"
                 type="number"
                 min="1"
@@ -196,6 +241,8 @@ const newExerciseName = ref('')
 const newExerciseReps = ref(10)
 const newExerciseWeight = ref(0)
 const newExerciseRest = ref(60)
+const newExerciseType = ref<'reps' | 'time'>('reps')
+const newExerciseDuration = ref(30)
 
 async function fetchTemplate() {
   if (!templateId.value)
@@ -238,15 +285,18 @@ async function addExercise() {
   const order = template.value.exercises?.length || 0
 
   try {
+    const isTime = newExerciseType.value === 'time'
     const { data: _data, error } = await supabase
       .from('template_exercises')
       .insert({
         template_id: templateId.value,
         name: newExerciseName.value,
         order,
-        default_reps: newExerciseReps.value,
+        default_reps: isTime ? 0 : newExerciseReps.value,
         default_weight_kg: newExerciseWeight.value,
         default_rest_seconds: newExerciseRest.value,
+        exercise_type: newExerciseType.value,
+        default_duration_seconds: isTime ? newExerciseDuration.value : null,
       })
       .select()
       .single()
@@ -258,6 +308,8 @@ async function addExercise() {
     newExerciseReps.value = 10
     newExerciseWeight.value = 0
     newExerciseRest.value = 60
+    newExerciseType.value = 'reps'
+    newExerciseDuration.value = 30
     showExerciseForm.value = false
     await fetchTemplate()
   }
