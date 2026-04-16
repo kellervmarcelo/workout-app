@@ -179,6 +179,10 @@ BEGIN
     (v_exercise_id, 1, 15, 60, true), (v_exercise_id, 2, 15, 60, true),
     (v_exercise_id, 3, 12, 70, true), (v_exercise_id, 4, 12, 70, true);
 
+  INSERT INTO exercises (workout_id, name, "order", exercise_type) VALUES (v_workout_id, 'Prancha', 6, 'time') RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, duration_seconds, completed) VALUES
+    (v_exercise_id, 1, 0, 0, 45, true), (v_exercise_id, 2, 0, 0, 45, true), (v_exercise_id, 3, 0, 0, 45, true);
+
   -- ===== TREINO 4: Ombros & Trapézio (7 dias atrás) =====
   INSERT INTO workouts (name, user_id, date, notes)
   VALUES ('Ombros & Trapézio', v_user_id, CURRENT_DATE - INTERVAL '7 days', NULL)
@@ -292,6 +296,24 @@ BEGIN
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Barra Fixa Assistida', 2) RETURNING id INTO v_exercise_id;
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 8, 20, true);
+
+  -- ===== TREINO 2: Inferior A (4 dias atrás) =====
+  INSERT INTO workouts (name, user_id, date, notes)
+  VALUES ('Inferior A', v_user_id, CURRENT_DATE - INTERVAL '4 days', NULL)
+  RETURNING id INTO v_workout_id;
+
+  INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Agachamento Goblet', 1) RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
+    (v_exercise_id, 1, 15, 16, true), (v_exercise_id, 2, 12, 20, true),
+    (v_exercise_id, 3, 12, 20, true), (v_exercise_id, 4, 10, 24, true);
+
+  INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Stiff', 2) RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
+    (v_exercise_id, 1, 12, 30, true), (v_exercise_id, 2, 10, 40, true), (v_exercise_id, 3, 10, 40, true);
+
+  INSERT INTO exercises (workout_id, name, "order", exercise_type) VALUES (v_workout_id, 'Prancha', 3, 'time') RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, duration_seconds, completed) VALUES
+    (v_exercise_id, 1, 0, 0, 30, true), (v_exercise_id, 2, 0, 0, 30, true), (v_exercise_id, 3, 0, 0, 30, true);
 END $$;
 
 -- =====================================================
@@ -339,6 +361,8 @@ BEGIN
     (v_template_id, 'Cadeira Extensora', 3, 12, 50, 60),
     (v_template_id, 'Mesa Flexora', 4, 12, 35, 60),
     (v_template_id, 'Panturrilha no Smith', 5, 15, 60, 45);
+  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg, default_rest_seconds, exercise_type, default_duration_seconds) VALUES
+    (v_template_id, 'Prancha', 6, 0, 0, 60, 'time', 45);
 
   -- ===== TEMPLATE 4: Ombros & Trapézio =====
   INSERT INTO workout_templates (name, user_id, description)
@@ -385,4 +409,6 @@ BEGIN
     (v_template_id, 'Leg Press 45°', 3, 12, 120, 60),
     (v_template_id, 'Cadeira Adutora', 4, 15, 45, 45),
     (v_template_id, 'Panturrilha Sentada', 5, 15, 25, 30);
+  INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg, default_rest_seconds, exercise_type, default_duration_seconds) VALUES
+    (v_template_id, 'Prancha', 6, 0, 0, 60, 'time', 30);
 END $$;

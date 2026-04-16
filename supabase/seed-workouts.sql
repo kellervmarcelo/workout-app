@@ -101,6 +101,10 @@ BEGIN
     (v_exercise_id, 1, 15, 60, true), (v_exercise_id, 2, 15, 60, true),
     (v_exercise_id, 3, 12, 70, true), (v_exercise_id, 4, 12, 70, true);
 
+  INSERT INTO exercises (workout_id, name, "order", exercise_type) VALUES (v_workout_id, 'Prancha', 6, 'time') RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, duration_seconds, completed) VALUES
+    (v_exercise_id, 1, 0, 0, 45, true), (v_exercise_id, 2, 0, 0, 45, true), (v_exercise_id, 3, 0, 0, 45, true);
+
   -- ===== MARCOS: Treino 4 - Ombros & Trapézio (7 dias atrás) =====
   INSERT INTO workouts (name, user_id, date, notes)
   VALUES ('Ombros & Trapézio', v_marcos_id, CURRENT_DATE - INTERVAL '7 days', NULL)
@@ -203,4 +207,22 @@ BEGIN
   INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Barra Fixa Assistida', 2) RETURNING id INTO v_exercise_id;
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
     (v_exercise_id, 1, 8, 20, true);
+
+  -- ===== ANA: Treino 2 - Inferior A (4 dias atrás) =====
+  INSERT INTO workouts (name, user_id, date, notes)
+  VALUES ('Inferior A', v_ana_id, CURRENT_DATE - INTERVAL '4 days', NULL)
+  RETURNING id INTO v_workout_id;
+
+  INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Agachamento Goblet', 1) RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
+    (v_exercise_id, 1, 15, 16, true), (v_exercise_id, 2, 12, 20, true),
+    (v_exercise_id, 3, 12, 20, true), (v_exercise_id, 4, 10, 24, true);
+
+  INSERT INTO exercises (workout_id, name, "order") VALUES (v_workout_id, 'Stiff', 2) RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, completed) VALUES
+    (v_exercise_id, 1, 12, 30, true), (v_exercise_id, 2, 10, 40, true), (v_exercise_id, 3, 10, 40, true);
+
+  INSERT INTO exercises (workout_id, name, "order", exercise_type) VALUES (v_workout_id, 'Prancha', 3, 'time') RETURNING id INTO v_exercise_id;
+  INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, duration_seconds, completed) VALUES
+    (v_exercise_id, 1, 0, 0, 30, true), (v_exercise_id, 2, 0, 0, 30, true), (v_exercise_id, 3, 0, 0, 30, true);
 END $$;
