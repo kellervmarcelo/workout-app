@@ -16,7 +16,7 @@
     "lint:all": "npm run lint && npm run format:check && npm run type-check",
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
-    "db:reset": "npx supabase db reset",
+    "db:reset": "npx supabase db reset && docker exec supabase_db_workout-app psql -U postgres -d postgres -c \"NOTIFY pgrst, 'reload schema';\" && echo PostgREST schema reloaded!",
     "db:status": "npx supabase status",
     "db:studio": "npx supabase studio",
     "db:push": "npx supabase db push",

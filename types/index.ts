@@ -22,6 +22,7 @@ export interface Exercise {
   name: string
   notes?: string
   order: number
+  rest_seconds?: number
   created_at: string
 }
 
@@ -62,6 +63,7 @@ export interface TemplateExercise {
   default_reps: number
   default_weight_kg: number
   default_sets: number
+  default_rest_seconds: number
   created_at: string
 }
 
