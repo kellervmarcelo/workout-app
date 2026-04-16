@@ -1,8 +1,8 @@
 <template>
   <div class="rest-timer space-y-4">
-    <!-- Timer Input -->
+    <!-- Tempo configurado (readonly: exibe como texto; editável: exibe input) -->
     <div class="flex items-center justify-center gap-3">
-      <div class="relative">
+      <div v-if="!props.readonly" class="relative">
         <input
           v-model.number="totalSeconds"
           type="number"
@@ -15,6 +15,9 @@
         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
           s
         </span>
+      </div>
+      <div v-else class="text-5xl font-mono font-bold tabular-nums">
+        {{ isRunning ? displayTime : displayTotal }}
       </div>
     </div>
 
@@ -45,8 +48,8 @@
       />
     </div>
 
-    <!-- Preset Times -->
-    <div class="grid grid-cols-4 gap-2">
+    <!-- Preset Times (somente no modo editável) -->
+    <div v-if="!props.readonly" class="grid grid-cols-4 gap-2">
       <Button
         v-for="preset in presetTimes"
         :key="preset"
@@ -67,6 +70,7 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 
 const props = defineProps<{
   defaultSeconds?: number
+  readonly?: boolean
 }>()
 
 const presetTimes = [30, 60, 90, 120]
@@ -78,6 +82,12 @@ const isRunning = ref(false)
 const displayTime = computed(() => {
   const mins = Math.floor(remainingSeconds.value / 60)
   const secs = remainingSeconds.value % 60
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+})
+
+const displayTotal = computed(() => {
+  const mins = Math.floor(totalSeconds.value / 60)
+  const secs = totalSeconds.value % 60
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 })
 

@@ -359,7 +359,7 @@
           </svg>
         </Button>
       </div>
-      <RestTimer :default-seconds="timerRestSeconds" />
+      <RestTimer :default-seconds="timerRestSeconds" :readonly="true" />
     </Card>
   </div>
 </template>
@@ -466,6 +466,7 @@ async function loadTemplate(templateId: string) {
           workout_id: workoutId,
           name: exercise.name,
           order: exercise.order,
+          rest_seconds: exercise.default_rest_seconds ?? 60,
         })
         .select()
         .single()
@@ -660,8 +661,8 @@ function completedSetCount(exercise: ExerciseWithSets): number {
   return (exercise.sets || []).filter(s => s.completed).length
 }
 
-function openExerciseTimer(_exercise: ExerciseWithSets) {
-  timerRestSeconds.value = 60
+function openExerciseTimer(exercise: ExerciseWithSets) {
+  timerRestSeconds.value = exercise.rest_seconds ?? 60
   showTimerModal.value = true
 }
 

@@ -436,7 +436,7 @@
                   class="h-10"
                 />
               </div>
-              <div class="grid grid-cols-3 gap-3">
+              <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div class="space-y-2">
                   <Label for="exercise-reps">Reps</Label>
                   <Input
@@ -468,6 +468,17 @@
                     class="h-10 font-mono"
                   />
                 </div>
+                <div class="space-y-2">
+                  <Label for="exercise-rest">Descanso (s)</Label>
+                  <Input
+                    id="exercise-rest"
+                    v-model.number="newExerciseRest"
+                    type="number"
+                    step="5"
+                    min="0"
+                    class="h-10 font-mono"
+                  />
+                </div>
               </div>
               <Button type="submit" size="sm" class="w-full md:w-auto">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -493,7 +504,7 @@
                       {{ exercise.name }}
                     </p>
                     <p class="text-xs text-muted-foreground font-mono">
-                      {{ exercise.default_sets }}s × {{ exercise.default_reps }} reps × {{ exercise.default_weight_kg }} kg
+                      {{ exercise.default_sets }}s × {{ exercise.default_reps }} reps · {{ exercise.default_rest_seconds }}s desc.
                     </p>
                   </div>
                 </div>
@@ -553,6 +564,7 @@ const newExerciseName = ref('')
 const newExerciseReps = ref(10)
 const newExerciseSets = ref(3)
 const newExerciseWeight = ref(0)
+const newExerciseRest = ref(60)
 
 // Create dialog state
 const createMode = ref<'manual' | 'markdown'>('manual')
@@ -696,6 +708,7 @@ async function addExercise() {
         default_reps: newExerciseReps.value,
         default_sets: newExerciseSets.value,
         default_weight_kg: newExerciseWeight.value,
+        default_rest_seconds: newExerciseRest.value,
       })
 
     if (error)
@@ -705,6 +718,7 @@ async function addExercise() {
     newExerciseReps.value = 10
     newExerciseSets.value = 3
     newExerciseWeight.value = 0
+    newExerciseRest.value = 60
 
     // Recarrega apenas o template ativo
     await fetchTemplates()
@@ -829,6 +843,7 @@ async function createFromMarkdown() {
           default_reps: ex.default_reps,
           default_sets: ex.default_sets,
           default_weight_kg: ex.default_weight_kg,
+          default_rest_seconds: ex.default_rest_seconds,
         })
 
       if (exError)
@@ -888,6 +903,7 @@ async function confirmInlineImport() {
           default_reps: ex.default_reps,
           default_sets: ex.default_sets,
           default_weight_kg: ex.default_weight_kg,
+          default_rest_seconds: ex.default_rest_seconds,
         })
 
       if (error)

@@ -3,6 +3,7 @@ export interface ParsedExercise {
   default_sets: number
   default_reps: number
   default_weight_kg: number
+  default_rest_seconds: number
 }
 
 export interface ParsedTemplate {
@@ -14,32 +15,35 @@ export interface ParsedTemplate {
 
 const DEFAULT_SETS = 3
 const DEFAULT_REPS = 10
+const DEFAULT_REST = 60
 
 // ---------------------------------------------------------------------------
 // Helpers compartilhados
 // ---------------------------------------------------------------------------
 
 /**
- * Extrai o padrão NxM do final de uma string.
+ * Extrai o padrão NxM e o descanso opcional do final de uma string.
  * Aceita: 4x8, 3x10-12 (range → pega o menor), 3x30s (tempo → reps=0), case-insensitive.
+ * O sufixo "Ns" separado ao final indica descanso em segundos: "3x10 30s" → rest=30.
  */
-function extractNxM(text: string): { sets: number, reps: number, index: number } | null {
-  const m = text.match(/(\d+)[xX](\d+)(?:-\d+)?(s)?\s*$/)
+function extractNxM(text: string): { sets: number, reps: number, restSeconds: number, index: number } | null {
+  const m = text.match(/(\d+)[xX](\d+)(?:-\d+)?(s)?(?:\s+(\d+)s)?\s*$/)
   if (!m)
     return null
   return {
     sets: Number.parseInt(m[1], 10),
-    reps: m[3] ? 0 : Number.parseInt(m[2], 10), // "s" = baseado em tempo → reps=0
+    reps: m[3] ? 0 : Number.parseInt(m[2], 10), // "s" sufixo = baseado em tempo → reps=0
+    restSeconds: m[4] ? Number.parseInt(m[4], 10) : DEFAULT_REST,
     index: text.lastIndexOf(m[0]),
   }
 }
 
-function makeExercise(name: string, sets: number, reps: number): ParsedExercise {
-  return { name, default_sets: sets, default_reps: reps, default_weight_kg: 0 }
+function makeExercise(name: string, sets: number, reps: number, restSeconds: number = DEFAULT_REST): ParsedExercise {
+  return { name, default_sets: sets, default_reps: reps, default_weight_kg: 0, default_rest_seconds: restSeconds }
 }
 
 // ---------------------------------------------------------------------------
-// Formato 1 — Markdown estruturado: - [ ] nome ... NxM
+// Formato 1 — Markdown estruturado: - [ ] nome ... NxM [Ns]
 // ---------------------------------------------------------------------------
 
 function parseMarkdownFormat(lines: string[]): ParsedTemplate {
@@ -72,14 +76,14 @@ function parseMarkdownFormat(lines: string[]): ParsedTemplate {
       }
     }
 
-    // Exercício: - [ ] nome ... NxM
+    // Exercício: - [ ] nome ... NxM [Ns]
     if (/^-\s*\[.?\]\s/.test(trimmed)) {
       const rest = trimmed.replace(/^-\s*\[.?\]\s+/, '')
       const nxm = extractNxM(rest)
       if (nxm) {
         const rawName = rest.slice(0, nxm.index).trim().replace(/[.\s]+$/, '')
         if (rawName)
-          exercises.push(makeExercise(rawName, nxm.sets, nxm.reps))
+          exercises.push(makeExercise(rawName, nxm.sets, nxm.reps, nxm.restSeconds))
         continue
       }
     }
@@ -93,7 +97,7 @@ function parseMarkdownFormat(lines: string[]): ParsedTemplate {
 }
 
 // ---------------------------------------------------------------------------
-// Formato 2 — Lista com dash: - nome NxM  (sem checkbox)
+// Formato 2 — Lista com dash: - nome NxM [Ns]  (sem checkbox)
 // ---------------------------------------------------------------------------
 
 function parseDashList(lines: string[]): ParsedTemplate {
@@ -130,7 +134,7 @@ function parseDashList(lines: string[]): ParsedTemplate {
         if (nxm) {
           const exName = rest.slice(0, nxm.index).trim()
           if (exName)
-            exercises.push(makeExercise(exName, nxm.sets, nxm.reps))
+            exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.restSeconds))
         }
         else {
           // Linha "- nome" sem NxM → exercício com default
@@ -156,7 +160,7 @@ function parseDashList(lines: string[]): ParsedTemplate {
 }
 
 // ---------------------------------------------------------------------------
-// Formato 3 — Lista plain: nome NxM  (sem prefixo)
+// Formato 3 — Lista plain: nome NxM [Ns]  (sem prefixo)
 // ---------------------------------------------------------------------------
 
 function parsePlainList(lines: string[]): ParsedTemplate {
@@ -177,7 +181,7 @@ function parsePlainList(lines: string[]): ParsedTemplate {
         state = 'exercises'
         const exName = trimmed.slice(0, nxm.index).trim()
         if (exName)
-          exercises.push(makeExercise(exName, nxm.sets, nxm.reps))
+          exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.restSeconds))
       }
       else {
         if (!name) {
@@ -195,7 +199,7 @@ function parsePlainList(lines: string[]): ParsedTemplate {
       if (nxm) {
         const exName = trimmed.slice(0, nxm.index).trim()
         if (exName)
-          exercises.push(makeExercise(exName, nxm.sets, nxm.reps))
+          exercises.push(makeExercise(exName, nxm.sets, nxm.reps, nxm.restSeconds))
       }
       else {
         // Linha sem NxM após exercícios → comments

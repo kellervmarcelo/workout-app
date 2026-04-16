@@ -416,6 +416,7 @@ async function createWorkoutFromTemplate() {
             name: templateEx.name,
             order: templateEx.order,
             notes: null,
+            rest_seconds: templateEx.default_rest_seconds ?? 60,
           })
           .select()
           .single()
@@ -433,7 +434,7 @@ async function createWorkoutFromTemplate() {
                 set_number: s,
                 reps: templateEx.default_reps,
                 weight_kg: templateEx.default_weight_kg,
-                rest_seconds: 60,
+                rest_seconds: templateEx.default_rest_seconds ?? 60,
                 completed: false,
               })
 

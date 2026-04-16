@@ -42,7 +42,7 @@
             required
           />
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
           <div class="space-y-2">
             <Label for="exercise-reps">Reps Padrão</Label>
             <Input
@@ -62,6 +62,17 @@
               step="0.5"
               min="0"
               @update:model-value="newExerciseWeight = Number($event)"
+            />
+          </div>
+          <div class="space-y-2">
+            <Label for="exercise-rest">Descanso (s)</Label>
+            <Input
+              id="exercise-rest"
+              :model-value="String(newExerciseRest)"
+              type="number"
+              step="5"
+              min="0"
+              @update:model-value="newExerciseRest = Number($event)"
             />
           </div>
         </div>
@@ -94,7 +105,7 @@
         </template>
 
         <div class="space-y-3 pt-2">
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-3 gap-4">
             <div class="space-y-2">
               <Label class="text-sm text-muted-foreground">Reps Padrão</Label>
               <Input
@@ -114,6 +125,17 @@
                 min="0"
                 class="font-mono"
                 @update:model-value="updateExerciseDefaults(exercise.id, 'default_weight_kg', Number($event))"
+              />
+            </div>
+            <div class="space-y-2">
+              <Label class="text-sm text-muted-foreground">Descanso (s)</Label>
+              <Input
+                :model-value="String(exercise.default_rest_seconds)"
+                type="number"
+                step="5"
+                min="0"
+                class="font-mono"
+                @update:model-value="updateExerciseDefaults(exercise.id, 'default_rest_seconds', Number($event))"
               />
             </div>
           </div>
@@ -173,6 +195,7 @@ const showExerciseForm = ref(false)
 const newExerciseName = ref('')
 const newExerciseReps = ref(10)
 const newExerciseWeight = ref(0)
+const newExerciseRest = ref(60)
 
 async function fetchTemplate() {
   if (!templateId.value)
@@ -223,6 +246,7 @@ async function addExercise() {
         order,
         default_reps: newExerciseReps.value,
         default_weight_kg: newExerciseWeight.value,
+        default_rest_seconds: newExerciseRest.value,
       })
       .select()
       .single()
@@ -233,6 +257,7 @@ async function addExercise() {
     newExerciseName.value = ''
     newExerciseReps.value = 10
     newExerciseWeight.value = 0
+    newExerciseRest.value = 60
     showExerciseForm.value = false
     await fetchTemplate()
   }
