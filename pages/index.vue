@@ -386,7 +386,6 @@ async function createEmptyWorkout() {
 async function createWorkoutFromTemplate() {
   if (!session.value?.user || !selectedTemplate.value)
     return
-  console.log(selectedTemplate)
   const template = selectedTemplate.value
   creating.value = true
 
