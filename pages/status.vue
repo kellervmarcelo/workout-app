@@ -1,8 +1,13 @@
 <template>
   <div class="space-y-6 md:space-y-8 px-0 md:px-0 max-w-md mx-auto">
-    <h1 class="text-xl font-bold tracking-tight md:text-3xl">
-      Status
-    </h1>
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-bold tracking-tight md:text-3xl">
+        Status
+      </h1>
+      <Button variant="outline" size="sm" @click="showReportModal = true">
+        Relatório
+      </Button>
+    </div>
 
     <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-12">
@@ -51,6 +56,8 @@
       </div>
     </template>
   </div>
+
+  <ReportModal v-if="showReportModal" @close="showReportModal = false" />
 </template>
 
 <script setup lang="ts">
@@ -151,6 +158,8 @@ function toDateString(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
+
+const showReportModal = ref(false)
 
 onMounted(fetchWorkouts)
 </script>
