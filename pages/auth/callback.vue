@@ -43,60 +43,37 @@ onMounted(async () => {
     }
   }
 
-  // 2. Verificar se há código OAuth na URL (PKCE flow)
-  const code = route.query.code as string
+  const next = route.query.next as string
+  const redirect = next?.startsWith('/') && !next.startsWith('//') ? next : '/'
 
-  if (code) {
-    try {
-      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-
-      if (exchangeError) {
-        console.error('[callback] Erro ao trocar código:', exchangeError.message)
-        errorMessage.value = `Erro ao completar autenticação: ${exchangeError.message}`
-        loading.value = false
-        setTimeout(() => navigateTo('/login'), 3000)
-        return
-      }
-
-      if (data?.session) {
-        const next = route.query.next as string
-        const redirect = next?.startsWith('/') && !next.startsWith('//') ? next : '/'
-        navigateTo(redirect)
-      }
-      else {
-        errorMessage.value = 'Sessão não criada'
-        loading.value = false
-        setTimeout(() => navigateTo('/login'), 3000)
-      }
-      return
-    }
-    catch (err) {
-      console.error('[callback] Erro inesperado:', err)
-      errorMessage.value = 'Erro inesperado ao processar login'
-      loading.value = false
-      setTimeout(() => navigateTo('/login'), 3000)
-      return
-    }
+  // 2. @supabase/ssr (createBrowserClient) faz o exchange PKCE automaticamente no init.
+  //    Só precisamos aguardar a sessão ser estabelecida.
+  const { data } = await supabase.auth.getSession()
+  if (data?.session) {
+    navigateTo(redirect)
+    return
   }
 
-  // 3. Fallback: verificar se já tem sessão
-  try {
-    const { data, error } = await supabase.auth.getSession()
-
-    if (error || !data.session) {
-      errorMessage.value = error?.message || 'Sessão não encontrada'
-      loading.value = false
-      setTimeout(() => navigateTo('/login'), 3000)
-      return
+  // 3. Exchange ainda em progresso — aguardar evento SIGNED_IN
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      subscription.unsubscribe()
+      navigateTo(redirect)
     }
+  })
 
-    navigateTo('/')
-  }
-  catch (err) {
-    console.error('[callback] Erro inesperado:', err)
-    errorMessage.value = 'Erro inesperado ao processar login'
+  // 4. Safety timeout
+  const timeout = setTimeout(() => {
+    subscription.unsubscribe()
+    errorMessage.value = 'Tempo limite de autenticação'
     loading.value = false
     setTimeout(() => navigateTo('/login'), 3000)
-  }
+  }, 10000)
+
+  // Limpar timeout se redirecionar antes
+  onUnmounted(() => {
+    clearTimeout(timeout)
+    subscription.unsubscribe()
+  })
 })
 </script>
