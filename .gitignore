@@ -51,6 +51,6 @@ SESSION-*.md
 QWEN.md
 .env.local
 
-# Claude Code local config
-.claude/
-.mcp.json
+# AI tool configs
+.codex/
+docs/

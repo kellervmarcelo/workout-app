@@ -124,6 +124,8 @@
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
+definePageMeta({ middleware: 'auth' })
+
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
