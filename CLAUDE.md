@@ -102,6 +102,7 @@ Migrations live in `supabase/migrations/`. Run `npm run db:reset` to apply all l
 | `composables/useOnboardingTour.ts` | Driver.js onboarding tour (first-time users) |
 | `composables/useMarkdownTemplate.ts` | Parse markdown to create templates |
 | `composables/useOAuthClient.ts` | OAuth social login helpers |
+| `composables/useWorkoutReport.ts` | Fetch monthly workouts + generate PDF report (jsPDF) |
 
 ### Environment
 
