@@ -15,7 +15,6 @@
 <script setup lang="ts">
 const route = useRoute()
 const supabase = useSupabaseClient()
-const oauthClient = useOAuthClient()
 
 const loading = ref(true)
 const errorMessage = ref('')
@@ -49,7 +48,7 @@ onMounted(async () => {
 
   if (code) {
     try {
-      const { data, error: exchangeError } = await oauthClient.auth.exchangeCodeForSession(code)
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
       if (exchangeError) {
         console.error('[callback] Erro ao trocar código:', exchangeError.message)
@@ -60,11 +59,6 @@ onMounted(async () => {
       }
 
       if (data?.session) {
-        await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        })
-        // Suporta redirecionamento customizado (ex.: fluxo de recuperação de senha)
         const next = route.query.next as string
         const redirect = next?.startsWith('/') && !next.startsWith('//') ? next : '/'
         navigateTo(redirect)
