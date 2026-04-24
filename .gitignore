@@ -44,11 +44,6 @@ supabase/snippets/
 .mcp.json
 SPEC-*.md
 
-# Caddy data
-caddy_data/
-caddy_config/
-CADDY.md
-
 # Dev artifacts (specs, sessions, AI context files)
 SPEC-*.md
 TASKS-*.md

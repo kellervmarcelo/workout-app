@@ -27,11 +27,7 @@
     "seed:users": "node scripts/seed-users.js",
     "seed:workouts": "docker exec -i supabase_db_workout-app psql -U postgres -d postgres < supabase/seed-workouts.sql && echo Treinos populados!",
     "seed:all": "npm run seed:users && timeout /t 2 /nobreak >nul && npm run seed:workouts",
-    "dev:caddy": "echo Iniciando Caddy... && caddy run --config Caddyfile",
-    "dev:mobile": "nuxt dev --port 3001 --host 192.168.0.180",
-    "dev:mobile:caddy": "nuxt dev --port 3001 --host 192.168.0.180 & caddy run --config Caddyfile.mobile",
-    "dev:proxy": "nuxt dev --port 3001 & caddy run --config Caddyfile",
-    "preview:caddy": "npm run generate && caddy run --config Caddyfile.preview"
+    "dev:mobile": "nuxt dev --port 3001 --host 192.168.0.180"
   },
   "dependencies": {
     "@vueuse/core": "^12.4.0",
