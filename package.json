@@ -30,7 +30,7 @@
     "dev:mobile": "nuxt dev --port 3001 --host 192.168.0.180"
   },
   "dependencies": {
-    "@vueuse/core": "^12.4.0",
+    "@vueuse/core": "^14.2.1",
     "@vueuse/nuxt": "^12.4.0",
     "driver.js": "^1.4.0",
     "html-to-image": "^1.11.13",
