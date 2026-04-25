@@ -36,6 +36,17 @@
         {{ workout.name }}
       </h1>
 
+      <!-- Completion Banner -->
+      <div
+        v-if="workout.completed_at"
+        class="p-3 rounded-md text-sm border bg-green-500/10 text-green-600 border-green-500/20 flex items-center gap-2"
+      >
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Treino concluído! Todos os exercícios finalizados.
+      </div>
+
       <!-- Notes Section - prominent -->
       <div v-if="workout.notes" class="rounded-lg border-l-4 border-l-primary bg-muted/50 p-3 md:p-5">
         <div class="flex items-center gap-2 mb-2">
@@ -332,6 +343,19 @@
         </Collapsible>
       </SwipeToDelete>
 
+      <!-- Finish Workout Button -->
+      <Button
+        v-if="!workout.completed_at"
+        variant="outline"
+        class="w-full h-11 md:h-10"
+        @click="showFinishModal = true"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Finalizar Treino
+      </Button>
+
       <!-- Add Exercise Button - at end of list -->
       <Button
         variant="outline"
@@ -368,6 +392,26 @@
         Carregando...
       </p>
     </div>
+  </div>
+
+  <!-- Finish Workout Confirmation Modal -->
+  <div v-if="showFinishModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="showFinishModal = false">
+    <Card class="w-full max-w-sm p-6 space-y-4">
+      <h3 class="text-lg font-semibold">
+        Finalizar treino?
+      </h3>
+      <p class="text-sm text-muted-foreground">
+        O treino será marcado como concluído. Você poderá continuar editando depois.
+      </p>
+      <div class="flex gap-3 justify-end">
+        <Button variant="outline" @click="showFinishModal = false">
+          Cancelar
+        </Button>
+        <Button @click="confirmFinish">
+          Confirmar
+        </Button>
+      </div>
+    </Card>
   </div>
 
   <!-- Rest Timer Modal -->
@@ -409,6 +453,7 @@ const newExerciseType = ref<'reps' | 'time'>('reps')
 const showTemplateSelector = ref(false)
 const showMoreMenu = ref(false)
 const showInfos = ref(false)
+const showFinishModal = ref(false)
 const templates = ref<WorkoutTemplateWithExercises[]>([])
 const collapsibleRefs = ref<Record<string, any>>({})
 const swipeRefs = ref<Record<string, any>>({})
@@ -717,6 +762,8 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
     if (set)
       set.completed = newCompleted
 
+    await checkWorkoutCompletion()
+
     // Auto-close exercise accordion when all sets are completed
     if (newCompleted && workout.value?.exercises) {
       for (const exercise of workout.value.exercises) {
@@ -757,6 +804,8 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
       set.completed = newCompleted
     }
 
+    await checkWorkoutCompletion()
+
     // Auto-close if all completed
     if (newCompleted && workout.value?.exercises) {
       const exercise = workout.value.exercises.find(e => e.id === exerciseId)
@@ -771,6 +820,48 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
   catch (error: any) {
     console.error('Erro ao atualizar séries:', error)
   }
+}
+
+async function checkWorkoutCompletion() {
+  if (!workout.value?.exercises)
+    return
+  const allSets = workout.value.exercises.flatMap(e => e.sets || [])
+  if (!allSets.length)
+    return
+
+  const allCompleted = allSets.every(s => s.completed)
+  const wasCompleted = !!workout.value.completed_at
+  if (allCompleted === wasCompleted)
+    return
+
+  const newCompletedAt = allCompleted ? new Date().toISOString() : null
+  try {
+    const { error } = await supabase
+      .from('workouts')
+      .update({ completed_at: newCompletedAt })
+      .eq('id', workout.value.id)
+    if (error)
+      throw error
+    workout.value.completed_at = newCompletedAt
+  }
+  catch {}
+}
+
+async function confirmFinish() {
+  if (!workout.value)
+    return
+  showFinishModal.value = false
+  const completedAt = new Date().toISOString()
+  try {
+    const { error } = await supabase
+      .from('workouts')
+      .update({ completed_at: completedAt })
+      .eq('id', workout.value.id)
+    if (error)
+      throw error
+    workout.value.completed_at = completedAt
+  }
+  catch {}
 }
 
 function closeOtherSwipes(openedId: string) {

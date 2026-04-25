@@ -198,6 +198,13 @@
                 <Badge data-tour="stats" variant="outline" class="font-mono text-[10px] shrink-0">
                   {{ totalExercises(workout) }}
                 </Badge>
+                <Badge
+                  v-if="workout.completed_at"
+                  variant="outline"
+                  class="text-[10px] shrink-0 border-green-500/50 text-green-600 bg-green-500/10"
+                >
+                  ✓ Concluído
+                </Badge>
               </div>
               <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground md:gap-4 md:text-sm">
                 <span class="flex items-center gap-1">
