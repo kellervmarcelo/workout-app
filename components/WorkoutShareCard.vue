@@ -1,30 +1,40 @@
 <template>
-  <div :style="rootStyle">
-    <!-- Logo -->
-    <img
-      src="/yafa_logo_final_transparent.png"
-      alt="YAFA"
-      style="height: 48px; width: auto; margin-bottom: 28px; display: block;"
-    >
+  <div style="width:800px;height:400px;background:#0f0f0f;border-radius:20px;padding:36px 48px;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;">
+    <!-- Header: logo + nome + label da semana -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img
+          v-if="props.logoSrc"
+          :src="props.logoSrc"
+          alt=""
+          style="width:32px;height:32px;object-fit:contain;display:block;"
+        >
+        <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.02em;">YAFA</span>
+      </div>
+      <span style="color:#4b5563;font-size:13px;font-weight:500;">{{ props.weekLabel }}</span>
+    </div>
+
+    <!-- Divisor -->
+    <div style="width:100%;height:1px;background:rgba(255,255,255,0.08);margin-bottom:28px;" />
 
     <!-- Dias da semana -->
-    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 28px;">
+    <div style="display:flex;justify-content:space-between;flex:1;align-items:flex-start;">
       <div
         v-for="day in props.weekDays"
         :key="day.date"
-        style="display: flex; flex-direction: column; align-items: center; gap: 8px;"
+        style="display:flex;flex-direction:column;align-items:center;gap:10px;"
       >
-        <div :style="getDayBoxStyle(day)">
-          <span v-if="day.hasWorkout" style="font-size: 22px; line-height: 1;">✓</span>
-        </div>
-        <span :style="day.isToday ? 'color: #ffffff; font-size: 12px; font-weight: 700;' : 'color: #6b7280; font-size: 12px; font-weight: 500;'">
+        <span :style="day.isToday ? 'color:#ffffff;font-size:13px;font-weight:700;' : 'color:#374151;font-size:13px;font-weight:500;'">
           {{ day.label }}
         </span>
+        <div :style="getDayBoxStyle(day)">
+          <span v-if="day.hasWorkout" style="font-size:26px;line-height:1;color:#22c55e;">✓</span>
+        </div>
       </div>
     </div>
 
-    <!-- Contador -->
-    <div style="text-align: center; color: #9ca3af; font-size: 15px; font-weight: 400; letter-spacing: 0.01em;">
+    <!-- Rodapé: contador -->
+    <div style="margin-top:20px;text-align:center;color:#4b5563;font-size:13px;font-weight:500;letter-spacing:0.02em;">
       {{ props.workoutCount }} {{ props.workoutCount === 1 ? 'treino' : 'treinos' }} essa semana
     </div>
   </div>
@@ -41,19 +51,21 @@ interface WeekDay {
 const props = withDefaults(defineProps<{
   weekDays?: WeekDay[]
   workoutCount?: number
+  logoSrc?: string
+  weekLabel?: string
 }>(), {
   weekDays: () => [],
   workoutCount: 0,
+  logoSrc: '',
+  weekLabel: '',
 })
 
-const rootStyle = 'width: 800px; height: 400px; background: #111111; border-radius: 16px; padding: 40px 48px; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; justify-content: center;'
-
 function getDayBoxStyle(day: WeekDay): string {
-  const base = 'width: 72px; height: 72px; border-radius: 12px; display: flex; align-items: center; justify-content: center;'
+  const base = 'width:78px;height:78px;border-radius:14px;display:flex;align-items:center;justify-content:center;'
   if (day.hasWorkout)
-    return `${base} background: rgba(34,197,94,0.15); border: 2px solid rgba(34,197,94,0.6); color: #22c55e;`
+    return `${base}background:rgba(34,197,94,0.12);border:2px solid rgba(34,197,94,0.5);`
   if (day.isToday)
-    return `${base} background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.35); color: transparent;`
-  return `${base} background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.1); color: transparent;`
+    return `${base}background:rgba(255,255,255,0.06);border:2px solid rgba(255,255,255,0.2);`
+  return `${base}background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);`
 }
 </script>

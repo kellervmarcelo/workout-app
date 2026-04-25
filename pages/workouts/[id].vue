@@ -46,6 +46,8 @@
           <WorkoutShareCard
             :week-days="shareCardData.weekDays"
             :workout-count="shareCardData.workoutCount"
+            :logo-src="shareCardData.logoSrc"
+            :week-label="shareCardData.weekLabel"
           />
         </div>
 
