@@ -33,6 +33,7 @@
     "@vueuse/core": "^12.4.0",
     "@vueuse/nuxt": "^12.4.0",
     "driver.js": "^1.4.0",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",

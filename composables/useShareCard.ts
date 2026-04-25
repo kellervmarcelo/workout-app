@@ -10,13 +10,20 @@ interface ShareCardData {
   workoutCount: number
   logoSrc: string
   weekLabel: string
+  weekYear: number
 }
 
 export function useShareCard() {
   const supabase = useSupabaseClient()
   const session = useSupabaseSession()
   const sharing = ref(false)
-  const shareCardData = ref<ShareCardData>({ weekDays: [], workoutCount: 0, logoSrc: '', weekLabel: '' })
+  const shareCardData = ref<ShareCardData>({
+    weekDays: [],
+    workoutCount: 0,
+    logoSrc: '',
+    weekLabel: '',
+    weekYear: new Date().getFullYear(),
+  })
 
   function toDateString(date: Date): string {
     const year = date.getFullYear()
@@ -47,13 +54,13 @@ export function useShareCard() {
   }
 
   function getWeekLabel(start: string, end: string): string {
-    const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
     const s = new Date(`${start}T12:00:00`)
     const e = new Date(`${end}T12:00:00`)
     const endStr = `${e.getDate()} ${months[e.getMonth()]}`
     if (s.getMonth() === e.getMonth())
-      return `${s.getDate()} a ${endStr}`
-    return `${s.getDate()} ${months[s.getMonth()]} a ${endStr}`
+      return `${s.getDate()} – ${endStr}`
+    return `${s.getDate()} ${months[s.getMonth()]} – ${endStr}`
   }
 
   async function loadLogoAsDataUrl(): Promise<string> {
@@ -92,43 +99,31 @@ export function useShareCard() {
         workoutCount: workoutDates.size,
         logoSrc,
         weekLabel: getWeekLabel(start, end),
+        weekYear: new Date().getFullYear(),
       }
 
       await nextTick()
 
-      const { default: html2canvas } = await import('html2canvas')
-      const canvas = await html2canvas(cardEl, {
-        width: 800,
-        height: 400,
-        backgroundColor: '#0f0f0f',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
+      // html-to-image: suporta background-clip:text e fundo transparente
+      const { toPng } = await import('html-to-image')
+      const dataUrl = await toPng(cardEl, {
+        pixelRatio: 2,
+        cacheBust: true,
       })
 
-      await new Promise<void>((resolve) => {
-        canvas.toBlob(async (blob) => {
-          if (!blob) {
-            resolve()
-            return
-          }
-          const file = new File([blob], 'yafa-semana.png', { type: 'image/png' })
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const file = new File([blob], `yafa-semana-${start}.png`, { type: 'image/png' })
 
-          if (navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'YAFA — Treino da semana' })
-          }
-          else {
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `yafa-semana-${start}.png`
-            a.click()
-            URL.revokeObjectURL(url)
-          }
-          resolve()
-        }, 'image/png')
-      })
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'YAFA — Treino da semana' })
+      }
+      else {
+        const a = document.createElement('a')
+        a.href = dataUrl
+        a.download = `yafa-semana-${start}.png`
+        a.click()
+      }
     }
     catch {}
     finally {

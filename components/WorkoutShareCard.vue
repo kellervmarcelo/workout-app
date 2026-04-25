@@ -1,61 +1,40 @@
 <template>
-  <div style="width:800px;height:400px;background:#0c0c0c;border-radius:28px;border:1.5px solid rgba(255,255,255,0.1);padding:36px 48px;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;justify-content:space-between;">
+  <div
+    aria-label="`${props.workoutCount} treinos na semana de ${props.weekLabel}`"
+    style="display:inline-flex;align-items:center;gap:18px;background:rgba(10,20,43,0.94);border:1px solid rgba(255,255,255,0.14);border-radius:22px;padding:22px 26px;box-shadow:0 12px 36px rgba(0,0,0,0.5);font-family:'Inter',system-ui,sans-serif;color:#f4f8fc;box-sizing:border-box;"
+  >
+    <!-- Mascote -->
+    <img
+      v-if="props.logoSrc"
+      :src="props.logoSrc"
+      alt=""
+      style="width:110px;height:110px;object-fit:contain;flex-shrink:0;display:block;"
+    >
 
-    <!-- Header: logo (esq) + stat de destaque (dir) -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-      <img
-        v-if="props.logoSrc"
-        :src="props.logoSrc"
-        alt="YAFA"
-        style="height:40px;width:auto;display:block;"
-      >
-      <div style="text-align:right;">
-        <div style="color:#ffffff;font-size:40px;font-weight:800;letter-spacing:-0.04em;line-height:1;">
-          {{ props.workoutCount }}
-        </div>
-        <div style="color:#6b7280;font-size:12px;font-weight:500;margin-top:4px;line-height:1;">
-          {{ props.workoutCount === 1 ? 'treino' : 'treinos' }} essa semana
-        </div>
+    <!-- Coluna central: contagem + data -->
+    <div style="display:flex;flex-direction:column;gap:6px;padding-right:24px;border-right:1px solid rgba(255,255,255,0.12);min-width:220px;">
+      <div style="display:flex;align-items:baseline;gap:12px;">
+        <span :style="countStyle">{{ props.workoutCount }}</span>
+        <span style="font-family:'Inter',system-ui,sans-serif;font-size:19px;font-weight:600;color:#e6eef8;line-height:1;">treinos</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;font-weight:600;color:#a8d4f0;letter-spacing:0.04em;text-transform:uppercase;line-height:1;">
+        {{ props.weekLabel }} · {{ props.weekYear }}
       </div>
     </div>
 
-    <!-- Divisor -->
-    <div style="width:100%;height:1px;background:rgba(255,255,255,0.08);" />
-
-    <!-- Dias da semana -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-      <div
-        v-for="day in props.weekDays"
-        :key="day.date"
-        style="display:flex;flex-direction:column;align-items:center;gap:8px;"
-      >
-        <span :style="day.isToday ? 'color:#9ca3af;font-size:11px;font-weight:700;line-height:1;letter-spacing:0.05em;' : 'color:#374151;font-size:11px;font-weight:600;line-height:1;letter-spacing:0.05em;'">
-          {{ day.label }}
-        </span>
-        <div :style="getDayBoxStyle(day)">
-          <svg
-            v-if="day.hasWorkout"
-            width="26"
-            height="26"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#22c55e"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            style="display:block;"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
+    <!-- Coluna direita: semana + dots -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding-left:8px;">
+      <div style="font-family:'Inter',system-ui,sans-serif;font-size:11px;font-weight:700;color:#7fb8e0;letter-spacing:0.4em;line-height:1;">
+        {{ isFullWeek ? 'SEMANA CHEIA' : 'SEMANA' }}
+      </div>
+      <div style="display:flex;gap:9px;align-items:center;">
+        <span
+          v-for="day in props.weekDays"
+          :key="day.date"
+          :style="day.hasWorkout ? dotOnStyle : dotOffStyle"
+        />
       </div>
     </div>
-
-    <!-- Rodapé: data da semana (detalhe secundário) -->
-    <div style="display:flex;justify-content:flex-end;">
-      <span style="color:#374151;font-size:12px;font-weight:500;line-height:1;">{{ props.weekLabel }}</span>
-    </div>
-
   </div>
 </template>
 
@@ -72,19 +51,24 @@ const props = withDefaults(defineProps<{
   workoutCount?: number
   logoSrc?: string
   weekLabel?: string
+  weekYear?: number
 }>(), {
   weekDays: () => [],
   workoutCount: 0,
   logoSrc: '',
   weekLabel: '',
+  weekYear: new Date().getFullYear(),
 })
 
-function getDayBoxStyle(day: WeekDay): string {
-  const base = 'width:76px;height:76px;border-radius:16px;display:flex;align-items:center;justify-content:center;'
-  if (day.hasWorkout)
-    return `${base}background:rgba(34,197,94,0.18);border:2px solid rgba(34,197,94,0.7);`
-  if (day.isToday)
-    return `${base}background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.2);`
-  return `${base}background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);`
-}
+const isFullWeek = computed(() => props.workoutCount === 7)
+
+const countStyle = computed(() => {
+  const base = `font-family:'Inter Tight',system-ui,sans-serif;font-size:60px;font-weight:800;letter-spacing:-0.02em;line-height:1;background:linear-gradient(180deg,#ffffff 0%,#a8d4f0 100%);-webkit-background-clip:text;background-clip:text;color:transparent;`
+  if (props.workoutCount === 0)
+    return base.replace('#ffffff 0%,#a8d4f0', '#7fb8e0 0%,#7fb8e0')
+  return base
+})
+
+const dotOnStyle = 'width:14px;height:14px;border-radius:50%;background:#a8d4f0;box-shadow:0 0 10px rgba(168,212,240,0.6);flex-shrink:0;display:inline-block;'
+const dotOffStyle = 'width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.20);flex-shrink:0;display:inline-block;'
 </script>
