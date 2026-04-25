@@ -220,7 +220,6 @@
               @click="openTemplate(template.id)"
             >
               <div class="flex items-center gap-2 min-w-0">
-                <!-- Chevron indicator -->
                 <svg
                   class="w-4 h-4 shrink-0 transition-transform duration-200 text-muted-foreground"
                   :class="{ 'rotate-90': activeTemplateId === template.id }"
@@ -239,7 +238,7 @@
                     class="font-mono text-[10px] shrink-0"
                     :class="activeTemplateId === template.id ? 'bg-primary/10 border-primary/30' : ''"
                   >
-                    {{ totalExercises(template) }}
+                    {{ template.exercises?.length || 0 }}
                   </Badge>
                 </div>
               </div>
@@ -260,14 +259,14 @@
           </div>
         </Card>
 
-        <!-- Template Detail Panel - slide down with distinct style -->
+        <!-- Template Detail Panel -->
         <div
           v-if="activeTemplateId === template.id"
           class="overflow-hidden"
           style="animation: slideDown 0.3s ease-out"
         >
           <div class="ml-6 md:ml-8 mt-2 p-4 md:p-6 rounded-lg border-l-4 border-l-primary bg-muted/30 border border-t-0">
-            <!-- Section header with distinct styling -->
+            <!-- Section header -->
             <div class="flex items-start justify-between gap-3 mb-5 pb-3 border-b border-border/50">
               <div class="flex items-start gap-3 min-w-0 flex-1">
                 <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,7 +337,7 @@
               />
             </div>
 
-            <!-- Separator: Comments vs Exercises -->
+            <!-- Separator -->
             <div class="mb-5 flex items-center gap-3">
               <div class="flex-1 h-px bg-border/50" />
               <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,102 +423,8 @@
               </div>
             </div>
 
-            <!-- Add Exercise Form (hidden when markdown mode) -->
-            <form v-if="!showInlineMarkdown" class="space-y-4 mb-6" @submit.prevent="addExercise">
-              <div class="space-y-2">
-                <Label for="exercise-name" required>Nome do Exercício</Label>
-                <Input
-                  id="exercise-name"
-                  v-model="newExerciseName"
-                  placeholder="Ex: Supino Reto"
-                  required
-                  class="h-10"
-                />
-              </div>
-
-              <!-- Tipo: Reps / Tempo -->
-              <div class="flex gap-1 bg-muted rounded-md p-1">
-                <button
-                  type="button"
-                  class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
-                  :class="newExerciseType === 'reps' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
-                  @click="newExerciseType = 'reps'"
-                >
-                  Reps
-                </button>
-                <button
-                  type="button"
-                  class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors"
-                  :class="newExerciseType === 'time' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'"
-                  @click="newExerciseType = 'time'"
-                >
-                  Tempo
-                </button>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <div class="space-y-2">
-                  <Label :for="newExerciseType === 'time' ? 'exercise-duration' : 'exercise-reps'">
-                    {{ newExerciseType === 'time' ? 'Duração (s)' : 'Reps' }}
-                  </Label>
-                  <Input
-                    v-if="newExerciseType === 'time'"
-                    id="exercise-duration"
-                    v-model.number="newExerciseDuration"
-                    type="number"
-                    min="5"
-                    step="5"
-                    class="h-10 font-mono"
-                  />
-                  <Input
-                    v-else
-                    id="exercise-reps"
-                    v-model.number="newExerciseReps"
-                    type="number"
-                    min="1"
-                    class="h-10 font-mono"
-                  />
-                </div>
-                <div class="space-y-2">
-                  <Label for="exercise-sets">Séries</Label>
-                  <Input
-                    id="exercise-sets"
-                    v-model.number="newExerciseSets"
-                    type="number"
-                    min="1"
-                    class="h-10 font-mono"
-                  />
-                </div>
-                <div class="space-y-2">
-                  <Label for="exercise-weight">Carga (kg)</Label>
-                  <Input
-                    id="exercise-weight"
-                    v-model.number="newExerciseWeight"
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    class="h-10 font-mono"
-                  />
-                </div>
-                <div class="space-y-2">
-                  <Label for="exercise-rest">Descanso (s)</Label>
-                  <Input
-                    id="exercise-rest"
-                    v-model.number="newExerciseRest"
-                    type="number"
-                    step="5"
-                    min="0"
-                    class="h-10 font-mono"
-                  />
-                </div>
-              </div>
-              <Button type="submit" size="sm" class="w-full md:w-auto">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Adicionar
-              </Button>
-            </form>
+            <!-- Add Exercise Form -->
+            <ExerciseForm v-if="!showInlineMarkdown" class="mb-6" @submit="addExercise" />
 
             <!-- Exercises List -->
             <div v-if="activeTemplate?.exercises?.length" class="space-y-2">
@@ -578,6 +483,7 @@
 
 <script setup lang="ts">
 import type { Session } from '@supabase/supabase-js'
+import type { ExerciseFormValues } from '~/components/ExerciseForm.vue'
 import type { ParsedTemplate } from '~/composables/useMarkdownTemplate'
 
 definePageMeta({ middleware: 'auth' })
@@ -585,32 +491,20 @@ useHead({ title: 'YAFA — Templates' })
 
 const supabase = useSupabaseClient()
 const session = ref<Session | null>(null)
-const templates = ref<WorkoutTemplateWithExercises[]>([])
-const loading = ref(false)
+const { templates, loading, fetchTemplates } = useTemplates()
+
 const showCreateDialog = ref(false)
 const newTemplateName = ref('')
 const newTemplateDescription = ref('')
 const newTemplateComments = ref('')
 
-// Template detail state
 const activeTemplateId = ref<string | null>(null)
 const editingTemplateId = ref<string | null>(null)
-const newExerciseName = ref('')
-const newExerciseReps = ref(10)
-const newExerciseSets = ref(3)
-const newExerciseWeight = ref(0)
-const newExerciseRest = ref(60)
-const newExerciseType = ref<'reps' | 'time'>('reps')
-const newExerciseDuration = ref(30)
 
-// Create dialog state
 const createMode = ref<'manual' | 'markdown'>('manual')
-
-// Markdown import state (for create dialog)
 const markdownInput = ref('')
 const parsedPreview = ref<ParsedTemplate | null>(null)
 
-// Inline markdown state (for existing template panel)
 const showInlineMarkdown = ref(false)
 const inlineMarkdownInput = ref('')
 const inlineParsedPreview = ref<ParsedTemplate | null>(null)
@@ -636,33 +530,6 @@ onMounted(async () => {
 
   await fetchTemplates()
 })
-
-async function fetchTemplates() {
-  if (!session.value?.user)
-    return
-
-  loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('workout_templates')
-      .select(`
-        *,
-        exercises:template_exercises(*)
-      `)
-      .eq('user_id', session.value.user.id)
-      .order('created_at', { ascending: false })
-
-    if (error)
-      throw error
-    templates.value = data || []
-  }
-  catch (error: any) {
-    console.error('Erro ao buscar templates:', error)
-  }
-  finally {
-    loading.value = false
-  }
-}
 
 async function createTemplate() {
   if (!session.value?.user || !newTemplateName.value)
@@ -690,7 +557,6 @@ async function createTemplate() {
 
     await fetchTemplates()
 
-    // Abre o template recém-criado automaticamente
     if (data?.id) {
       activeTemplateId.value = data.id
     }
@@ -714,10 +580,6 @@ async function deleteTemplate(id: string) {
   }
 }
 
-function totalExercises(template: WorkoutTemplateWithExercises) {
-  return template.exercises?.length || 0
-}
-
 function openTemplate(id: string) {
   if (activeTemplateId.value === id)
     activeTemplateId.value = null
@@ -725,8 +587,8 @@ function openTemplate(id: string) {
     activeTemplateId.value = id
 }
 
-async function addExercise() {
-  if (!activeTemplateId.value || !newExerciseName.value)
+async function addExercise(values: ExerciseFormValues) {
+  if (!activeTemplateId.value)
     return
 
   const template = activeTemplate.value
@@ -734,35 +596,26 @@ async function addExercise() {
     return
 
   const order = template.exercises?.length || 0
+  const isTime = values.type === 'time'
 
   try {
-    const isTime = newExerciseType.value === 'time'
     const { error } = await supabase
       .from('template_exercises')
       .insert({
         template_id: activeTemplateId.value,
-        name: newExerciseName.value,
+        name: values.name,
         order,
-        default_reps: isTime ? 0 : newExerciseReps.value,
-        default_sets: newExerciseSets.value,
-        default_weight_kg: newExerciseWeight.value,
-        default_rest_seconds: newExerciseRest.value,
-        exercise_type: newExerciseType.value,
-        default_duration_seconds: isTime ? newExerciseDuration.value : null,
+        default_reps: isTime ? 0 : values.reps,
+        default_sets: values.sets,
+        default_weight_kg: values.weight,
+        default_rest_seconds: values.rest,
+        exercise_type: values.type,
+        default_duration_seconds: isTime ? values.duration : null,
       })
 
     if (error)
       throw error
 
-    newExerciseName.value = ''
-    newExerciseReps.value = 10
-    newExerciseSets.value = 3
-    newExerciseWeight.value = 0
-    newExerciseRest.value = 60
-    newExerciseType.value = 'reps'
-    newExerciseDuration.value = 30
-
-    // Recarrega apenas o template ativo
     await fetchTemplates()
   }
   catch (error: any) {
@@ -905,7 +758,6 @@ async function createFromMarkdown() {
   }
 }
 
-// Inline markdown functions
 function parseInlineMarkdown() {
   if (!inlineMarkdownInput.value.trim())
     return

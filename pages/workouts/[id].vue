@@ -38,7 +38,6 @@
 
       <!-- Completion Banner -->
       <div v-if="workout.completed_at" class="space-y-0">
-        <!-- Card oculto para captura — ref na div wrapper, não no componente -->
         <div
           ref="shareCardRef"
           style="position: absolute; left: -9999px; top: -9999px; pointer-events: none;"
@@ -78,7 +77,7 @@
         </div>
       </div>
 
-      <!-- Notes Section - prominent -->
+      <!-- Notes Section -->
       <div v-if="workout.notes" class="rounded-lg border-l-4 border-l-primary bg-muted/50 p-3 md:p-5">
         <div class="flex items-center gap-2 mb-2">
           <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,7 +105,7 @@
             Data
           </div>
           <div class="text-sm font-semibold mt-1 md:text-lg">
-            {{ new Date(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) }}
+            {{ parseSafeDate(workout.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) }}
           </div>
         </Card>
         <Card class="p-3 md:p-4">
@@ -114,7 +113,7 @@
             Séries
           </div>
           <div class="text-sm font-bold mt-1 md:text-lg">
-            {{ totalSets }}
+            {{ workoutTotalSets }}
           </div>
         </Card>
         <Card class="p-3 md:p-4">
@@ -122,7 +121,7 @@
             Volume
           </div>
           <div class="text-sm font-bold mt-1 md:text-lg">
-            {{ totalVolume.toLocaleString('pt-BR') }} <span class="text-xs font-normal text-muted-foreground">kg</span>
+            {{ workoutTotalVolume.toLocaleString('pt-BR') }} <span class="text-xs font-normal text-muted-foreground">kg</span>
           </div>
         </Card>
         <Card class="p-3 md:p-4">
@@ -241,138 +240,20 @@
 
     <!-- Exercises -->
     <div v-if="workout.exercises?.length" class="space-y-4 md:space-y-6">
-      <SwipeToDelete
+      <ExerciseAccordionItem
         v-for="(exercise, idx) in workout.exercises"
         :key="exercise.id"
-        :ref="(el: any) => swipeRefs[exercise.id] = el"
-        @delete="deleteExercise(exercise.id)"
-        @swipe-open="closeOtherSwipes(exercise.id)"
-      >
-        <Collapsible
-          :ref="(el: any) => collapsibleRefs[exercise.id] = el"
-          :default-open="!exercise.sets?.every(s => s.completed)"
-        >
-          <template #title>
-            <div class="flex items-center gap-2 md:gap-3 min-w-0">
-              <Badge variant="outline" class="font-mono text-xs shrink-0">
-                {{ idx + 1 }}
-              </Badge>
-              <h3 class="text-sm font-semibold md:text-lg truncate min-w-0">
-                {{ exercise.name }}
-              </h3>
-              <Badge variant="secondary" class="text-[10px] shrink-0">
-                {{ completedSetCount(exercise) }}/{{ exercise.sets?.length || 0 }}
-              </Badge>
-            </div>
-          </template>
-
-          <!-- Sets Table -->
-          <div class="overflow-x-auto -mx-1 px-1">
-            <table class="w-full text-sm table-fixed">
-              <colgroup>
-                <col class="w-8">
-                <col class="w-24">
-                <col class="w-24">
-              </colgroup>
-              <thead>
-                <tr class="text-muted-foreground border-b">
-                  <th class="py-3 px-1 text-center">
-                    <input
-                      type="checkbox"
-                      :checked="exercise.sets?.length ? exercise.sets.every(s => s.completed) : false"
-                      :indeterminate.prop="exercise.sets?.length ? exercise.sets.some(s => s.completed) && !exercise.sets.every(s => s.completed) : false"
-                      class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer mx-auto"
-                      @change="toggleAllSets(exercise.id, exercise.sets || [])"
-                    >
-                  </th>
-                  <th class="py-3 px-1 text-center font-medium text-xs">
-                    {{ exercise.exercise_type === 'time' ? 'Tempo' : 'Reps' }}
-                  </th>
-                  <th class="py-3 px-1 text-center font-medium text-xs">
-                    Kg
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="set in exercise.sets" :key="set.id" class="border-b last:border-0 hover:bg-muted/20">
-                  <td class="py-3 px-1 text-center">
-                    <input
-                      type="checkbox"
-                      :checked="!!set.completed"
-                      class="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
-                      @change="toggleSetComplete(set.id, set.completed)"
-                    >
-                  </td>
-                  <td class="py-3 px-1">
-                    <SetTimer
-                      v-if="exercise.exercise_type === 'time'"
-                      :duration-seconds="set.duration_seconds || 30"
-                      @complete="toggleSetComplete(set.id, false)"
-                    />
-                    <Input
-                      v-else
-                      :model-value="String(set.reps)"
-                      type="number"
-                      min="1"
-                      class="h-9 text-center text-sm font-mono"
-                      @update:model-value="updateSet(set.id, 'reps', Number($event))"
-                    />
-                  </td>
-                  <td class="py-3 px-1">
-                    <Input
-                      :model-value="String(set.weight_kg)"
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      class="h-9 text-center text-sm font-mono"
-                      @update:model-value="updateSet(set.id, 'weight_kg', Number($event))"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Add Set Button -->
-          <Button
-            variant="outline"
-            size="sm"
-            class="mt-3 w-full h-10"
-            @click="addSet(exercise.id)"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Adicionar Série
-          </Button>
-
-          <!-- Rest Timer Button -->
-          <Button
-            variant="outline"
-            size="sm"
-            class="mt-2 w-full h-10"
-            @click="openExerciseTimer(exercise)"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Timer de Descanso
-          </Button>
-
-          <!-- Delete Exercise Button -->
-          <Button
-            variant="outline"
-            size="sm"
-            class="mt-2 w-full h-10 text-destructive hover:text-destructive"
-            @click="deleteExercise(exercise.id)"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Remover Exercício
-          </Button>
-        </Collapsible>
-      </SwipeToDelete>
+        :ref="(el: any) => accordionRefs[exercise.id] = el"
+        :exercise="exercise"
+        :idx="idx"
+        @add-set="addSet"
+        @update-set="updateSet"
+        @toggle-set="toggleSetComplete"
+        @toggle-all-sets="toggleAllSets"
+        @delete="deleteExercise"
+        @open-timer="openExerciseTimer"
+        @swipe-open="closeOtherSwipes"
+      />
 
       <!-- Finish Workout Button -->
       <Button
@@ -387,7 +268,7 @@
         Finalizar Treino
       </Button>
 
-      <!-- Add Exercise Button - at end of list -->
+      <!-- Add Exercise Button -->
       <Button
         variant="outline"
         size="sm"
@@ -464,7 +345,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ExerciseLibraryItem } from '~/types'
+import type { ExerciseLibraryItem, ExerciseWithSets, WorkoutSet } from '~/types'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -472,6 +353,9 @@ const route = useRoute()
 const workoutId = route.params.id as string
 
 const supabase = useSupabaseClient()
+const { templates, fetchTemplates } = useTemplates()
+const { totalVolume, totalSets } = useWorkoutMetrics()
+const { parseSafeDate } = useDate()
 
 const workout = ref<WorkoutWithExercises | null>(null)
 
@@ -487,15 +371,16 @@ const showInfos = ref(false)
 const showFinishModal = ref(false)
 const shareCardRef = ref<HTMLElement | null>(null)
 const { sharing, shareCardData, generateAndShare } = useShareCard()
-const templates = ref<WorkoutTemplateWithExercises[]>([])
-const collapsibleRefs = ref<Record<string, any>>({})
-const swipeRefs = ref<Record<string, any>>({})
+const accordionRefs = ref<Record<string, any>>({})
 const showTimerModal = ref(false)
 const timerRestSeconds = ref(60)
 
 const existingExerciseNames = computed(() => {
   return workout.value?.exercises?.map(e => e.name.toLowerCase()) || []
 })
+
+const workoutTotalVolume = computed(() => totalVolume(workout.value?.exercises || []))
+const workoutTotalSets = computed(() => totalSets(workout.value?.exercises || []))
 
 async function fetchWorkout() {
   loading.value = true
@@ -504,20 +389,16 @@ async function fetchWorkout() {
       .from('workouts')
       .select(`
         *,
-        exercises (
+        exercises(
           *,
           sets:workout_sets(*)
         )
       `)
       .eq('id', workoutId)
-      .maybeSingle()
+      .single()
 
     if (error)
       throw error
-    if (!data) {
-      navigateTo('/')
-      return
-    }
     workout.value = data
   }
   catch (error: any) {
@@ -525,30 +406,6 @@ async function fetchWorkout() {
   }
   finally {
     loading.value = false
-  }
-}
-
-async function fetchTemplates() {
-  const { data: sessionData } = await supabase.auth.getSession()
-  if (!sessionData.session?.user)
-    return
-
-  try {
-    const { data, error } = await supabase
-      .from('workout_templates')
-      .select(`
-        *,
-        exercises:template_exercises(*)
-      `)
-      .eq('user_id', sessionData.session.user.id)
-      .order('name', { ascending: true })
-
-    if (error)
-      throw error
-    templates.value = data || []
-  }
-  catch (error: any) {
-    console.error('Erro ao buscar templates:', error)
   }
 }
 
@@ -561,16 +418,15 @@ async function loadTemplate(templateId: string) {
     return
 
   try {
-    // Adicionar cada exercício do template ao treino
     for (const exercise of template.exercises) {
       const { data: exerciseData, error: exerciseError } = await supabase
         .from('exercises')
         .insert({
           workout_id: workoutId,
           name: exercise.name,
-          order: exercise.order,
-          rest_seconds: exercise.default_rest_seconds ?? 60,
+          order: (workout.value.exercises?.length || 0),
           exercise_type: exercise.exercise_type || 'reps',
+          rest_seconds: exercise.default_rest_seconds ?? 60,
         })
         .select()
         .single()
@@ -578,31 +434,27 @@ async function loadTemplate(templateId: string) {
       if (exerciseError)
         throw exerciseError
 
-      // Gerar séries baseado no default_sets do template
-      const totalSets = exercise.default_sets || 3
       const isTime = exercise.exercise_type === 'time'
+      if (exercise.default_sets > 0) {
+        for (let s = 1; s <= exercise.default_sets; s++) {
+          const { error: setError } = await supabase
+            .from('workout_sets')
+            .insert({
+              exercise_id: exerciseData.id,
+              set_number: s,
+              reps: isTime ? 0 : exercise.default_reps,
+              weight_kg: exercise.default_weight_kg,
+              duration_seconds: isTime ? (exercise.default_duration_seconds || 30) : null,
+              rest_seconds: exercise.default_rest_seconds ?? 60,
+              completed: false,
+            })
 
-      const setsToInsert = []
-      for (let i = 1; i <= totalSets; i++) {
-        setsToInsert.push({
-          exercise_id: exerciseData.id,
-          set_number: i,
-          reps: isTime ? 0 : exercise.default_reps,
-          weight_kg: exercise.default_weight_kg,
-          duration_seconds: isTime ? (exercise.default_duration_seconds || 30) : null,
-          completed: false,
-        })
+          if (setError)
+            throw setError
+        }
       }
-
-      const { error: setError } = await supabase
-        .from('workout_sets')
-        .insert(setsToInsert)
-
-      if (setError)
-        throw setError
     }
 
-    // Copiar comentários do template para as notas do workout
     if (template.comments) {
       const existingNotes = workout.value.notes || ''
       const newNotes = existingNotes
@@ -732,7 +584,6 @@ async function updateSet(setId: string, field: keyof WorkoutSet, value: number) 
     if (error)
       throw error
 
-    // Sync back to template if workout was created from one
     await syncSetToTemplate(setId, field, value)
   }
   catch (error: any) {
@@ -744,19 +595,16 @@ async function syncSetToTemplate(setId: string, field: keyof WorkoutSet, value: 
   if (!workout.value || !(workout.value as any).source_template_id)
     return
 
-  // Find which exercise this set belongs to
   const exercise = workout.value.exercises?.find(e =>
     e.sets?.some((s: WorkoutSet) => s.id === setId),
   )
   if (!exercise)
     return
 
-  // Map field name to template column
   const templateField = field === 'weight_kg' ? 'default_weight_kg' : field === 'reps' ? 'default_reps' : null
   if (!templateField)
     return
 
-  // 'order' is a reserved word in PostgREST — must use double-quoted column name
   const { error } = await supabase
     .from('template_exercises')
     .update({ [templateField]: value })
@@ -765,10 +613,6 @@ async function syncSetToTemplate(setId: string, field: keyof WorkoutSet, value: 
 
   if (error)
     console.error('Erro ao sincronizar com template:', error)
-}
-
-function completedSetCount(exercise: ExerciseWithSets): number {
-  return (exercise.sets || []).filter(s => s.completed).length
 }
 
 function openExerciseTimer(exercise: ExerciseWithSets) {
@@ -788,7 +632,6 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
     if (error)
       throw error
 
-    // Update local state
     const set = workout.value?.exercises
       ?.flatMap(e => e.sets || [])
       .find(s => s.id === setId)
@@ -797,16 +640,11 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
 
     await checkWorkoutCompletion()
 
-    // Auto-close exercise accordion when all sets are completed
     if (newCompleted && workout.value?.exercises) {
       for (const exercise of workout.value.exercises) {
         const allComplete = (exercise.sets || []).every(s => s.completed)
-        if (allComplete && collapsibleRefs.value[exercise.id]) {
-          const el = collapsibleRefs.value[exercise.id]
-          // Collapsible component exposes a toggle method or isOpen ref
-          if (el && typeof el.close === 'function') {
-            el.close()
-          }
+        if (allComplete) {
+          accordionRefs.value[exercise.id]?.collapseAccordion()
         }
       }
     }
@@ -832,22 +670,14 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
     if (error)
       throw error
 
-    // Update local state
     for (const set of sets) {
       set.completed = newCompleted
     }
 
     await checkWorkoutCompletion()
 
-    // Auto-close if all completed
-    if (newCompleted && workout.value?.exercises) {
-      const exercise = workout.value.exercises.find(e => e.id === exerciseId)
-      if (exercise && collapsibleRefs.value[exerciseId]) {
-        const el = collapsibleRefs.value[exerciseId]
-        if (el && typeof el.close === 'function') {
-          el.close()
-        }
-      }
+    if (newCompleted) {
+      accordionRefs.value[exerciseId]?.collapseAccordion()
     }
   }
   catch (error: any) {
@@ -905,9 +735,9 @@ async function handleShare() {
 }
 
 function closeOtherSwipes(openedId: string) {
-  for (const [id, ref] of Object.entries(swipeRefs.value)) {
-    if (id !== openedId && ref && typeof ref.close === 'function') {
-      ref.close()
+  for (const [id, ref] of Object.entries(accordionRefs.value)) {
+    if (id !== openedId && ref) {
+      ref.closeSwipe()
     }
   }
 }
@@ -923,21 +753,6 @@ async function deleteExercise(exerciseId: string) {
     console.error('Erro ao deletar exercício:', error)
   }
 }
-
-const totalVolume = computed(() => {
-  if (!workout.value?.exercises)
-    return 0
-  return workout.value.exercises.reduce((sum, ex) => {
-    const exerciseVolume = (ex.sets || []).reduce((s, set) => s + (set.reps * set.weight_kg), 0)
-    return sum + exerciseVolume
-  }, 0)
-})
-
-const totalSets = computed(() => {
-  if (!workout.value?.exercises)
-    return 0
-  return workout.value.exercises.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0)
-})
 
 onMounted(fetchWorkout)
 </script>
