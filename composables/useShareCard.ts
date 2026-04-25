@@ -111,19 +111,10 @@ export function useShareCard() {
         cacheBust: true,
       })
 
-      const res = await fetch(dataUrl)
-      const blob = await res.blob()
-      const file = new File([blob], `yafa-semana-${start}.png`, { type: 'image/png' })
-
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'YAFA — Treino da semana' })
-      }
-      else {
-        const a = document.createElement('a')
-        a.href = dataUrl
-        a.download = `yafa-semana-${start}.png`
-        a.click()
-      }
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = `yafa-semana-${start}.png`
+      a.click()
     }
     catch {}
     finally {
