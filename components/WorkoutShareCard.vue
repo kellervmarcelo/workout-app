@@ -1,21 +1,18 @@
 <template>
-  <div style="width:800px;height:400px;background:#0f0f0f;border-radius:20px;padding:40px 48px;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;justify-content:center;">
-    <!-- Header: logo + nome | label da semana -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <img
-          v-if="props.logoSrc"
-          :src="props.logoSrc"
-          alt=""
-          style="height:36px;width:auto;display:block;"
-        >
-        <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.02em;line-height:1;">YAFA</span>
-      </div>
+  <div style="width:800px;height:400px;background:#0f0f0f;border-radius:28px;border:1.5px solid rgba(255,255,255,0.1);padding:40px 52px;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;justify-content:space-between;">
+    <!-- Header: logo | label da semana -->
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <img
+        v-if="props.logoSrc"
+        :src="props.logoSrc"
+        alt="YAFA"
+        style="height:44px;width:auto;display:block;"
+      >
       <span style="color:#4b5563;font-size:13px;font-weight:500;line-height:1;">{{ props.weekLabel }}</span>
     </div>
 
     <!-- Divisor -->
-    <div style="width:100%;height:1px;background:rgba(255,255,255,0.08);margin-bottom:24px;" />
+    <div style="width:100%;height:1px;background:rgba(255,255,255,0.08);" />
 
     <!-- Dias da semana -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -47,7 +44,7 @@
     </div>
 
     <!-- Rodapé: contador -->
-    <div style="margin-top:24px;text-align:center;color:#4b5563;font-size:13px;font-weight:500;line-height:1;">
+    <div style="text-align:center;color:#4b5563;font-size:13px;font-weight:500;line-height:1;">
       {{ props.workoutCount }} {{ props.workoutCount === 1 ? 'treino' : 'treinos' }} essa semana
     </div>
   </div>
