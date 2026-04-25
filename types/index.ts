@@ -12,6 +12,7 @@ export interface Workout {
   name: string
   notes?: string
   date: string
+  completed_at?: string | null
   created_at: string
   updated_at: string
 }

@@ -226,3 +226,20 @@ BEGIN
   INSERT INTO workout_sets (exercise_id, set_number, reps, weight_kg, duration_seconds, completed) VALUES
     (v_exercise_id, 1, 0, 0, 30, true), (v_exercise_id, 2, 0, 0, 30, true), (v_exercise_id, 3, 0, 0, 30, true);
 END $$;
+
+-- Backfill completed_at for seeded workouts that have all sets completed
+UPDATE workouts w
+SET completed_at = w.created_at
+WHERE (
+  SELECT COUNT(*)
+  FROM exercises e
+  JOIN workout_sets ws ON ws.exercise_id = e.id
+  WHERE e.workout_id = w.id
+) > 0
+AND (
+  SELECT COUNT(*)
+  FROM exercises e
+  JOIN workout_sets ws ON ws.exercise_id = e.id
+  WHERE e.workout_id = w.id
+    AND ws.completed = false
+) = 0;
