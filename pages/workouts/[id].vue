@@ -37,14 +37,44 @@
       </h1>
 
       <!-- Completion Banner -->
-      <div
-        v-if="workout.completed_at"
-        class="p-3 rounded-md text-sm border bg-green-500/10 text-green-600 border-green-500/20 flex items-center gap-2"
-      >
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Treino concluído! Todos os exercícios finalizados.
+      <div v-if="workout.completed_at" class="space-y-0">
+        <!-- Card oculto para captura — ref na div wrapper, não no componente -->
+        <div
+          ref="shareCardRef"
+          style="position: absolute; left: -9999px; top: -9999px; pointer-events: none;"
+        >
+          <WorkoutShareCard
+            :week-days="shareCardData.weekDays"
+            :workout-count="shareCardData.workoutCount"
+            :logo-src="shareCardData.logoSrc"
+            :week-label="shareCardData.weekLabel"
+          />
+        </div>
+
+        <div class="p-3 rounded-md text-sm border bg-green-500/10 text-green-600 border-green-500/20 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Treino concluído! Todos os exercícios finalizados.
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            class="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-500/10 shrink-0"
+            :disabled="sharing"
+            @click="handleShare"
+          >
+            <svg v-if="sharing" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            <span class="ml-1 hidden sm:inline">Compartilhar</span>
+          </Button>
+        </div>
       </div>
 
       <!-- Notes Section - prominent -->
@@ -454,6 +484,8 @@ const showTemplateSelector = ref(false)
 const showMoreMenu = ref(false)
 const showInfos = ref(false)
 const showFinishModal = ref(false)
+const shareCardRef = ref<HTMLElement | null>(null)
+const { sharing, shareCardData, generateAndShare } = useShareCard()
 const templates = ref<WorkoutTemplateWithExercises[]>([])
 const collapsibleRefs = ref<Record<string, any>>({})
 const swipeRefs = ref<Record<string, any>>({})
@@ -862,6 +894,13 @@ async function confirmFinish() {
     workout.value.completed_at = completedAt
   }
   catch {}
+}
+
+async function handleShare() {
+  const cardEl = shareCardRef.value?.firstElementChild as HTMLElement | null
+  if (!cardEl)
+    return
+  await generateAndShare(cardEl)
 }
 
 function closeOtherSwipes(openedId: string) {
