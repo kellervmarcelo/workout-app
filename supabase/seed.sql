@@ -412,3 +412,31 @@ BEGIN
   INSERT INTO template_exercises (template_id, name, "order", default_reps, default_weight_kg, default_rest_seconds, exercise_type, default_duration_seconds) VALUES
     (v_template_id, 'Prancha', 6, 0, 0, 60, 'time', 30);
 END $$;
+
+-- Backfill completed_at e started_at para treinos com todos sets concluídos.
+-- started_at usa duração realista por tipo de treino.
+UPDATE workouts w
+SET
+  completed_at = COALESCE(w.completed_at, w.created_at),
+  started_at = w.created_at - CASE w.name
+    WHEN 'Peito & Tríceps' THEN INTERVAL '65 minutes'
+    WHEN 'Costas & Bíceps' THEN INTERVAL '55 minutes'
+    WHEN 'Pernas'          THEN INTERVAL '80 minutes'
+    WHEN 'Ombros & Trapézio' THEN INTERVAL '50 minutes'
+    WHEN 'Superior A'      THEN INTERVAL '48 minutes'
+    WHEN 'Inferior A'      THEN INTERVAL '45 minutes'
+    ELSE INTERVAL '60 minutes'
+  END
+WHERE (
+  SELECT COUNT(*)
+  FROM exercises e
+  JOIN workout_sets ws ON ws.exercise_id = e.id
+  WHERE e.workout_id = w.id
+) > 0
+AND (
+  SELECT COUNT(*)
+  FROM exercises e
+  JOIN workout_sets ws ON ws.exercise_id = e.id
+  WHERE e.workout_id = w.id
+    AND ws.completed = false
+) = 0;

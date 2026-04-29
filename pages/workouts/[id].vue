@@ -638,6 +638,16 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
     if (set)
       set.completed = newCompleted
 
+    if (newCompleted && workout.value && !workout.value.started_at) {
+      const startedAt = new Date().toISOString()
+      const { error: startError } = await supabase
+        .from('workouts')
+        .update({ started_at: startedAt })
+        .eq('id', workout.value.id)
+      if (!startError)
+        workout.value.started_at = startedAt
+    }
+
     await checkWorkoutCompletion()
 
     if (newCompleted && workout.value?.exercises) {
@@ -672,6 +682,16 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
 
     for (const set of sets) {
       set.completed = newCompleted
+    }
+
+    if (newCompleted && workout.value && !workout.value.started_at) {
+      const startedAt = new Date().toISOString()
+      const { error: startError } = await supabase
+        .from('workouts')
+        .update({ started_at: startedAt })
+        .eq('id', workout.value.id)
+      if (!startError)
+        workout.value.started_at = startedAt
     }
 
     await checkWorkoutCompletion()
