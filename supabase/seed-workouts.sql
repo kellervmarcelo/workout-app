@@ -227,9 +227,20 @@ BEGIN
     (v_exercise_id, 1, 0, 0, 30, true), (v_exercise_id, 2, 0, 0, 30, true), (v_exercise_id, 3, 0, 0, 30, true);
 END $$;
 
--- Backfill completed_at for seeded workouts that have all sets completed
+-- Backfill completed_at e started_at para treinos com todos sets concluídos.
+-- started_at usa duração realista por tipo de treino.
 UPDATE workouts w
-SET completed_at = w.created_at
+SET
+  completed_at = COALESCE(w.completed_at, w.created_at),
+  started_at = w.created_at - CASE w.name
+    WHEN 'Peito & Tríceps' THEN INTERVAL '65 minutes'
+    WHEN 'Costas & Bíceps' THEN INTERVAL '55 minutes'
+    WHEN 'Pernas'          THEN INTERVAL '80 minutes'
+    WHEN 'Ombros & Trapézio' THEN INTERVAL '50 minutes'
+    WHEN 'Superior A'      THEN INTERVAL '48 minutes'
+    WHEN 'Inferior A'      THEN INTERVAL '45 minutes'
+    ELSE INTERVAL '60 minutes'
+  END
 WHERE (
   SELECT COUNT(*)
   FROM exercises e

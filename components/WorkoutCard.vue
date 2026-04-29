@@ -25,6 +25,12 @@
               </svg>
               {{ formatDisplayDate(props.workout.date) }}
             </span>
+            <span v-if="duration" class="flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {{ duration }}
+            </span>
             <span v-if="volume > 0" class="flex items-center gap-1">
               <svg class="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -54,8 +60,9 @@ import type { WorkoutWithExercises } from '~/types'
 const props = defineProps<{ workout: WorkoutWithExercises }>()
 const emit = defineEmits<{ delete: [id: string] }>()
 
-const { totalVolume } = useWorkoutMetrics()
+const { totalVolume, formatDuration } = useWorkoutMetrics()
 const { formatDisplayDate } = useDate()
 
 const volume = computed(() => totalVolume(props.workout.exercises || []))
+const duration = computed(() => formatDuration(props.workout.started_at, props.workout.completed_at))
 </script>
