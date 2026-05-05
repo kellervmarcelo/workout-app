@@ -32,7 +32,7 @@ const DEFAULT_REST = 60
  * Combinado: "3x30s 30s" → isTime=true, durationSeconds=30, restSeconds=30.
  */
 function extractNxM(text: string): { sets: number, reps: number, durationSeconds: number | undefined, restSeconds: number, index: number } | null {
-  const m = text.match(/(\d+)[xX](\d+)(?:-\d+)?(s)?(?:\s+(\d+)s)?\s*$/)
+  const m = text.match(/(\d+)[xX](\d+)(?:-\d+)?(s)?(?:\s+(?:[—–]\s*)?(\d+)s)?\s*$/)
   if (!m)
     return null
   const isTime = !!m[3]
