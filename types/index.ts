@@ -3,6 +3,7 @@ export interface User {
   email: string
   display_name?: string
   avatar_url?: string
+  weekly_workout_goal?: number
   created_at: string
 }
 

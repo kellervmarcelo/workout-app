@@ -38,7 +38,10 @@
             {{ currentStreak }}
           </div>
           <div class="text-xs text-muted-foreground mt-0.5">
-            {{ currentStreak === 1 ? 'dia seguido' : 'dias seguidos' }}
+            {{ currentStreak === 1 ? 'semana seguindo a meta' : 'semanas seguindo a meta' }}
+          </div>
+          <div class="text-xs text-muted-foreground/60 mt-0.5">
+            Meta: {{ weeklyGoal }}x/semana
           </div>
         </Card>
 
@@ -72,6 +75,7 @@ interface WorkoutSummary {
 
 const supabase = useSupabaseClient()
 const session = useSupabaseSession()
+const { goal: weeklyGoal, fetchGoal } = useWeeklyGoal()
 
 const workouts = ref<WorkoutSummary[]>([])
 const loading = ref(true)
@@ -111,28 +115,45 @@ const latestWorkoutIdByDate = computed(() => {
   return map
 })
 
-// Streak: dias consecutivos com treino contando regressivamente a partir de hoje
+// Retorna chave ISO da semana: "YYYY-Www"
+function getISOWeekKey(dateStr: string): string {
+  const d = new Date(`${dateStr}T12:00:00`)
+  const day = d.getDay() || 7 // 1=seg…7=dom
+  d.setDate(d.getDate() + 4 - day) // ancora na quinta-feira ISO
+  const year = d.getFullYear()
+  const jan1 = new Date(year, 0, 1)
+  const week = Math.ceil(((d.getTime() - jan1.getTime()) / 86400000 + 1) / 7)
+  return `${year}-W${String(week).padStart(2, '0')}`
+}
+
+// Streak: semanas consecutivas passadas em que o usuário atingiu a meta
 const currentStreak = computed(() => {
   if (!workouts.value.length)
     return 0
 
-  const workoutDates = new Set(workouts.value.map(w => w.date))
+  // Conta treinos por semana ISO
+  const weekMap = new Map<string, number>()
+  for (const w of workouts.value) {
+    const key = getISOWeekKey(w.date)
+    weekMap.set(key, (weekMap.get(key) ?? 0) + 1)
+  }
 
-  const todayStr = getTodayString()
+  const todayWeekKey = getISOWeekKey(getTodayString())
   let streak = 0
   const cursor = new Date()
 
-  // Se não treinou hoje, começa checando ontem
-  if (!workoutDates.has(todayStr)) {
-    cursor.setDate(cursor.getDate() - 1)
-  }
+  // Começa pela semana anterior (semana atual está em progresso)
+  cursor.setDate(cursor.getDate() - 7)
 
   while (true) {
-    const dateStr = toDateString(cursor)
-    if (!workoutDates.has(dateStr))
+    const key = getISOWeekKey(toDateString(cursor))
+    if (key === todayWeekKey)
+      break
+    const count = weekMap.get(key) ?? 0
+    if (count < weeklyGoal.value)
       break
     streak++
-    cursor.setDate(cursor.getDate() - 1)
+    cursor.setDate(cursor.getDate() - 7)
   }
 
   return streak
@@ -161,5 +182,12 @@ function toDateString(date: Date): string {
 
 const showReportModal = ref(false)
 
-onMounted(fetchWorkouts)
+onMounted(async () => {
+  if (session.value?.user) {
+    await Promise.all([
+      fetchWorkouts(),
+      fetchGoal(session.value.user.id),
+    ])
+  }
+})
 </script>
