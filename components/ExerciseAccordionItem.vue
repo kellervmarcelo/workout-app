@@ -66,21 +66,21 @@
                 />
                 <Input
                   v-else
-                  :model-value="String(set.reps)"
+                  v-model="localReps[set.id]"
                   type="number"
                   min="1"
                   class="h-9 text-center text-sm font-mono"
-                  @update:model-value="emit('updateSet', set.id, 'reps', Number($event))"
+                  @change="emit('updateSet', set.id, 'reps', Number(localReps[set.id]))"
                 />
               </td>
               <td class="py-3 px-1">
                 <Input
-                  :model-value="String(set.weight_kg)"
+                  v-model="localWeights[set.id]"
                   type="number"
                   step="0.5"
                   min="0"
                   class="h-9 text-center text-sm font-mono"
-                  @update:model-value="emit('updateSet', set.id, 'weight_kg', Number($event))"
+                  @change="emit('updateSet', set.id, 'weight_kg', Number(localWeights[set.id]))"
                 />
               </td>
             </tr>
@@ -137,6 +137,18 @@ const emit = defineEmits<{
 
 const swipeRef = ref<{ close: () => void } | null>(null)
 const collapsibleRef = ref<{ close: () => void } | null>(null)
+
+const localWeights = reactive<Record<string, string>>({})
+const localReps = reactive<Record<string, string>>({})
+
+watch(() => props.exercise.sets, (sets) => {
+  sets?.forEach((set) => {
+    if (localWeights[set.id] === undefined)
+      localWeights[set.id] = String(set.weight_kg)
+    if (localReps[set.id] === undefined)
+      localReps[set.id] = String(set.reps)
+  })
+}, { immediate: true })
 
 const completedCount = computed(() =>
   (props.exercise.sets || []).filter(s => s.completed).length,
