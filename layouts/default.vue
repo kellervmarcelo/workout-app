@@ -120,18 +120,16 @@ const supabase = useSupabaseClient()
 const sessionUser = ref<Session | null>(null)
 const user = ref<User | null>(null)
 
-onMounted(async () => {
-  const { data } = await supabase.auth.getSession()
-  sessionUser.value = data.session
-
-  supabase.auth.onAuthStateChange((_event, session) => {
+onMounted(() => {
+  supabase.auth.onAuthStateChange(async (_event, session) => {
     sessionUser.value = session
-    user.value = session?.user ? buildUser(session.user, null) : null
+    if (session?.user) {
+      await loadProfile()
+    }
+    else {
+      user.value = null
+    }
   })
-
-  if (data.session) {
-    await loadProfile()
-  }
 })
 
 async function loadProfile() {
