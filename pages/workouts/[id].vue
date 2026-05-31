@@ -1,5 +1,5 @@
 <template>
-  <div v-if="workout" class="space-y-5 md:space-y-8 px-3 md:px-0">
+  <div v-if="workout" :key="pageRenderKey" class="space-y-5 md:space-y-8 px-3 md:px-0">
     <!-- Header -->
     <div class="space-y-4 md:space-y-6">
       <div class="flex items-center justify-between">
@@ -35,6 +35,20 @@
       <h1 class="text-xl font-bold tracking-tight md:text-3xl">
         {{ workout.name }}
       </h1>
+
+      <div
+        v-if="saveError"
+        class="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
+      >
+        {{ saveError }}
+      </div>
+
+      <div
+        v-else-if="isRecoveringAfterResume"
+        class="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-primary"
+      >
+        Recarregando o treino depois que o app voltou para o foco...
+      </div>
 
       <!-- Completion Banner -->
       <div v-if="workout.completed_at" class="space-y-0">
@@ -346,6 +360,7 @@
 
 <script setup lang="ts">
 import type { ExerciseLibraryItem, ExerciseWithSets, WorkoutSet } from '~/types'
+import { createWorkoutResumeController, updateWorkoutSetLocally } from '~/lib/workout-page-state'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -374,6 +389,12 @@ const { sharing, shareCardData, generateAndShare } = useShareCard()
 const accordionRefs = ref<Record<string, any>>({})
 const showTimerModal = ref(false)
 const timerRestSeconds = ref(60)
+const pageRenderKey = ref(0)
+const saveError = ref('')
+const isRecoveringAfterResume = ref(false)
+
+const resumeController = createWorkoutResumeController()
+let removeResumeListeners: Array<() => void> = []
 
 const existingExerciseNames = computed(() => {
   return workout.value?.exercises?.map(e => e.name.toLowerCase()) || []
@@ -382,8 +403,15 @@ const existingExerciseNames = computed(() => {
 const workoutTotalVolume = computed(() => totalVolume(workout.value?.exercises || []))
 const workoutTotalSets = computed(() => totalSets(workout.value?.exercises || []))
 
-async function fetchWorkout() {
-  loading.value = true
+function handleWorkoutActionError(message: string, error: any) {
+  saveError.value = error?.message || message
+  console.error(message, error)
+}
+
+async function fetchWorkout(options: { silent?: boolean } = {}) {
+  if (!options.silent)
+    loading.value = true
+
   try {
     const { data, error } = await supabase
       .from('workouts')
@@ -402,11 +430,68 @@ async function fetchWorkout() {
     workout.value = data
   }
   catch (error: any) {
-    console.error('Erro ao buscar treino:', error)
+    handleWorkoutActionError('Erro ao buscar treino:', error)
   }
   finally {
-    loading.value = false
+    if (!options.silent)
+      loading.value = false
   }
+}
+
+async function recoverWorkoutPage(_reason: 'focus' | 'pageshow' | 'visibilitychange') {
+  if (isRecoveringAfterResume.value)
+    return
+
+  isRecoveringAfterResume.value = true
+  saveError.value = ''
+
+  showExercisePicker.value = false
+  showExerciseForm.value = false
+  showFinishModal.value = false
+  showMoreMenu.value = false
+  showTemplateSelector.value = false
+  showTimerModal.value = false
+  accordionRefs.value = {}
+  pageRenderKey.value += 1
+
+  await nextTick()
+  await fetchWorkout({ silent: true })
+
+  isRecoveringAfterResume.value = false
+}
+
+function registerResumeListeners() {
+  const onVisibilityChange = () => {
+    const shouldRecover = resumeController.onVisibilityChange(document.visibilityState === 'hidden')
+
+    if (shouldRecover)
+      void recoverWorkoutPage('visibilitychange')
+  }
+
+  const onFocus = () => {
+    const isVisible = document.visibilityState !== 'hidden'
+    const shouldRecover = resumeController.onFocus(Date.now(), isVisible)
+
+    if (shouldRecover)
+      void recoverWorkoutPage('focus')
+  }
+
+  const onPageShow = () => {
+    const shouldRecover = resumeController.onPageShow()
+
+    if (shouldRecover)
+      void recoverWorkoutPage('pageshow')
+  }
+
+  document.addEventListener('visibilitychange', onVisibilityChange)
+  window.addEventListener('focus', onFocus)
+  window.addEventListener('pageshow', onPageShow)
+
+  removeResumeListeners = [
+    () => document.removeEventListener('visibilitychange', onVisibilityChange),
+    () => window.removeEventListener('focus', onFocus),
+    () => window.removeEventListener('pageshow', onPageShow),
+  ]
 }
 
 async function loadTemplate(templateId: string) {
@@ -470,10 +555,11 @@ async function loadTemplate(templateId: string) {
     }
 
     showTemplateSelector.value = false
+    saveError.value = ''
     await fetchWorkout()
   }
   catch (error: any) {
-    console.error('Erro ao carregar template:', error)
+    handleWorkoutActionError('Erro ao carregar template:', error)
   }
 }
 
@@ -498,10 +584,11 @@ async function addExerciseFromLibrary(exercise: ExerciseLibraryItem) {
       throw error
 
     showExercisePicker.value = false
+    saveError.value = ''
     await fetchWorkout()
   }
   catch (error: any) {
-    console.error('Erro ao adicionar exercício:', error)
+    handleWorkoutActionError('Erro ao adicionar exercício:', error)
   }
 }
 
@@ -534,10 +621,11 @@ async function addExercise() {
     newExerciseName.value = ''
     newExerciseType.value = 'reps'
     showExerciseForm.value = false
+    saveError.value = ''
     await fetchWorkout()
   }
   catch (error: any) {
-    console.error('Erro ao adicionar exercício:', error)
+    handleWorkoutActionError('Erro ao adicionar exercício:', error)
   }
 }
 
@@ -567,10 +655,11 @@ async function addSet(exerciseId: string) {
 
     if (error)
       throw error
+    saveError.value = ''
     await fetchWorkout()
   }
   catch (error: any) {
-    console.error('Erro ao adicionar série:', error)
+    handleWorkoutActionError('Erro ao adicionar série:', error)
   }
 }
 
@@ -584,10 +673,12 @@ async function updateSet(setId: string, field: keyof WorkoutSet, value: number) 
     if (error)
       throw error
 
+    updateWorkoutSetLocally(workout.value, setId, { [field]: value })
+    saveError.value = ''
     await syncSetToTemplate(setId, field, value)
   }
   catch (error: any) {
-    console.error('Erro ao atualizar série:', error)
+    handleWorkoutActionError('Erro ao atualizar série:', error)
   }
 }
 
@@ -632,11 +723,7 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
     if (error)
       throw error
 
-    const set = workout.value?.exercises
-      ?.flatMap(e => e.sets || [])
-      .find(s => s.id === setId)
-    if (set)
-      set.completed = newCompleted
+    updateWorkoutSetLocally(workout.value, setId, { completed: newCompleted })
 
     if (newCompleted && workout.value && !workout.value.started_at) {
       const startedAt = new Date().toISOString()
@@ -649,6 +736,7 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
     }
 
     await checkWorkoutCompletion()
+    saveError.value = ''
 
     if (newCompleted && workout.value?.exercises) {
       for (const exercise of workout.value.exercises) {
@@ -660,7 +748,7 @@ async function toggleSetComplete(setId: string, currentCompleted: boolean | unde
     }
   }
   catch (error: any) {
-    console.error('Erro ao atualizar série:', error)
+    handleWorkoutActionError('Erro ao atualizar série:', error)
   }
 }
 
@@ -695,13 +783,14 @@ async function toggleAllSets(exerciseId: string, sets: WorkoutSet[]) {
     }
 
     await checkWorkoutCompletion()
+    saveError.value = ''
 
     if (newCompleted) {
       accordionRefs.value[exerciseId]?.collapseAccordion()
     }
   }
   catch (error: any) {
-    console.error('Erro ao atualizar séries:', error)
+    handleWorkoutActionError('Erro ao atualizar séries:', error)
   }
 }
 
@@ -767,12 +856,22 @@ async function deleteExercise(exerciseId: string) {
     const { error } = await supabase.from('exercises').delete().eq('id', exerciseId)
     if (error)
       throw error
+    saveError.value = ''
     await fetchWorkout()
   }
   catch (error: any) {
-    console.error('Erro ao deletar exercício:', error)
+    handleWorkoutActionError('Erro ao deletar exercício:', error)
   }
 }
 
-onMounted(fetchWorkout)
+onMounted(async () => {
+  registerResumeListeners()
+  await fetchWorkout()
+})
+
+onBeforeUnmount(() => {
+  for (const removeListener of removeResumeListeners)
+    removeListener()
+  removeResumeListeners = []
+})
 </script>
