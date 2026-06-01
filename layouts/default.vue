@@ -115,10 +115,22 @@
 <script setup lang="ts">
 import type { User as AuthUser, Session } from '@supabase/supabase-js'
 import type { User } from '~/types'
+import { clearGlobalUiSideEffects, createForegroundRecoveryController } from '~/lib/foreground-recovery'
 
 const supabase = useSupabaseClient()
 const sessionUser = ref<Session | null>(null)
 const user = ref<User | null>(null)
+const foregroundRecoveryTick = useState<number>('foreground-recovery-tick', () => 0)
+const foregroundRecoveryReason = useState<'visibilitychange' | 'focus' | 'pageshow' | null>('foreground-recovery-reason', () => null)
+const foregroundRecoveryController = createForegroundRecoveryController()
+let removeForegroundRecoveryListeners: Array<() => void> = []
+
+function triggerForegroundRecovery(reason: 'visibilitychange' | 'focus' | 'pageshow') {
+  clearGlobalUiSideEffects(document)
+
+  foregroundRecoveryReason.value = reason
+  foregroundRecoveryTick.value += 1
+}
 
 onMounted(async () => {
   const { data } = await supabase.auth.getSession()
@@ -132,6 +144,43 @@ onMounted(async () => {
   if (data.session) {
     await loadProfile()
   }
+
+  const onVisibilityChange = () => {
+    const shouldRecover = foregroundRecoveryController.onVisibilityChange(document.visibilityState === 'hidden')
+
+    if (shouldRecover)
+      triggerForegroundRecovery('visibilitychange')
+  }
+
+  const onFocus = () => {
+    const shouldRecover = foregroundRecoveryController.onFocus(Date.now(), document.visibilityState !== 'hidden')
+
+    if (shouldRecover)
+      triggerForegroundRecovery('focus')
+  }
+
+  const onPageShow = () => {
+    const shouldRecover = foregroundRecoveryController.onPageShow()
+
+    if (shouldRecover)
+      triggerForegroundRecovery('pageshow')
+  }
+
+  document.addEventListener('visibilitychange', onVisibilityChange)
+  window.addEventListener('focus', onFocus)
+  window.addEventListener('pageshow', onPageShow)
+
+  removeForegroundRecoveryListeners = [
+    () => document.removeEventListener('visibilitychange', onVisibilityChange),
+    () => window.removeEventListener('focus', onFocus),
+    () => window.removeEventListener('pageshow', onPageShow),
+  ]
+})
+
+onBeforeUnmount(() => {
+  for (const removeListener of removeForegroundRecoveryListeners)
+    removeListener()
+  removeForegroundRecoveryListeners = []
 })
 
 async function loadProfile() {
