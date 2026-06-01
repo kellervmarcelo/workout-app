@@ -321,7 +321,13 @@
   </div>
 
   <!-- Finish Workout Confirmation Modal -->
-  <div v-if="showFinishModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="showFinishModal = false">
+  <div
+    v-if="showFinishModal"
+    data-transient-overlay="true"
+    data-overlay-kind="workout-finish-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+    @click.self="showFinishModal = false"
+  >
     <Card class="w-full max-w-sm p-6 space-y-4">
       <h3 class="text-lg font-semibold">
         Finalizar treino?
@@ -341,7 +347,13 @@
   </div>
 
   <!-- Rest Timer Modal -->
-  <div v-if="showTimerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="showTimerModal = false">
+  <div
+    v-if="showTimerModal"
+    data-transient-overlay="true"
+    data-overlay-kind="workout-timer-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    @click.self="showTimerModal = false"
+  >
     <Card class="w-full max-w-md mx-4 p-6 md:p-8">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">
@@ -359,8 +371,10 @@
 </template>
 
 <script setup lang="ts">
+import type { ForegroundRecoveryReason } from '~/lib/foreground-recovery'
 import type { ExerciseLibraryItem, ExerciseWithSets, WorkoutSet } from '~/types'
-import { createWorkoutResumeController, updateWorkoutSetLocally } from '~/lib/workout-page-state'
+import { clearGlobalUiSideEffects } from '~/lib/foreground-recovery'
+import { updateWorkoutSetLocally } from '~/lib/workout-page-state'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -392,9 +406,8 @@ const timerRestSeconds = ref(60)
 const pageRenderKey = ref(0)
 const saveError = ref('')
 const isRecoveringAfterResume = ref(false)
-
-const resumeController = createWorkoutResumeController()
-let removeResumeListeners: Array<() => void> = []
+const foregroundRecoveryTick = useState<number>('foreground-recovery-tick', () => 0)
+const foregroundRecoveryReason = useState<ForegroundRecoveryReason | null>('foreground-recovery-reason', () => null)
 
 const existingExerciseNames = computed(() => {
   return workout.value?.exercises?.map(e => e.name.toLowerCase()) || []
@@ -438,13 +451,7 @@ async function fetchWorkout(options: { silent?: boolean } = {}) {
   }
 }
 
-async function recoverWorkoutPage(_reason: 'focus' | 'pageshow' | 'visibilitychange') {
-  if (isRecoveringAfterResume.value)
-    return
-
-  isRecoveringAfterResume.value = true
-  saveError.value = ''
-
+function resetTransientWorkoutUi() {
   showExercisePicker.value = false
   showExerciseForm.value = false
   showFinishModal.value = false
@@ -452,46 +459,25 @@ async function recoverWorkoutPage(_reason: 'focus' | 'pageshow' | 'visibilitycha
   showTemplateSelector.value = false
   showTimerModal.value = false
   accordionRefs.value = {}
+}
+
+async function recoverWorkoutPage(_reason: ForegroundRecoveryReason) {
+  if (isRecoveringAfterResume.value)
+    return
+
+  isRecoveringAfterResume.value = true
+  saveError.value = ''
+  clearGlobalUiSideEffects(document)
+  resetTransientWorkoutUi()
   pageRenderKey.value += 1
 
   await nextTick()
-  await fetchWorkout({ silent: true })
-
-  isRecoveringAfterResume.value = false
-}
-
-function registerResumeListeners() {
-  const onVisibilityChange = () => {
-    const shouldRecover = resumeController.onVisibilityChange(document.visibilityState === 'hidden')
-
-    if (shouldRecover)
-      void recoverWorkoutPage('visibilitychange')
+  try {
+    await fetchWorkout({ silent: true })
   }
-
-  const onFocus = () => {
-    const isVisible = document.visibilityState !== 'hidden'
-    const shouldRecover = resumeController.onFocus(Date.now(), isVisible)
-
-    if (shouldRecover)
-      void recoverWorkoutPage('focus')
+  finally {
+    isRecoveringAfterResume.value = false
   }
-
-  const onPageShow = () => {
-    const shouldRecover = resumeController.onPageShow()
-
-    if (shouldRecover)
-      void recoverWorkoutPage('pageshow')
-  }
-
-  document.addEventListener('visibilitychange', onVisibilityChange)
-  window.addEventListener('focus', onFocus)
-  window.addEventListener('pageshow', onPageShow)
-
-  removeResumeListeners = [
-    () => document.removeEventListener('visibilitychange', onVisibilityChange),
-    () => window.removeEventListener('focus', onFocus),
-    () => window.removeEventListener('pageshow', onPageShow),
-  ]
 }
 
 async function loadTemplate(templateId: string) {
@@ -864,14 +850,14 @@ async function deleteExercise(exerciseId: string) {
   }
 }
 
-onMounted(async () => {
-  registerResumeListeners()
-  await fetchWorkout()
+watch(foregroundRecoveryTick, (tick, previousTick) => {
+  if (tick === previousTick)
+    return
+
+  void recoverWorkoutPage(foregroundRecoveryReason.value ?? 'focus')
 })
 
-onBeforeUnmount(() => {
-  for (const removeListener of removeResumeListeners)
-    removeListener()
-  removeResumeListeners = []
+onMounted(async () => {
+  await fetchWorkout()
 })
 </script>

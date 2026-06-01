@@ -3,6 +3,8 @@
     <Transition name="drawer">
       <div
         v-if="props.open"
+        data-transient-overlay="true"
+        data-overlay-kind="exercise-picker-drawer"
         class="fixed inset-0 z-50 flex items-end md:items-center justify-center"
       >
         <!-- Overlay -->
@@ -205,6 +207,7 @@ const { searchQuery, selectedGroup, filteredExercises, setGroup, resetFilters }
   = useExerciseLibrary()
 
 const overlayRef = ref<HTMLDivElement>()
+const previousBodyOverflow = ref('')
 
 function isAdded(exerciseName: string) {
   return props.addedExerciseNames.includes(exerciseName.toLowerCase())
@@ -237,17 +240,24 @@ onKeyStroke('Escape', (e) => {
 watch(
   () => props.open,
   (isOpen) => {
+    if (typeof document === 'undefined')
+      return
+
     if (isOpen) {
+      previousBodyOverflow.value = document.body.style.overflow
       document.body.style.overflow = 'hidden'
     }
     else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = previousBodyOverflow.value
     }
   },
 )
 
 onUnmounted(() => {
-  document.body.style.overflow = ''
+  if (typeof document === 'undefined')
+    return
+
+  document.body.style.overflow = previousBodyOverflow.value
 })
 </script>
 
