@@ -100,6 +100,57 @@
         </div>
       </Card>
 
+      <!-- Weekly Goal Section -->
+      <Card class="p-4 md:p-6">
+        <h2 class="text-base font-semibold mb-4 md:text-lg">
+          Frequência Semanal
+        </h2>
+        <div class="space-y-4">
+          <p class="text-sm text-muted-foreground">
+            Quantos dias por semana você pretende treinar?
+          </p>
+          <div class="flex items-center gap-4">
+            <button
+              type="button"
+              class="w-10 h-10 rounded-full border border-input flex items-center justify-center text-lg font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              :disabled="pendingGoal <= 1"
+              @click="pendingGoal = Math.max(1, pendingGoal - 1)"
+            >
+              −
+            </button>
+            <span class="text-2xl font-bold w-8 text-center">{{ pendingGoal }}</span>
+            <button
+              type="button"
+              class="w-10 h-10 rounded-full border border-input flex items-center justify-center text-lg font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              :disabled="pendingGoal >= 7"
+              @click="pendingGoal = Math.min(7, pendingGoal + 1)"
+            >
+              +
+            </button>
+            <span class="text-sm text-muted-foreground">{{ pendingGoal === 1 ? 'dia por semana' : 'dias por semana' }}</span>
+          </div>
+          <div class="flex gap-2 justify-end">
+            <Button
+              type="button"
+              :disabled="savingGoal || pendingGoal === weeklyGoal"
+              @click="updateWeeklyGoal"
+            >
+              <svg v-if="savingGoal" class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              {{ savingGoal ? 'Salvando...' : 'Salvar' }}
+            </Button>
+          </div>
+          <p v-if="goalSuccess" class="text-sm text-green-600 dark:text-green-400">
+            Meta atualizada com sucesso!
+          </p>
+          <p v-if="goalError" class="text-sm text-destructive">
+            {{ goalError }}
+          </p>
+        </div>
+      </Card>
+
       <!-- Change Password Section -->
       <Card class="p-4 md:p-6">
         <h2 class="text-base font-semibold mb-4 md:text-lg">
@@ -213,6 +264,7 @@ useHead({ title: 'YAFA — Perfil' })
 
 const supabase = useSupabaseClient()
 const { session } = useAuth()
+const { goal: weeklyGoal, saveGoal } = useWeeklyGoal()
 
 // Profile data
 const loading = ref(true)
@@ -224,6 +276,12 @@ const avatarUrl = ref('')
 const savingName = ref(false)
 const nameSuccess = ref(false)
 const nameError = ref('')
+
+// Weekly goal form
+const pendingGoal = ref(3)
+const savingGoal = ref(false)
+const goalSuccess = ref(false)
+const goalError = ref('')
 
 // Password form
 const newPassword = ref('')
@@ -267,7 +325,7 @@ async function loadProfile() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, avatar_url')
+      .select('display_name, avatar_url, weekly_workout_goal')
       .eq('id', session.value.user.id)
       .single()
 
@@ -276,12 +334,38 @@ async function loadProfile() {
 
     displayName.value = data.display_name || ''
     avatarUrl.value = data.avatar_url || ''
+    weeklyGoal.value = data.weekly_workout_goal ?? 3
+    pendingGoal.value = weeklyGoal.value
   }
   catch (err: any) {
     console.error('Erro ao carregar perfil:', err)
   }
   finally {
     loading.value = false
+  }
+}
+
+async function updateWeeklyGoal() {
+  if (!session.value?.user)
+    return
+
+  savingGoal.value = true
+  goalSuccess.value = false
+  goalError.value = ''
+
+  try {
+    await saveGoal(session.value.user.id, pendingGoal.value)
+    goalSuccess.value = true
+    setTimeout(() => {
+      goalSuccess.value = false
+    }, 3000)
+  }
+  catch (err: any) {
+    console.error('Erro ao atualizar meta:', err)
+    goalError.value = err.message || 'Erro ao salvar meta'
+  }
+  finally {
+    savingGoal.value = false
   }
 }
 
